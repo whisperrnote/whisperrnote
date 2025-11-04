@@ -8,7 +8,7 @@ import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import rehypeSanitize from 'rehype-sanitize';
 import { ClockIcon, EyeIcon, TagIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
-import { DocumentDuplicateIcon } from '@heroicons/react/24/solid';
+import { CheckIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '@/components/ui/AuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import Image from 'next/image';
@@ -92,6 +92,13 @@ function SharedNoteHeader() {
 
 export default function SharedNoteClient({ note }: SharedNoteClientProps) {
   const { isAuthenticated, isLoading } = useAuth();
+  const [isCopied, setIsCopied] = React.useState(false);
+
+  const handleCopyContent = () => {
+    navigator.clipboard.writeText(note.content || '');
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   if (isLoading) {
     return (
@@ -135,13 +142,21 @@ export default function SharedNoteClient({ note }: SharedNoteClientProps) {
 
             <div className="relative p-8 bg-background/70 dark:bg-dark-bg/40 rounded-xl">
               <button
-                onClick={() => {
-                  navigator.clipboard.writeText(note.content || '');
-                }}
-                className="absolute top-4 right-4 p-2 rounded-lg bg-background dark:bg-dark-card border border-border hover:bg-card dark:hover:bg-dark-card/80 transition-all duration-200 group"
-                title="Copy content"
+                onClick={handleCopyContent}
+                className={`absolute top-4 right-4 p-2 rounded-lg border transition-all duration-200 group ${
+                  isCopied
+                    ? 'bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700'
+                    : 'bg-background dark:bg-dark-card border-border hover:bg-card dark:hover:bg-dark-card/80'
+                }`}
+                title={isCopied ? 'Copied!' : 'Copy content'}
               >
-                <DocumentDuplicateIcon className="h-5 w-5 text-foreground group-hover:text-accent transition-colors" />
+                {isCopied ? (
+                  <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 transition-colors" />
+                ) : (
+                  <svg className="h-5 w-5 text-foreground group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                )}
               </button>
               <div className="prose prose-lg max-w-none dark:prose-invert text-foreground dark:text-dark-fg [&>*]:leading-relaxed [&>p]:mb-6 [&>h1]:mb-8 [&>h1]:mt-8 [&>h2]:mb-6 [&>h2]:mt-7 [&>h3]:mb-4 [&>h3]:mt-6 [&>ul]:mb-6 [&>ol]:mb-6 [&>ol>li]:marker:font-bold [&>blockquote]:mb-6 [&>pre]:mb-6 [&>*:first-child]:mt-0 [&_ol]:list-decimal [&_ul]:list-disc [&_li]:ml-4">
                 {note.content ? (
