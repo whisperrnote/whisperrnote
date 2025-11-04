@@ -10,9 +10,8 @@ import { formatNoteCreatedDate, formatNoteUpdatedDate } from '@/lib/date-utils';
 import { getNoteWithSharing } from '@/lib/appwrite';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 import rehypeSanitize from 'rehype-sanitize';
-import { useToast } from './Toast';
-import { preProcessMarkdown } from '@/lib/markdown';
 import { formatFileSize } from '@/lib/utils';
 import NoteContentDisplay from '@/components/NoteContentDisplay';
 
@@ -296,13 +295,13 @@ export function NoteDetailSidebar({ note, onUpdate, onDelete }: NoteDetailSideba
                   onEditDoodle={() => setIsEditing(true)}
                 />
               ) : (
-                <div className="text-foreground/80 prose prose-sm max-w-none dark:prose-invert">
+                <div className="text-foreground/80 prose prose-lg max-w-none dark:prose-invert [&>*]:leading-relaxed [&>p]:mb-6 [&>h1]:mb-8 [&>h1]:mt-8 [&>h2]:mb-6 [&>h2]:mt-7 [&>h3]:mb-4 [&>h3]:mt-6 [&>ul]:mb-6 [&>ol]:mb-6 [&>ol>li]:marker:font-bold [&>blockquote]:mb-6 [&>pre]:mb-6 [&>*:first-child]:mt-0 [&_ol]:list-decimal [&_ul]:list-disc [&_li]:ml-4">
                   {note.content ? (
                     <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
+                      remarkPlugins={[remarkGfm, remarkBreaks]}
                       rehypePlugins={[rehypeSanitize]}
                     >
-                      {preProcessMarkdown(note.content)}
+                      {note.content}
                     </ReactMarkdown>
                   ) : (
                     <span className="italic text-muted">No content</span>
