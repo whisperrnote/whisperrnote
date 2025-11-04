@@ -249,7 +249,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete }) => {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="flex-1 flex flex-col justify-between min-h-0 overflow-hidden">
+        <CardContent className="flex-1 flex flex-col justify-between min-h-0 overflow-hidden relative">
           {note.format === 'doodle' ? (
             <div className="flex-1 rounded border border-border overflow-hidden">
               <canvas
@@ -280,6 +280,18 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete }) => {
                 </span>
               )}
             </div>
+          )}
+          {noteIsPublic && (
+            <a
+              href={`/shared/${note.$id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="absolute bottom-2 right-2 p-1.5 rounded-lg bg-accent/20 hover:bg-accent/30 transition-colors"
+              title="Open shared note"
+            >
+              <ArrowTopRightOnSquareIcon className="h-4 w-4 text-accent" />
+            </a>
           )}
         </CardContent>
       </Card>
