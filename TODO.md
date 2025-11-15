@@ -1,123 +1,77 @@
-# WhisperRNote Development TODO
+# Security & Performance Fixes - Database Read Spike
 
-## 🔥 Critical Issues & Bug Fixes
+## Critical Issues (Fix First)
 
-### Authentication & Security
-- [x] Fix Appwrite passkey authentication implementation (separated auth vs registration logic in single flow)
-- [x] Implement account deletion functionality (settings danger zone with cascade note deletion + account removal)
-- [x] Add password strength requirements
-- [x] Implement secure password reset flow
+### N+1 Query Problems
+- [ ] Fix getSharedNotes() - Batch user document fetches instead of Promise.all per collaborator
+- [ ] Fix getSharedUsers() - Use single batch query for all user lookups
+- [ ] Fix getAllNotes() - Implement cursor-based streaming to avoid loading all notes to memory
+- [ ] Fix tag hydration in listNotes() - Cache tag mappings per batch, reduce pivot queries
 
-### Data & Performance
-- [x] Optimize large note collection loading performance
-- [ ] Add offline data persistence with conflict resolution
-- [ ] Fix memory leaks in note editor component
-- [ ] Add data export functionality (JSON, Markdown, PDF)
-- [ ] Implement note search performance optimization
+### Public Endpoint Security
+- [ ] Add rate limiting to /shared/[noteid] route (10 requests per minute per IP)
+- [ ] Add rate limiting to /verify endpoint (5 email sends per hour per IP)
+- [ ] Add rate limiting to /reset endpoint (5 resets per hour per IP)
+- [ ] Implement Turnstile CAPTCHA on public routes
 
-### UI/UX Critical Fixes
-- [x] Fix mobile responsiveness issues in note editor
-- [ ] Resolve dark mode inconsistencies across components
-- [ ] Add proper loading states for all async operations
-- [ ] Implement better mobile navigation patterns
-- [ ] Add smooth transitions and micro-interactions
+### Session Polling Abuse
+- [ ] Replace 5-minute interval polling with event-based session invalidation
+- [ ] Add exponential backoff to getCurrentUser() calls (don't poll if no activity)
+- [ ] Limit refreshUser() calls to max 1 per minute per user
+- [ ] Remove automatic refresh on visibility/online events (manual user action only)
 
-## 🚀 High Priority Features
+## High Priority Issues
 
-### Core Features
-- [ ] Rich text editor with formatting options
-- [ ] Advanced search with filters and sorting
-- [ ] Note templates and quick actions
-- [ ] Bulk operations (delete, tag, export multiple notes)
-- [ ] Note linking and backlinking system
-- [ ] Add note categories and organization
+### Database Query Optimization
+- [ ] Add caching for getSharedNotes() results (5-minute TTL)
+- [ ] Add caching for user profile lookups (10-minute TTL)
+- [ ] Batch collaborator lookups - fetch all user IDs then batch getDocuments()
+- [ ] Implement query result memoization in contexts
+- [ ] Add database indexes on userId, isPublic, noteId columns
 
-### AI Integration Enhancements
-- [ ] Add AI-powered note tagging and categorization
-- [ ] Implement smart note suggestions based on content
-- [ ] Add AI content enhancement and formatting
-- [ ] Create AI-powered search with semantic understanding
+### Attachment Handling
+- [ ] Cache listNoteAttachments() results in request context
+- [ ] Use file metadata from note.attachments instead of querying separately
+- [ ] Add HTTP cache headers to attachment download responses
 
-## 🎨 UI/UX Improvements
+### Public Page Performance
+- [ ] Add middleware caching for validatePublicNoteAccess() (30-second TTL)
+- [ ] Implement metadata caching for public note pages
+- [ ] Move metadata generation to server-side with caching
 
-### User Experience
-- [x] Implement keyboard shortcuts system
-- [ ] Add drag-and-drop functionality for notes
-- [ ] Create advanced search interface
-- [ ] Add note preview functionality
-- [ ] Implement better mobile navigation
-- [ ] Add user onboarding flow
-- [ ] Create customizable dashboard widgets
+### Shared Notes Page
+- [ ] Combine getSharedNotes() + listPublicNotesByUser() into single optimized query
+- [ ] Add loading states to prevent multiple simultaneous requests
+- [ ] Implement request deduplication in useEffect
 
-### Design System
-- [ ] Add more theme options and customization
-- [ ] Implement better color contrast options
-- [ ] Create component library documentation
-- [ ] Add user customization preferences
+## Medium Priority Issues
 
-## 🔧 Technical Improvements
+### In-Memory Rate Limiter
+- [ ] Replace in-memory rate limiter with Redis/persistent storage
+- [ ] Add per-IP rate limiting middleware
+- [ ] Implement sliding window rate limiting for API routes
 
-### Code Quality
-- [ ] Implement TypeScript strict mode fixes
-- [ ] Add ESLint and Prettier configuration improvements
-- [ ] Create automated code quality checks
-- [ ] Add performance monitoring and analytics
-- [ ] Implement proper error logging and monitoring
-- [ ] Add unit test coverage for core components
+### Frontend Optimization
+- [ ] Add request deduplication for duplicate queries
+- [ ] Cache search index in localStorage (Fuse.js)
+- [ ] Implement virtual scrolling for large note lists
+- [ ] Add debouncing to tag hydration queries
 
-### Architecture
-- [ ] Create API layer abstraction
-- [ ] Implement proper caching strategy
-- [ ] Add database query optimization
-- [ ] Create modular component architecture
-- [ ] Implement proper state management patterns
+### Logging & Monitoring
+- [ ] Remove verbose console.log statements from production code
+- [ ] Add structured logging with severity levels
+- [ ] Implement request timing metrics
+- [ ] Add database query counters/alerts
 
-## 🔌 Integrations & Extensions
+### Data Cleanup
+- [ ] Implement soft-delete for notes (flag, not immediate delete)
+- [ ] Add background job to batch delete orphaned notes
+- [ ] Implement data retention policies
 
-### Third-Party Integrations
-- [ ] Google Drive/Dropbox sync
-- [ ] Notion import/export
-- [ ] GitHub integration for code snippets
-- [ ] Calendar integration for scheduled notes
-
-### API Development
-- [ ] Create comprehensive REST API
-- [ ] Add API documentation (OpenAPI/Swagger)
-- [ ] Create SDK for third-party developers
-
-## 📊 Analytics & Monitoring
-
-### User Analytics
-- [ ] Implement user behavior tracking
-- [ ] Add performance metrics dashboard
-- [ ] Create usage analytics for features
-- [ ] Implement user feedback system
-
-### System Monitoring
-- [ ] Add application performance monitoring (APM)
-- [ ] Implement error tracking and alerting
-- [ ] Create system health dashboard
-
----
-
-## 📋 Development Process
-
-### Immediate Next Steps (Week 1-2)
-1. Fix remaining authentication issues
-2. Implement user onboarding flow
-3. Add keyboard shortcuts system
-4. Optimize note loading performance
-
-### Short-term Goals (Month 1)
-1. Launch beta version with core features
-2. Implement user feedback system
-3. Add basic AI features
-4. Complete mobile optimization
-
----
-
-**Priority Legend:**
-- 🔥 Critical (blocks users, security issues)
-- 🚀 High (key features, user experience)
-- 📱 Medium (nice to have, future features)
-- 🎯 Low (experimental, long-term)
+## Implementation Order
+1. Rate limiting on public endpoints (fastest impact)
+2. Session polling fix (prevents active user abuse)
+3. N+1 query fixes (core performance)
+4. Caching layer (long-term sustainability)
+5. Database indexes (query optimization)
+6. Monitoring & alerting (early warning)
