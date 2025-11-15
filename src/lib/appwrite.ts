@@ -2182,9 +2182,6 @@ export default {
   APPWRITE_BUCKET_BACKUPS,
   APPWRITE_BUCKET_TEMP_UPLOADS,
   // Methods
-  signupEmailPassword,
-  loginEmailPassword,
-  logout,
   getCurrentUser,
   sendEmailVerification,
   completeEmailVerification,
