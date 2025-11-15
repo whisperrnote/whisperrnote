@@ -1,5 +1,4 @@
-import { getCurrentUser as getAuthUser } from '@/lib/auth';
-import { getCurrentUser as getAppwriteUser } from '@/lib/appwrite';
+import { getCurrentUser } from '@/lib/appwrite';
 import { Client, Account } from 'appwrite';
 
 export async function requireAdminFromRequest(req: Request): Promise<{ allowed: boolean; reason?: string; user?: any; }> {

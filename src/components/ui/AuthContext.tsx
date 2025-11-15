@@ -1,12 +1,10 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { getCurrentUser, logout as authLogout } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/appwrite';
 import { InitialLoadingScreen } from './InitialLoadingScreen';
 import { EmailVerificationReminder } from './EmailVerificationReminder';
 import { getUser, createUser } from '@/lib/appwrite/user-profile';
-// Removed AuthErrorBoundary to avoid leaking auth errors into UI
-// import { AuthErrorBoundary } from './ErrorBoundary';
 
 interface User {
   $id: string;
@@ -26,10 +24,9 @@ interface AuthContextType {
   recoverSession: () => Promise<boolean>;
   shouldShowEmailVerificationReminder: () => boolean;
   dismissEmailVerificationReminder: () => void;
-  showAuthModal: () => void;
-  hideAuthModal: () => void;
-  hideAuthModalAndRedirect: () => void;
-  authModalOpen: boolean;
+  openIDMWindow: () => void;
+  closeIDMWindow: () => void;
+  idmWindowOpen: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,8 +39,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showInitialLoading, setShowInitialLoading] = useState(true);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [idmWindowOpen, setIDMWindowOpen] = useState(false);
   const [emailVerificationReminderDismissed, setEmailVerificationReminderDismissed] = useState(false);
+  const [idmWindowRef, setIDMWindowRef] = useState<Window | null>(null);
 
   const refreshUser = async (isRetry = false) => {
     try {
@@ -108,8 +106,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (!currentUser && user) {
             console.warn('Session expired, clearing authentication state');
             setUser(null);
-            // Optionally show auth modal
-            setAuthModalOpen(true);
+            // Open IDM window to re-authenticate
+            setIDMWindowOpen(true);
           } else if (currentUser && currentUser.$id !== user.$id) {
             // User changed (edge case), update state
             setUser(currentUser);
@@ -153,11 +151,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      await authLogout();
-      // Additional cleanup for wallet connections
-      if (typeof window !== 'undefined' && (window as any).ethereum) {
-        // Note: We don't disconnect wallet here as that would be disruptive to user
-        // The wallet connection state is managed by the wallet provider
+      // Delete the current session
+      const { account } = await import('@/lib/appwrite');
+      await account.deleteSession('current');
+
+      // Clear any local storage related to authentication
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('user_cache');
+        sessionStorage.removeItem('auth_temp_data');
       }
     } catch (error) {
       console.error('Logout failed:', error);
@@ -165,7 +166,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Always clear local user state regardless of logout success
       setUser(null);
       // Clear any temporary auth state
-      setAuthModalOpen(false);
+      setIDMWindowOpen(false);
     }
   };
 
@@ -183,12 +184,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return true;
       } else {
         console.log('Session recovery failed, user needs to re-authenticate');
-        setAuthModalOpen(true);
+        setIDMWindowOpen(true);
         return false;
       }
     } catch (error) {
       console.error('Session recovery failed:', error);
-      setAuthModalOpen(true);
+      setIDMWindowOpen(true);
       return false;
     } finally {
       setIsLoading(false);
@@ -216,21 +217,73 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const showAuthModal = useCallback(() => {
-    setAuthModalOpen(true);
-  }, []);
+  // Opens IDM window for authentication
+  const openIDMWindow = useCallback(() => {
+    // First check if user already has a valid session
+    refreshUser().then(() => {
+      const currentUser = user;
+      if (currentUser) {
+        console.log('User already authenticated, skipping IDM window');
+        setIDMWindowOpen(false);
+        return;
+      }
 
-  const hideAuthModal = useCallback(() => {
-    setAuthModalOpen(false);
-  }, []);
+      // Get IDM configuration from environment
+      const authSubdomain = process.env.NEXT_PUBLIC_AUTH_SUBDOMAIN;
+      const domain = process.env.NEXT_PUBLIC_DOMAIN;
 
-  const hideAuthModalAndRedirect = useCallback(() => {
-    setAuthModalOpen(false);
-    // Small delay to ensure modal closes before navigation
-    setTimeout(() => {
-      window.location.href = '/';
-    }, 100);
-  }, []);
+      if (!authSubdomain || !domain) {
+        console.error('IDM configuration missing: AUTH_SUBDOMAIN or DOMAIN not set');
+        return;
+      }
+
+      const idmUrl = `https://${authSubdomain}.${domain}`;
+      const width = 400;
+      const height = 600;
+      const left = window.screenX + (window.outerWidth - width) / 2;
+      const top = window.screenY + (window.outerHeight - height) / 2;
+
+      const windowRef = window.open(
+        idmUrl,
+        'WhisperrNoteIDM',
+        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+      );
+
+      setIDMWindowRef(windowRef);
+      setIDMWindowOpen(true);
+
+      // Poll for session changes
+      if (windowRef) {
+        const pollInterval = setInterval(async () => {
+          try {
+            const currentUser = await getCurrentUser();
+            if (currentUser && !user) {
+              console.log('IDM authentication successful');
+              setUser(currentUser);
+              setIDMWindowOpen(false);
+              windowRef.close();
+              clearInterval(pollInterval);
+            } else if (windowRef.closed) {
+              clearInterval(pollInterval);
+              setIDMWindowOpen(false);
+            }
+          } catch (error) {
+            console.error('Error checking session:', error);
+          }
+        }, 1000); // Check every second
+
+        // Clear interval after 10 minutes (safety timeout)
+        setTimeout(() => clearInterval(pollInterval), 10 * 60 * 1000);
+      }
+    });
+  }, [user]);
+
+  const closeIDMWindow = useCallback(() => {
+    if (idmWindowRef && !idmWindowRef.closed) {
+      idmWindowRef.close();
+    }
+    setIDMWindowOpen(false);
+  }, [idmWindowRef]);
 
   const value = {
     user,
@@ -242,10 +295,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     recoverSession,
     shouldShowEmailVerificationReminder,
     dismissEmailVerificationReminder,
-    showAuthModal,
-    hideAuthModal,
-    hideAuthModalAndRedirect,
-    authModalOpen,
+    openIDMWindow,
+    closeIDMWindow,
+    idmWindowOpen,
   };
 
   return (

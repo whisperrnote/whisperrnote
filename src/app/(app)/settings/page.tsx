@@ -8,38 +8,12 @@ import { useAuth } from "@/components/ui/AuthContext";
 import { useSubscription } from "@/components/ui/SubscriptionContext";
 import AIModeSelect from "@/components/AIModeSelect";
 import { AIMode, getAIModeDisplayName, getAIModeDescription } from "@/types/ai";
-import { getUserProfilePicId, getUserWalletAddress, getUserField, getUserIdentities, hasWalletConnected } from '@/lib/utils';
-import { listPasskeys } from '@/lib/passkey-client-utils';
-import { usePasskeyManagement } from '@/hooks/usePasskeyManagement';
+import { getUserProfilePicId } from '@/lib/utils';
 import { getMFAStatus, createTOTPFactor, verifyTOTPFactor, deleteTOTPFactor, createEmailMFAFactor, deleteEmailMFAFactor } from '@/lib/mfa';
 import { MFASettingsModal } from '@/components/ui/MFASettingsModal';
 import { SubscriptionTab } from "./SubscriptionTab";
 
-type TabType = 'profile' | 'settings' | 'preferences' | 'integrations' | 'subscription';
-
-interface AuthMethods {
-  passkeys: Array<{
-    credentialId: string;
-    publicKey: string;
-    counter: number;
-    transports?: string[];
-    name?: string;
-    createdAt?: number;
-    lastUsedAt?: number | null;
-    status?: 'active' | 'disabled' | 'compromised';
-  }>;
-  walletConnected: boolean | string;
-  googleIdentity: boolean;
-  githubIdentity: boolean;
-  mfaStatus: {
-    totp: boolean;
-    email: boolean;
-  };
-}
-
-interface EnabledIntegrations {
-  [key: string]: boolean;
-}
+type TabType = 'profile' | 'settings' | 'preferences' | 'subscription';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabType>('settings');
@@ -52,23 +26,13 @@ export default function SettingsPage() {
   const [profilePicUrl, setProfilePicUrl] = useState<string | null>(null);
   const [isRemovingProfilePic, setIsRemovingProfilePic] = useState<boolean>(false);
   const [currentAIMode, setCurrentAIMode] = useState<AIMode>(AIMode.STANDARD);
-  const [authMethods, setAuthMethods] = useState<AuthMethods>({
-    passkeys: [],
-    walletConnected: false,
-    googleIdentity: false,
-    githubIdentity: false,
-    mfaStatus: {
-      totp: false,
-      email: false,
-    }
-  });
-  const [enabledIntegrations, setEnabledIntegrations] = useState<EnabledIntegrations>({});
+  const [mfaStatus, setMfaStatus] = useState({ totp: false, email: false });
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const { userTier } = useSubscription();
   const { openOverlay, closeOverlay } = useOverlay();
   const router = useRouter();
-  const { showAuthModal } = useAuth();
+  const { openIDMWindow } = useAuth();
 
   useEffect(() => {
     const fetchUserAndSettings = async () => {
@@ -100,47 +64,21 @@ export default function SettingsPage() {
           console.error('Failed to load AI mode:', error);
         }
 
-        // Load authentication methods from backend
+        // Load MFA status
         try {
-          const identities = getUserIdentities(u);
-          const walletConnected = hasWalletConnected(u);
-          
-          // Load passkeys
-          let userPasskeys: any[] = [];
-          try {
-            userPasskeys = await listPasskeys(u.email);
-          } catch (err) {
-            console.error('Failed to load passkeys:', err);
-          }
-
-          // Load MFA status
-          const mfaStatus = await getMFAStatus();
-          
-          setAuthMethods({
-            passkeys: userPasskeys,
-            walletConnected,
-            googleIdentity: identities.google,
-            githubIdentity: identities.github,
-            mfaStatus
-          });
-        } catch {
-          console.error('Failed to load auth methods');
-        }
-
-        // Load enabled integrations
-        try {
-          setEnabledIntegrations({});
-        } catch {
-          console.error('Failed to load integrations');
+          const mfa = await getMFAStatus();
+          setMfaStatus(mfa);
+        } catch (error) {
+          console.error('Failed to load MFA status:', error);
         }
       } catch {
-        showAuthModal();
+        openIDMWindow();
       } finally {
         setLoading(false);
       }
     };
     fetchUserAndSettings();
-   }, [router, showAuthModal]);
+   }, [router, openIDMWindow]);
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -411,7 +349,6 @@ export default function SettingsPage() {
              )}
             {activeTab === 'preferences' && <PreferencesTab settings={settings} onSettingChange={handleSettingChange} onUpdate={handleUpdate} error={error} success={success} currentAIMode={currentAIMode} userTier={userTier} onAIModeChange={handleAIModeChange} />}
             {activeTab === 'subscription' && <SubscriptionTab />}
-            {activeTab === 'integrations' && <IntegrationsTab enabledIntegrations={enabledIntegrations} />}
           </div>
         </div>
       </main>
@@ -509,95 +446,11 @@ const SettingsTab = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [deleteSuccess, setDeleteSuccess] = useState('');
-  const [isDisconnectingWallet, setIsDisconnectingWallet] = useState(false);
-  const [passkeyOpsLoading, setPasskeyOpsLoading] = useState(false);
   const [mfaModalOpen, setMfaModalOpen] = useState(false);
   const [mfaModalFactor, setMfaModalFactor] = useState<'totp' | 'email'>('totp');
   const [mfaMFALoading, setMFALoading] = useState(false);
   const [totpSetupData, setTotpSetupData] = useState<any>(null);
-  const [renamingPasskeyId, setRenamingPasskeyId] = useState<string | null>(null);
-  const [newPasskeyName, setNewPasskeyName] = useState('');
 
-  const { renameKey, removePasskey: deletePasskeyOp, disableKey, enableKey, addPasskey } = usePasskeyManagement();
-
-  const walletConnected = getUserWalletAddress(user);
-
-  const handleDisconnectWallet = async () => {
-    setIsDisconnectingWallet(true);
-    try {
-      const currentUser = await account.get();
-      await account.updatePrefs({
-        ...currentUser.prefs,
-        walletEth: undefined
-      });
-      const updatedUser = await account.get();
-      Object.assign(user, updatedUser);
-    } catch (err: any) {
-      console.error('Error disconnecting wallet:', err);
-    } finally {
-      setIsDisconnectingWallet(false);
-    }
-  };
-
-  const handleRenamePasskey = async (credentialId: string) => {
-    if (!newPasskeyName.trim()) return;
-    setPasskeyOpsLoading(true);
-    try {
-      await renameKey(user.email, credentialId, newPasskeyName);
-      setRenamingPasskeyId(null);
-      setNewPasskeyName('');
-      // Reload passkeys
-      const updated = await listPasskeys(user.email);
-      setAuthMethods({ ...authMethods, passkeys: updated });
-    } catch (err) {
-      console.error('Failed to rename passkey:', err);
-    } finally {
-      setPasskeyOpsLoading(false);
-    }
-  };
-
-  const handleDeletePasskey = async (credentialId: string) => {
-    setPasskeyOpsLoading(true);
-    try {
-      await deletePasskeyOp(user.email, credentialId);
-      const updated = await listPasskeys(user.email);
-      setAuthMethods({ ...authMethods, passkeys: updated });
-    } catch (err) {
-      console.error('Failed to delete passkey:', err);
-    } finally {
-      setPasskeyOpsLoading(false);
-    }
-  };
-
-  const handleTogglePasskeyStatus = async (credentialId: string, currentStatus: string) => {
-    setPasskeyOpsLoading(true);
-    try {
-      if (currentStatus === 'active') {
-        await disableKey(user.email, credentialId);
-      } else {
-        await enableKey(user.email, credentialId);
-      }
-      const updated = await listPasskeys(user.email);
-      setAuthMethods({ ...authMethods, passkeys: updated });
-    } catch (err) {
-      console.error('Failed to toggle passkey status:', err);
-    } finally {
-      setPasskeyOpsLoading(false);
-    }
-  };
-
-  const handleAddPasskey = async () => {
-    setPasskeyOpsLoading(true);
-    try {
-      await addPasskey(user.email);
-      const updated = await listPasskeys(user.email);
-      setAuthMethods({ ...authMethods, passkeys: updated });
-    } catch (err) {
-      console.error('Failed to add passkey:', err);
-    } finally {
-      setPasskeyOpsLoading(false);
-    }
-  };
 
   const handleMFAEnable = async (factor: 'totp' | 'email') => {
     setMFALoading(true);
@@ -717,215 +570,6 @@ const SettingsTab = ({
         </p>
       </div>
 
-      {/* Authentication Methods Section */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-foreground">Authentication Methods</h2>
-        
-        {/* Show connected authentication methods */}
-        <div className="p-4 bg-background rounded-xl border border-border">
-          <h3 className="text-sm font-medium text-foreground mb-4">Connected Methods</h3>
-          
-          {/* Wallet */}
-          {walletConnected ? (
-            <div className="p-3 bg-card rounded-lg border border-border mb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Web3 Wallet</p>
-                    <p className="text-xs text-foreground/60">{walletConnected.substring(0, 6)}...{walletConnected.substring(-4)}</p>
-                  </div>
-                </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleDisconnectWallet}
-                  disabled={isDisconnectingWallet}
-                  className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                >
-                  {isDisconnectingWallet ? 'Disconnecting...' : 'Disconnect'}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="p-3 bg-card rounded-lg border border-border mb-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-foreground/60">Web3 Wallet</p>
-                  <p className="text-xs text-foreground/50">Not connected</p>
-                </div>
-                {typeof window !== 'undefined' && (window as any).ethereum && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={onConnectWallet}
-                  >
-                    Connect
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Google OAuth */}
-          {authMethods.googleIdentity ? (
-            <div className="p-3 bg-card rounded-lg border border-border mb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Google</p>
-                    <p className="text-xs text-foreground/60">OAuth connected</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {/* GitHub OAuth */}
-          {authMethods.githubIdentity ? (
-            <div className="p-3 bg-card rounded-lg border border-border mb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">GitHub</p>
-                    <p className="text-xs text-foreground/60">OAuth connected</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {/* Empty state */}
-          {!walletConnected && !authMethods.googleIdentity && !authMethods.githubIdentity && authMethods.passkeys.length === 0 && (
-            <p className="text-xs text-foreground/60">No additional authentication methods connected yet.</p>
-          )}
-        </div>
-
-        {/* Passkeys Management */}
-        <div className="mt-6 p-4 bg-background rounded-xl border border-border">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-foreground">Passkeys</h3>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleAddPasskey}
-              disabled={passkeyOpsLoading}
-            >
-              Add Passkey
-            </Button>
-          </div>
-          
-          {authMethods.passkeys && authMethods.passkeys.length > 0 ? (
-            <div className="space-y-3">
-              {authMethods.passkeys.map((passkey) => (
-                <div key={passkey.id} className="p-3 bg-card rounded-lg border border-border">
-                  {renamingPasskeyId === passkey.id ? (
-                    <div className="flex gap-2 mb-3">
-                      <input
-                        type="text"
-                        value={newPasskeyName}
-                        onChange={(e) => setNewPasskeyName(e.target.value)}
-                        placeholder="Enter passkey name"
-                        className="flex-1 px-2 py-1 text-sm bg-background border border-border rounded"
-                        maxLength={50}
-                      />
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => handleRenamePasskey(passkey.id)}
-                        disabled={passkeyOpsLoading}
-                      >
-                        Save
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setRenamingPasskeyId(null);
-                          setNewPasskeyName('');
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-foreground">{passkey.name}</p>
-                        <div className="text-xs text-foreground/60 mt-1">
-                          <p>Created: {new Date(passkey.createdAt).toLocaleDateString()}</p>
-                          {passkey.lastUsedAt && (
-                            <p>Last used: {new Date(passkey.lastUsedAt).toLocaleDateString()}</p>
-                          )}
-                          <p>
-                            Status: 
-                            <span className={`ml-1 ${
-                              passkey.status === 'active' 
-                                ? 'text-green-600 dark:text-green-400' 
-                                : passkey.status === 'disabled'
-                                ? 'text-yellow-600 dark:text-yellow-400'
-                                : 'text-red-600 dark:text-red-400'
-                            }`}>
-                              {passkey.status}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2 flex-shrink-0 ml-4">
-                        {passkey.status === 'active' ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleTogglePasskeyStatus(passkey.id, passkey.status)}
-                            disabled={passkeyOpsLoading}
-                          >
-                            Disable
-                          </Button>
-                        ) : passkey.status === 'disabled' ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleTogglePasskeyStatus(passkey.id, passkey.status)}
-                            disabled={passkeyOpsLoading}
-                          >
-                            Enable
-                          </Button>
-                        ) : null}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setRenamingPasskeyId(passkey.id);
-                            setNewPasskeyName(passkey.name);
-                          }}
-                          disabled={passkeyOpsLoading}
-                        >
-                          Rename
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-600 dark:text-red-400"
-                          onClick={() => handleDeletePasskey(passkey.id)}
-                          disabled={passkeyOpsLoading || authMethods.passkeys.length <= 1}
-                          title={authMethods.passkeys.length <= 1 ? 'Cannot delete the last passkey' : ''}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-foreground/60">No passkeys added yet.</p>
-          )}
-        </div>
-      </div>
-
       {/* MFA Section */}
       <div className="p-6 bg-background border border-border rounded-xl">
         <div className="flex items-center justify-between mb-4">
@@ -933,7 +577,7 @@ const SettingsTab = ({
             <h3 className="text-lg font-medium text-foreground">Multi-Factor Authentication</h3>
             <p className="text-sm text-foreground/70">Enhance your account security</p>
           </div>
-          {(authMethods.mfaStatus.totp || authMethods.mfaStatus.email) ? (
+          {(mfaStatus.totp || mfaStatus.email) ? (
             <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-xs font-medium">
               Enabled
             </span>
@@ -951,7 +595,7 @@ const SettingsTab = ({
               <div>
                 <p className="text-sm font-medium text-foreground">Authenticator App (TOTP)</p>
                 <p className="text-xs text-foreground/60 mt-1">
-                  {authMethods.mfaStatus.totp ? 'Enabled • Verified' : 'Not enabled'}
+                  {mfaStatus.totp ? 'Enabled • Verified' : 'Not enabled'}
                 </p>
               </div>
               <Button
@@ -963,7 +607,7 @@ const SettingsTab = ({
                 }}
                 disabled={mfaMFALoading}
               >
-                {authMethods.mfaStatus.totp ? 'Manage' : 'Enable'}
+                {mfaStatus.totp ? 'Manage' : 'Enable'}
               </Button>
             </div>
           </div>
@@ -974,7 +618,7 @@ const SettingsTab = ({
               <div>
                 <p className="text-sm font-medium text-foreground">Email OTP</p>
                 <p className="text-xs text-foreground/60 mt-1">
-                  {authMethods.mfaStatus.email ? 'Enabled • Verified' : 'Not enabled'}
+                  {mfaStatus.email ? 'Enabled • Verified' : 'Not enabled'}
                 </p>
               </div>
               <Button
@@ -986,7 +630,7 @@ const SettingsTab = ({
                 }}
                 disabled={mfaMFALoading}
               >
-                {authMethods.mfaStatus.email ? 'Manage' : 'Enable'}
+                {mfaStatus.email ? 'Manage' : 'Enable'}
               </Button>
             </div>
           </div>
@@ -1306,7 +950,7 @@ const SettingsTab = ({
           setTotpSetupData(null);
         }}
         factor={mfaModalFactor}
-        isEnabled={mfaModalFactor === 'totp' ? authMethods.mfaStatus.totp : authMethods.mfaStatus.email}
+        isEnabled={mfaModalFactor === 'totp' ? mfaStatus.totp : mfaStatus.email}
         onEnable={handleMFAEnable}
         onDisable={handleMFADisable}
         onVerify={handleMFAVerify}
@@ -1412,18 +1056,6 @@ const PreferencesTab = ({ settings, onSettingChange, onUpdate, error, success, c
         </div>
       </form>
     )}
-  </div>
-);
-
-const IntegrationsTab = ({ enabledIntegrations }: { enabledIntegrations: EnabledIntegrations }) => (
-  <div className="space-y-8">
-    <h1 className="text-foreground text-3xl font-bold">Integrations</h1>
-    
-    <div className="space-y-6">
-      <div className="text-center py-12">
-        <p className="text-foreground/60">No integrations are currently enabled.</p>
-      </div>
-    </div>
   </div>
 );
 

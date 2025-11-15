@@ -34,7 +34,7 @@ const features = [
 ];
 
 export default function LandingPage() {
-  const { showAuthModal, isAuthenticated, user } = useAuth();
+  const { openIDMWindow, isAuthenticated, user } = useAuth();
   const router = useRouter();
 
   // Generate user initials from name or email
@@ -55,7 +55,7 @@ export default function LandingPage() {
       router.push(`/notes?ai-prompt=${encodeURIComponent(prompt)}`);
     } else {
       // User not logged in - show auth modal, then proceed
-      showAuthModal();
+      openIDMWindow();
       // Store prompt in sessionStorage for after login
       sessionStorage.setItem('pending-ai-prompt', prompt);
     }
@@ -108,7 +108,7 @@ export default function LandingPage() {
           ) : (
             <Button 
               variant="ghost" 
-              onClick={() => showAuthModal()}
+              onClick={() => openIDMWindow()}
             >
               Login
             </Button>

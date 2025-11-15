@@ -6,7 +6,6 @@ import { AuthProvider } from "@/components/ui/AuthContext";
 import { OverlayProvider } from "@/components/ui/OverlayContext";
 import { SubscriptionProvider } from "@/components/ui/SubscriptionContext";
 import { RouteGuard } from "@/components/ui/RouteGuard";
-import { AuthModalContainer } from "@/components/ui/AuthModalContainer";
 import { ThemeProvider } from "@/components/ThemeProvider";
 // AIProvider removed for lazy AI loading
 import { ToastProvider } from "@/components/ui/Toast";
@@ -33,7 +32,6 @@ export default function RootLayout({
                           <RouteGuard>
                             {children}
                           </RouteGuard>
-                          <AuthModalContainer />
                           <Overlay />
                           <GlobalContextMenu />
                           <GlobalShortcuts />

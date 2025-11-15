@@ -9,7 +9,7 @@ import { TagNotesListSidebar } from '@/components/ui/TagNotesListSidebar';
 import { ID } from 'appwrite';
 
 export default function TagsPage() {
-  const { user, isAuthenticated, showAuthModal } = useAuth();
+  const { user, isAuthenticated, openIDMWindow } = useAuth();
   const hasFetched = useRef(false);
   const [tags, setTags] = useState<Tags[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +60,7 @@ export default function TagsPage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      showAuthModal();
+      openIDMWindow();
       return;
     }
     
@@ -68,7 +68,7 @@ export default function TagsPage() {
       hasFetched.current = true;
       fetchTags();
     }
-  }, [isAuthenticated, user, fetchTags, showAuthModal]);
+  }, [isAuthenticated, user, fetchTags, openIDMWindow]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

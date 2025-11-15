@@ -23,7 +23,7 @@ function isPublicRoute(path: string): boolean {
 }
 
 export const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
-  const { isLoading, isAuthenticated, showAuthModal } = useAuth();
+  const { isLoading, isAuthenticated, openIDMWindow, refreshUser } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -36,7 +36,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
     
     // If user is not authenticated and trying to access protected route
     if (!isAuthenticated && !publicRoute) {
-      showAuthModal();
+      openIDMWindow();
       return;
     }
 
@@ -47,18 +47,18 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
       return;
     }
 
-  }, [isLoading, isAuthenticated, pathname, router, showAuthModal]);
+  }, [isLoading, isAuthenticated, pathname, router, openIDMWindow]);
 
   // Show loading during initial auth check
   if (isLoading) {
     return null; // Loading overlay will be shown by useEffect
   }
 
-  // For protected routes when user is not authenticated, stay on current page and show auth modal
+  // For protected routes when user is not authenticated, stay on current page and show IDM window
   const publicRoute = isPublicRoute(pathname);
   if (!isAuthenticated && !publicRoute) {
     // Don't render the protected content until authenticated
-    // Auth modal will handle the authentication flow
+    // IDM window will handle the authentication flow
     return null;
   }
 

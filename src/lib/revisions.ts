@@ -1,5 +1,5 @@
 import { databases, APPWRITE_DATABASE_ID, ID, Query } from '@/lib/appwrite';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/appwrite';
 import type { NoteRevisions } from '@/types/appwrite';
 
 const REVISION_LIMITS = {

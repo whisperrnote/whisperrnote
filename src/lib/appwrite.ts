@@ -68,19 +68,7 @@ function cleanDocumentData<T>(data: Partial<T>): Record<string, any> {
   return cleanData;
 }
 
-// --- AUTHENTICATION ---
-
-export async function signupEmailPassword(email: string, password: string, name: string) {
-  return account.create(ID.unique(), email, password, name);
-}
-
-export async function loginEmailPassword(email: string, password: string) {
-  return account.createEmailPasswordSession(email, password);
-}
-
-export async function logout() {
-  return account.deleteSession('current');
-}
+// --- USER SESSION ---
 
 export async function getCurrentUser(): Promise<Users | null> {
   try {

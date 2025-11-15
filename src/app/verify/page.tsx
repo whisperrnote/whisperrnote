@@ -15,7 +15,7 @@ function EmailVerifyInner() {
   const [emailSent, setEmailSent] = useState<boolean>(false);
 
   const router = useRouter();
-  const { showAuthModal } = useAuth();
+  const { openIDMWindow } = useAuth();
   const searchParams = useSearchParams();
   const userId = searchParams?.get("userId") || "";
   const secret = searchParams?.get("secret") || "";
@@ -57,7 +57,7 @@ function EmailVerifyInner() {
         }
       })
       .catch(() => {
-        showAuthModal();
+        openIDMWindow();
       });
   }, [router, userId, secret]);
 

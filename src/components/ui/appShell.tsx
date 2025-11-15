@@ -22,7 +22,7 @@ interface AppShellProps {
 export default function AppShell({ children }: AppShellProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { showAuthModal } = useAuth();
+  const { openIDMWindow } = useAuth();
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
@@ -32,11 +32,11 @@ export default function AppShell({ children }: AppShellProps) {
     }
     getCurrentUser()
       .then(user => {
-        if (!user) showAuthModal();
+        if (!user) openIDMWindow();
         setAuthChecked(true);
       })
       .catch(() => {
-        showAuthModal();
+        openIDMWindow();
         setAuthChecked(true);
       });
   }, [pathname, router]);
