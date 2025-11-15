@@ -1,0 +1,14 @@
+$ next build
+   ▲ Next.js 15.4.7
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 75s
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+unhandledRejection [Error [PageNotFoundError]: Cannot find module for page: /_document] {
+  type: 'PageNotFoundError',
+  code: 'ENOENT'
+}
+error: script "build" exited with code 1
