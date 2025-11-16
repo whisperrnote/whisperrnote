@@ -17,8 +17,7 @@ import { preProcessMarkdown } from '@/lib/markdown';
 import Image from 'next/image';
 
 interface SharedNoteClientProps {
-  note: Notes | null;
-  noteId: string;
+   noteId: string;
 }
 
 function SharedNoteHeader() {
@@ -94,8 +93,8 @@ function SharedNoteHeader() {
   );
 }
 
-export default function SharedNoteClient({ note, noteId }: SharedNoteClientProps) {
-  const [verifiedNote, setVerifiedNote] = useState<Notes | null>(note || null);
+export default function SharedNoteClient({ noteId }: SharedNoteClientProps) {
+  const [verifiedNote, setVerifiedNote] = useState<Notes | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   if (!verifiedNote) {
@@ -124,7 +123,7 @@ export default function SharedNoteClient({ note, noteId }: SharedNoteClientProps
   const [isCopied, setIsCopied] = React.useState(false);
 
   const handleCopyContent = () => {
-    navigator.clipboard.writeText(note.content || '');
+    navigator.clipboard.writeText(verifiedNote?.content || '');
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
   };
@@ -145,12 +144,12 @@ export default function SharedNoteClient({ note, noteId }: SharedNoteClientProps
           <article className="bg-card dark:bg-dark-card rounded-3xl border border-border dark:border-dark-border overflow-hidden">
             <header className="p-8 border-b border-border dark:border-dark-border">
               <div className="space-y-6">
-                <h1 className="text-3xl font-bold text-foreground dark:text-dark-fg leading-tight">{note.title || 'Untitled Note'}</h1>
+                <h1 className="text-3xl font-bold text-foreground dark:text-dark-fg leading-tight">{verifiedNote.title || 'Untitled Note'}</h1>
 
                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted">
                   <div className="flex items-center gap-2">
                     <ClockIcon className="h-4 w-4" />
-                    <span>Created {formatNoteCreatedDate(note, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                    <span>Created {formatNoteCreatedDate(verifiedNote, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <EyeIcon className="h-4 w-4" />
@@ -158,10 +157,10 @@ export default function SharedNoteClient({ note, noteId }: SharedNoteClientProps
                   </div>
                 </div>
 
-                {note.tags && note.tags.length > 0 && (
+                {verifiedNote.tags && verifiedNote.tags.length > 0 && (
                   <div className="flex items-center gap-2 flex-wrap text-sm text-muted">
                     <TagIcon className="h-4 w-4" />
-                    {note.tags.map((tag: string, i: number) => (
+                    {verifiedNote.tags.map((tag: string, i: number) => (
                       <span key={i} className="px-2 py-1 bg-background dark:bg-dark-bg rounded-full text-xs">{tag}</span>
                     ))}
                   </div>
@@ -188,7 +187,7 @@ export default function SharedNoteClient({ note, noteId }: SharedNoteClientProps
                 )}
               </button>
               <div className="prose prose-lg max-w-none dark:prose-invert text-foreground dark:text-dark-fg [&>*]:leading-relaxed [&>p]:mb-6 [&>h1]:mb-8 [&>h1]:mt-8 [&>h2]:mb-6 [&>h2]:mt-7 [&>h3]:mb-4 [&>h3]:mt-6 [&>ul]:mb-6 [&>ol]:mb-6 [&>ol>li]:marker:font-bold [&>blockquote]:mb-6 [&>pre]:mb-6 [&>*:first-child]:mt-0 [&_ol]:list-decimal [&_ul]:list-disc [&_li]:ml-4">
-                {note.content ? (
+                {verifiedNote.content ? (
                   <ReactMarkdown 
                     remarkPlugins={[remarkGfm, remarkBreaks]} 
                     rehypePlugins={[rehypeSanitize]}
@@ -196,7 +195,7 @@ export default function SharedNoteClient({ note, noteId }: SharedNoteClientProps
                       a: LinkComponent
                     }}
                   >
-                    {note.content}
+                    {verifiedNote.content}
                   </ReactMarkdown>
                 ) : (
                   <div className="text-muted italic">This note is empty.</div>
@@ -206,7 +205,7 @@ export default function SharedNoteClient({ note, noteId }: SharedNoteClientProps
 
             <footer className="p-6 bg-background/50 dark:bg-dark-bg/50 border-t border-border dark:border-dark-border">
               <div className="flex items-center justify-between">
-                <div className="text-sm text-muted">Last updated {formatNoteUpdatedDate(note, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                <div className="text-sm text-muted">Last updated {formatNoteUpdatedDate(verifiedNote, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                 <div className="text-sm text-muted">Shared via WhisperRNote</div>
               </div>
             </footer>
@@ -255,12 +254,12 @@ export default function SharedNoteClient({ note, noteId }: SharedNoteClientProps
         <article className="bg-light-card dark:bg-dark-card rounded-3xl border-2 border-light-border dark:border-dark-border overflow-hidden">
           <header className="p-8 border-b border-light-border dark:border-dark-border">
             <div className="space-y-6">
-              <h1 className="text-3xl font-bold text-light-fg dark:text-dark-fg leading-tight">{note.title || 'Untitled Note'}</h1>
+              <h1 className="text-3xl font-bold text-light-fg dark:text-dark-fg leading-tight">{verifiedNote.title || 'Untitled Note'}</h1>
 
               <div className="flex flex-wrap items-center gap-4 text-sm text-light-fg/60 dark:text-dark-fg/60">
                 <div className="flex items-center gap-2">
                   <ClockIcon className="h-4 w-4" />
-                  <span>Created {formatNoteCreatedDate(note, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                  <span>Created {formatNoteCreatedDate(verifiedNote, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <EyeIcon className="h-4 w-4" />
@@ -268,10 +267,10 @@ export default function SharedNoteClient({ note, noteId }: SharedNoteClientProps
                 </div>
               </div>
 
-              {note.tags && note.tags.length > 0 && (
+              {verifiedNote.tags && verifiedNote.tags.length > 0 && (
                 <div className="flex items-center gap-2 flex-wrap text-sm text-light-fg/60 dark:text-dark-fg/60">
                   <TagIcon className="h-4 w-4" />
-                  {note.tags.map((tag: string, i: number) => (
+                  {verifiedNote.tags.map((tag: string, i: number) => (
                     <span key={i} className="px-2 py-1 bg-light-bg dark:bg-dark-bg rounded-full text-xs">{tag}</span>
                   ))}
                 </div>
@@ -281,7 +280,7 @@ export default function SharedNoteClient({ note, noteId }: SharedNoteClientProps
 
           <div className="p-8">
             <div className="prose prose-lg max-w-none dark:prose-invert text-light-fg dark:text-dark-fg [&>*]:leading-relaxed [&>p]:mb-6 [&>h1]:mb-6 [&>h1]:mt-8 [&>h2]:mb-5 [&>h2]:mt-7 [&>h3]:mb-4 [&>h3]:mt-6 [&>ul]:mb-6 [&>ol]:mb-6 [&>blockquote]:mb-6 [&>pre]:mb-6 [&>*:first-child]:mt-0">
-              {note.content ? (
+              {verifiedNote.content ? (
                 <ReactMarkdown 
                   remarkPlugins={[remarkGfm]} 
                   rehypePlugins={[rehypeSanitize]}
@@ -289,7 +288,7 @@ export default function SharedNoteClient({ note, noteId }: SharedNoteClientProps
                     a: LinkComponent
                   }}
                 >
-                  {preProcessMarkdown(note.content)}
+                  {preProcessMarkdown(verifiedNote.content)}
                 </ReactMarkdown>
               ) : (
                 <div className="text-light-fg/60 dark:text-dark-fg/60 italic">This note is empty.</div>
@@ -299,7 +298,7 @@ export default function SharedNoteClient({ note, noteId }: SharedNoteClientProps
 
           <footer className="p-6 bg-light-bg/50 dark:bg-dark-bg/50 border-t border-light-border dark:border-dark-border">
             <div className="flex items-center justify-between">
-              <div className="text-sm text-light-fg/60 dark:text-dark-fg/60">Last updated {formatNoteUpdatedDate(note, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+              <div className="text-sm text-light-fg/60 dark:text-dark-fg/60">Last updated {formatNoteUpdatedDate(verifiedNote, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
               <div className="text-sm text-light-fg/60 dark:text-dark-fg/60">Shared via WhisperRNote</div>
             </div>
           </footer>

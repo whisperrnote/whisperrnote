@@ -86,60 +86,7 @@ export async function generateMetadata({ params }: { params: { noteid: string } 
 }
 
 export default async function SharedNotePage({ params }: { params: { noteid: string } }) {
-   // Note: Actual note fetching happens client-side with rate limiting & Turnstile verification
-   // This prevents abuse on the API endpoint while keeping metadata generation server-side
-   const note = await validatePublicNoteAccess(params.noteid);
-
-   if (!note) {
-     return (
-       <div className="min-h-screen bg-light-bg dark:bg-dark-bg">
-         <header className="border-b border-light-border dark:border-dark-border bg-white/50 dark:bg-black/50 backdrop-blur-sm">
-           <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-             <div className="flex items-center gap-3">
-               <img src="/logo/whisperrnote.png" alt="WhisperRNote" className="w-8 h-8 rounded-lg" />
-               <h1 className="text-xl font-bold text-light-fg dark:text-dark-fg">WhisperRNote</h1>
-             </div>
-             <div className="hidden sm:flex items-center gap-3">
-               <a href="/" className="rounded-xl px-3 py-2 text-sm font-medium bg-accent/10">Home</a>
-               <a href="/" className="rounded-xl px-3 py-2 text-sm font-medium bg-accent text-white">Join</a>
-             </div>
-           </div>
-         </header>
-
-         <section className="border-b border-light-border dark:border-dark-border bg-gradient-to-r from-accent/10 via-transparent to-accent/10">
-           <div className="max-w-4xl mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
-             <p className="text-sm text-light-fg/70 dark:text-dark-fg/70">Organize unlimited notes, AI insights & secure sharing.</p>
-             <a href="/" className="inline-flex items-center rounded-lg px-4 py-2 bg-accent text-white text-sm font-medium">
-               Get Started Free <ArrowRightIcon className="h-4 w-4 ml-1" />
-             </a>
-           </div>
-         </section>
-
-         <main className="max-w-4xl mx-auto px-6 py-16">
-           <div className="text-center space-y-8">
-             <div className="space-y-4">
-               <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center mx-auto">
-                 <ExclamationTriangleIcon className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
-               </div>
-               <h1 className="text-3xl font-bold text-light-fg dark:text-dark-fg">Note Not Found</h1>
-               <p className="text-lg text-light-fg/70 dark:text-dark-fg/70 max-w-md mx-auto">
-                 This note doesn&apos;t exist or is no longer publicly available.
-               </p>
-             </div>
-
-             <div className="bg-light-card dark:bg-dark-card rounded-2xl p-8 border-2 border-light-border dark:border-dark-border max-w-md mx-auto">
-               <h2 className="text-xl font-semibold text-light-fg dark:text-dark-fg mb-4">Create Your Own Notes</h2>
-               <p className="text-light-fg/70 dark:text-dark-fg/70 mb-6">Join WhisperRNote to create, organize, and share your own notes with the world.</p>
-               <a href="/" className="inline-flex items-center justify-center w-full rounded-xl px-4 py-3 bg-accent text-white font-semibold">
-                 Get Started Free
-                 <ArrowRightIcon className="h-4 w-4 ml-2" />
-               </a>
-             </div>
-           </div>
-         </main>
-       </div>
-     );
-   }
-
-   return <SharedNoteClient note={note} noteId={params.noteid} />;
+   // Server only renders shell - actual note fetching happens client-side
+   // This ensures Turnstile verification and rate limiting are enforced before database access
+   return <SharedNoteClient noteId={params.noteid} />;
 }
