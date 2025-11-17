@@ -6,6 +6,7 @@ import DoodleCanvas from '@/components/DoodleCanvas';
 import { PencilIcon, TrashIcon, UserIcon, ClipboardDocumentIcon, PaperClipIcon } from '@heroicons/react/24/outline';
 import { Button } from './Button';
 import { Modal } from './modal';
+import { useToast } from '@/components/ui/Toast';
 import { formatNoteCreatedDate, formatNoteUpdatedDate } from '@/lib/date-utils';
 import { getNoteWithSharing } from '@/lib/appwrite';
 import ReactMarkdown from 'react-markdown';
