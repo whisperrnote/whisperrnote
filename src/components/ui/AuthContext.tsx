@@ -184,60 +184,64 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const openIDMWindow = useCallback(() => {
     // First check if user already has a valid session
     refreshUser().then(() => {
-      const currentUser = user;
-      if (currentUser) {
-        setIDMWindowOpen(false);
-        return;
-      }
+      // Check user state directly instead of from closure
+      getCurrentUser().then((currentUser) => {
+        if (currentUser) {
+          setIDMWindowOpen(false);
+          return;
+        }
 
-      // Get IDM configuration from environment
-      const authSubdomain = process.env.NEXT_PUBLIC_AUTH_SUBDOMAIN;
-      const domain = process.env.NEXT_PUBLIC_DOMAIN;
+        // Get IDM configuration from environment
+        const authSubdomain = process.env.NEXT_PUBLIC_AUTH_SUBDOMAIN;
+        const domain = process.env.NEXT_PUBLIC_DOMAIN;
 
-      if (!authSubdomain || !domain) {
-        console.error('IDM configuration missing: AUTH_SUBDOMAIN or DOMAIN not set');
-        return;
-      }
+        if (!authSubdomain || !domain) {
+          console.error('IDM configuration missing: AUTH_SUBDOMAIN or DOMAIN not set');
+          return;
+        }
 
-      const idmUrl = `https://${authSubdomain}.${domain}`;
-      const width = 400;
-      const height = 600;
-      const left = window.screenX + (window.outerWidth - width) / 2;
-      const top = window.screenY + (window.outerHeight - height) / 2;
+        const idmUrl = `https://${authSubdomain}.${domain}`;
+        const width = 400;
+        const height = 600;
+        const left = window.screenX + (window.outerWidth - width) / 2;
+        const top = window.screenY + (window.outerHeight - height) / 2;
 
-      const windowRef = window.open(
-        idmUrl,
-        'WhisperrNoteIDM',
-        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-      );
+        const windowRef = window.open(
+          idmUrl,
+          'WhisperrNoteIDM',
+          `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+        );
 
-      setIDMWindowRef(windowRef);
-      setIDMWindowOpen(true);
+        setIDMWindowRef(windowRef);
+        setIDMWindowOpen(true);
 
-      // Poll for session changes (only for IDM window)
-      if (windowRef) {
-        const pollInterval = setInterval(async () => {
-          try {
-            const currentUser = await getCurrentUser();
-            if (currentUser && !user) {
-              setUser(currentUser);
-              setIDMWindowOpen(false);
-              windowRef.close();
-              clearInterval(pollInterval);
-            } else if (windowRef.closed) {
-              clearInterval(pollInterval);
-              setIDMWindowOpen(false);
+        // Poll for session changes (only for IDM window)
+        if (windowRef) {
+          const pollInterval = setInterval(async () => {
+            try {
+              const checkedUser = await getCurrentUser();
+              if (checkedUser) {
+                setUser(checkedUser);
+                setIDMWindowOpen(false);
+                windowRef.close();
+                clearInterval(pollInterval);
+              } else if (windowRef.closed) {
+                clearInterval(pollInterval);
+                setIDMWindowOpen(false);
+              }
+            } catch (error) {
+              console.error('Error checking session:', error);
             }
-          } catch (error) {
-            console.error('Error checking session:', error);
-          }
-        }, 1000); // Check every second
+          }, 1000); // Check every second
 
-        // Clear interval after 10 minutes (safety timeout)
-        setTimeout(() => clearInterval(pollInterval), 10 * 60 * 1000);
-      }
+          // Clear interval after 10 minutes (safety timeout)
+          setTimeout(() => clearInterval(pollInterval), 10 * 60 * 1000);
+        }
+      }).catch((error) => {
+        console.error('Error checking user session:', error);
+      });
     });
-  }, [user]);
+  }, []);
 
   const closeIDMWindow = useCallback(() => {
     if (idmWindowRef && !idmWindowRef.closed) {
