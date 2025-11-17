@@ -15,6 +15,8 @@ import remarkBreaks from 'remark-breaks';
 import rehypeSanitize from 'rehype-sanitize';
 import { formatFileSize } from '@/lib/utils';
 import NoteContentDisplay from '@/components/NoteContentDisplay';
+import { LinkComponent } from '@/components/LinkRenderer';
+import { preProcessMarkdown } from '@/lib/markdown';
 
 interface NoteDetailSidebarProps {
   note: Notes;
@@ -296,13 +298,16 @@ export function NoteDetailSidebar({ note, onUpdate, onDelete }: NoteDetailSideba
                   onEditDoodle={() => setIsEditing(true)}
                 />
               ) : (
-                <div className="text-foreground/80 prose prose-lg max-w-none dark:prose-invert [&>*]:leading-relaxed [&>p]:mb-6 [&>h1]:mb-8 [&>h1]:mt-8 [&>h2]:mb-6 [&>h2]:mt-7 [&>h3]:mb-4 [&>h3]:mt-6 [&>ul]:mb-6 [&>ol]:mb-6 [&>ol>li]:marker:font-bold [&>blockquote]:mb-6 [&>pre]:mb-6 [&>*:first-child]:mt-0 [&_ol]:list-decimal [&_ul]:list-disc [&_li]:ml-4">
+                <div className="text-foreground prose prose-lg max-w-none dark:prose-invert [&>*]:leading-relaxed [&>p]:mb-6 [&>h1]:mb-8 [&>h1]:mt-8 [&>h2]:mb-6 [&>h2]:mt-7 [&>h3]:mb-4 [&>h3]:mt-6 [&>ul]:mb-6 [&>ol]:mb-6 [&>ol>li]:marker:font-bold [&>blockquote]:mb-6 [&>pre]:mb-6 [&>*:first-child]:mt-0 [&_ol]:list-decimal [&_ul]:list-disc [&_li]:ml-4">
                   {note.content ? (
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm, remarkBreaks]}
                       rehypePlugins={[rehypeSanitize]}
+                      components={{
+                        a: LinkComponent
+                      }}
                     >
-                      {note.content}
+                      {preProcessMarkdown(note.content)}
                     </ReactMarkdown>
                   ) : (
                     <span className="italic text-muted">No content</span>
