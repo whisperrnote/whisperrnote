@@ -21,6 +21,7 @@ interface NoteDetailSidebarProps {
   onUpdate: (updatedNote: Notes) => void;
   onDelete: (noteId: string) => void;
   showExpandButton?: boolean;
+  showHeaderDeleteButton?: boolean;
 }
 
 interface EnhancedNote extends Notes {
@@ -29,7 +30,13 @@ interface EnhancedNote extends Notes {
   sharedBy?: { name: string; email: string } | null;
 }
 
-export function NoteDetailSidebar({ note, onUpdate, onDelete, showExpandButton = true }: NoteDetailSidebarProps) {
+export function NoteDetailSidebar({
+  note,
+  onUpdate,
+  onDelete,
+  showExpandButton = true,
+  showHeaderDeleteButton = true,
+}: NoteDetailSidebarProps) {
   
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingContent, setIsEditingContent] = useState(false);
@@ -322,14 +329,16 @@ export function NoteDetailSidebar({ note, onUpdate, onDelete, showExpandButton =
             <ArrowTopRightOnSquareIcon className="h-4 w-4" />
           </Button>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowDeleteConfirm(true)}
-          className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-        >
-          <TrashIcon className="h-4 w-4" />
-        </Button>
+        {showHeaderDeleteButton && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+          >
+            <TrashIcon className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       <div

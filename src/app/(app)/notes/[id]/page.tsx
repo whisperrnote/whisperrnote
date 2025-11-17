@@ -129,6 +129,7 @@ export default function NoteEditorPage() {
             onUpdate={handleUpdate}
             onDelete={handleDelete}
             showExpandButton={false}
+            showHeaderDeleteButton={false}
           />
         </main>
       </div>
