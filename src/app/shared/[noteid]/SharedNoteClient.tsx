@@ -3,17 +3,12 @@
 import React, { useState } from 'react';
 import { formatNoteCreatedDate, formatNoteUpdatedDate } from '@/lib/date-utils';
 import type { Notes } from '@/types/appwrite.d';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import remarkBreaks from 'remark-breaks';
-import rehypeSanitize from 'rehype-sanitize';
 import { ClockIcon, EyeIcon, TagIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { CheckIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '@/components/ui/AuthContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { PublicNoteAccess } from '@/components/PublicNoteAccess';
-import { LinkComponent } from '@/components/LinkRenderer';
-import { preProcessMarkdown } from '@/lib/markdown';
+import { NoteContentRenderer } from '@/components/NoteContentRenderer';
 import Image from 'next/image';
 
 interface SharedNoteClientProps {
@@ -186,21 +181,12 @@ export default function SharedNoteClient({ noteId }: SharedNoteClientProps) {
                   </svg>
                 )}
               </button>
-              <div className="prose prose-lg max-w-none dark:prose-invert text-foreground dark:text-dark-fg [&>*]:leading-relaxed [&>p]:mb-6 [&>h1]:mb-8 [&>h1]:mt-8 [&>h2]:mb-6 [&>h2]:mt-7 [&>h3]:mb-4 [&>h3]:mt-6 [&>ul]:mb-6 [&>ol]:mb-6 [&>ol>li]:marker:font-bold [&>blockquote]:mb-6 [&>pre]:mb-6 [&>*:first-child]:mt-0 [&_ol]:list-decimal [&_ul]:list-disc [&_li]:ml-4">
-                {verifiedNote.content ? (
-                  <ReactMarkdown 
-                    remarkPlugins={[remarkGfm, remarkBreaks]} 
-                    rehypePlugins={[rehypeSanitize]}
-                    components={{
-                      a: LinkComponent
-                    }}
-                  >
-                    {verifiedNote.content}
-                  </ReactMarkdown>
-                ) : (
-                  <div className="text-muted italic">This note is empty.</div>
-                )}
-              </div>
+              <NoteContentRenderer
+                content={verifiedNote.content || ''}
+                format={(verifiedNote.format as 'text' | 'doodle') || 'text'}
+                textClassName="text-foreground dark:text-dark-fg"
+                emptyFallback={<div className="text-muted italic">This note is empty.</div>}
+              />
             </div>
 
             <footer className="p-6 bg-background/50 dark:bg-dark-bg/50 border-t border-border dark:border-dark-border">
@@ -279,21 +265,12 @@ export default function SharedNoteClient({ noteId }: SharedNoteClientProps) {
           </header>
 
           <div className="p-8">
-            <div className="prose prose-lg max-w-none dark:prose-invert text-light-fg dark:text-dark-fg [&>*]:leading-relaxed [&>p]:mb-6 [&>h1]:mb-6 [&>h1]:mt-8 [&>h2]:mb-5 [&>h2]:mt-7 [&>h3]:mb-4 [&>h3]:mt-6 [&>ul]:mb-6 [&>ol]:mb-6 [&>blockquote]:mb-6 [&>pre]:mb-6 [&>*:first-child]:mt-0">
-              {verifiedNote.content ? (
-                <ReactMarkdown 
-                  remarkPlugins={[remarkGfm]} 
-                  rehypePlugins={[rehypeSanitize]}
-                  components={{
-                    a: LinkComponent
-                  }}
-                >
-                  {preProcessMarkdown(verifiedNote.content)}
-                </ReactMarkdown>
-              ) : (
-                <div className="text-light-fg/60 dark:text-dark-fg/60 italic">This note is empty.</div>
-              )}
-            </div>
+            <NoteContentRenderer
+              content={verifiedNote.content || ''}
+              format={(verifiedNote.format as 'text' | 'doodle') || 'text'}
+              textClassName="text-light-fg dark:text-dark-fg"
+              emptyFallback={<div className="text-light-fg/60 dark:text-dark-fg/60 italic">This note is empty.</div>}
+            />
           </div>
 
           <footer className="p-6 bg-light-bg/50 dark:bg-dark-bg/50 border-t border-light-border dark:border-dark-border">

@@ -9,12 +9,9 @@ import { Modal } from './modal';
 import { useToast } from '@/components/ui/Toast';
 import { formatNoteCreatedDate, formatNoteUpdatedDate } from '@/lib/date-utils';
 import { getNoteWithSharing } from '@/lib/appwrite';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import remarkBreaks from 'remark-breaks';
-import rehypeSanitize from 'rehype-sanitize';
 import { formatFileSize } from '@/lib/utils';
 import NoteContentDisplay from '@/components/NoteContentDisplay';
+import { NoteContentRenderer } from '@/components/NoteContentRenderer';
 import { LinkComponent } from '@/components/LinkRenderer';
 import { preProcessMarkdown } from '@/lib/markdown';
 
@@ -45,6 +42,7 @@ export function NoteDetailSidebar({ note, onUpdate, onDelete }: NoteDetailSideba
   const [enhancedNote, setEnhancedNote] = useState<EnhancedNote | null>(null);
 
   const { showSuccess, showError } = useToast();
+  const noteFormat = (note.format as 'text' | 'doodle') || 'text';
 
   useEffect(() => {
     if (note.attachments && Array.isArray(note.attachments)) {
@@ -53,29 +51,16 @@ export function NoteDetailSidebar({ note, onUpdate, onDelete }: NoteDetailSideba
           if (typeof a === 'string') {
             return JSON.parse(a);
           }
-          return a;
-        });
-        setCurrentAttachments(parsed);
-      } catch (e) {
-        console.error('Error parsing attachments:', e);
-        setCurrentAttachments([]);
-      }
-    } else {
-      setCurrentAttachments([]);
-    }
-  }, [note.attachments]);
-
-  // Load enhanced note with sharing information
-  useEffect(() => {
-    const loadEnhancedNote = async () => {
-      if (note.$id) {
-        try {
-          const enhanced = await getNoteWithSharing(note.$id);
-          if (enhanced) {
-            setEnhancedNote(enhanced);
-          }
-        } catch (error) {
-          console.error('Error loading note sharing info:', error);
+          ) : (
+            <div>
+              <NoteContentRenderer
+                content={note.content || ''}
+                format={noteFormat}
+                textClassName="text-foreground"
+                doodleClassName="rounded-lg border border-border mb-2"
+                emptyFallback={<span className="italic text-muted">No content</span>}
+                onEditDoodle={noteFormat === 'doodle' ? () => setIsEditing(true) : undefined}
+              />
         }
       }
     };
