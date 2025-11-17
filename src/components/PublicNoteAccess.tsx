@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { TurnstileWidget } from '@/components/TurnstileWidget';
-import { verifyTurnstileToken } from '@/lib/turnstile';
+import { TURNSTILE_SITE_KEY, verifyTurnstileToken } from '@/lib/turnstile';
 import type { Notes } from '@/types/appwrite';
 
 interface PublicNoteAccessProps {
@@ -14,10 +14,50 @@ interface PublicNoteAccessProps {
 export function PublicNoteAccess({ noteId, onVerified, onError }: PublicNoteAccessProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const turnstileEnabled = Boolean(TURNSTILE_SITE_KEY);
+  const autoFetchAttempted = useRef(false);
+
+  useEffect(() => {
+    autoFetchAttempted.current = false;
+  }, [noteId]);
+
+  const fetchNote = useCallback(async () => {
+    const noteRes = await fetch(`/api/shared/${noteId}`);
+
+    if (!noteRes.ok) {
+      if (noteRes.status === 429) {
+        throw new Error('Too many requests. Please try again later.');
+      }
+      throw new Error('Failed to load note');
+    }
+
+    const note = await noteRes.json();
+    onVerified(note);
+  }, [noteId, onVerified]);
+
+  const loadWithoutVerification = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await fetchNote();
+    } catch (err: any) {
+      const errorMsg = err.message || 'An error occurred';
+      setError(errorMsg);
+      onError?.(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchNote, onError]);
+
+  useEffect(() => {
+    // Automatically fall back to direct loading when Turnstile is not configured.
+    if (!turnstileEnabled && !autoFetchAttempted.current) {
+      autoFetchAttempted.current = true;
+      loadWithoutVerification();
+    }
+  }, [turnstileEnabled, loadWithoutVerification]);
 
   const handleTurnstileSuccess = async (captchaToken: string) => {
-    setToken(captchaToken);
     setIsLoading(true);
     setError(null);
 
@@ -34,18 +74,7 @@ export function PublicNoteAccess({ noteId, onVerified, onError }: PublicNoteAcce
         throw new Error(errorData.error || 'Verification failed');
       }
 
-      // Fetch note with rate limiting
-      const noteRes = await fetch(`/api/shared/${noteId}`);
-
-      if (!noteRes.ok) {
-        if (noteRes.status === 429) {
-          throw new Error('Too many requests. Please try again later.');
-        }
-        throw new Error('Failed to load note');
-      }
-
-      const note = await noteRes.json();
-      onVerified(note);
+      await fetchNote();
     } catch (err: any) {
       const errorMsg = err.message || 'An error occurred';
       setError(errorMsg);
@@ -70,16 +99,35 @@ export function PublicNoteAccess({ noteId, onVerified, onError }: PublicNoteAcce
       )}
       
       <div className="text-center space-y-3">
-        <p className="text-sm text-foreground/70">
-          Complete the verification to view this shared note
-        </p>
-        
-        <TurnstileWidget
-          onToken={handleTurnstileSuccess}
-          onError={handleTurnstileError}
-          theme="auto"
-          size="normal"
-        />
+        {turnstileEnabled ? (
+          <>
+            <p className="text-sm text-foreground/70">
+              Complete the verification to view this shared note
+            </p>
+            
+            <TurnstileWidget
+              onToken={handleTurnstileSuccess}
+              onError={handleTurnstileError}
+              theme="auto"
+              size="normal"
+            />
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-foreground/70">
+              Verification is temporarily unavailable. Loading the note directly.
+            </p>
+            {!isLoading && (
+              <button
+                type="button"
+                onClick={loadWithoutVerification}
+                className="inline-flex items-center justify-center rounded-lg px-4 py-2 bg-accent text-white text-sm font-medium"
+              >
+                Retry loading note
+              </button>
+            )}
+          </>
+        )}
         
         {isLoading && (
           <div className="flex justify-center">
