@@ -43,6 +43,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [idmWindowOpen, setIDMWindowOpen] = useState(false);
   const [emailVerificationReminderDismissed, setEmailVerificationReminderDismissed] = useState(false);
   const idmWindowRef = useRef<Window | null>(null);
+  const idmOriginRef = useRef<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -113,6 +114,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       document.removeEventListener('keydown', handleUserActivity);
     };
   }, [user, isLoading, refreshUser]);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      const expectedOrigin = idmOriginRef.current;
+      if (!expectedOrigin || event.origin !== expectedOrigin) {
+        return;
+      }
+      if (event.data?.type !== 'idm:auth-success') {
+        return;
+      }
+
+      refreshUser();
+      setIDMWindowOpen(false);
+      if (idmWindowRef.current && !idmWindowRef.current.closed) {
+        idmWindowRef.current.close();
+      }
+      idmWindowRef.current = null;
+      if (pathname === '/' || pathname === '/landing') {
+        router.replace('/notes');
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [refreshUser, router, pathname]);
 
   const login = (userData: User) => {
     setUser(userData);
@@ -220,6 +248,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const left = window.screenX + (window.outerWidth - width) / 2;
         const top = window.screenY + (window.outerHeight - height) / 2;
 
+        idmOriginRef.current = new URL(idmUrl).origin;
+
         if (idmWindowRef.current && !idmWindowRef.current.closed) {
           idmWindowRef.current.focus();
         } else {
@@ -240,55 +270,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
 
         setIDMWindowOpen(true);
-
-        const activeWindow = idmWindowRef.current;
-        if (!activeWindow) return;
-
-        let pollInterval: number | undefined;
-        let pollTimeout: number | undefined;
-
-        const clearPolling = () => {
-          if (pollInterval) {
-            window.clearInterval(pollInterval);
-            pollInterval = undefined;
-          }
-          if (pollTimeout) {
-            window.clearTimeout(pollTimeout);
-            pollTimeout = undefined;
-          }
-        };
-
-        pollInterval = window.setInterval(async () => {
-          try {
-            const checkedUser = await getCurrentUser();
-            if (checkedUser) {
-              setUser(checkedUser);
-              setIDMWindowOpen(false);
-              if (!activeWindow.closed) {
-                activeWindow.close();
-              }
-              idmWindowRef.current = null;
-              clearPolling();
-              if (pathname === '/' || pathname === '/landing') {
-                router.replace('/notes');
-              }
-              return;
-            }
-
-            if (activeWindow.closed) {
-              clearPolling();
-              setIDMWindowOpen(false);
-              idmWindowRef.current = null;
-              router.replace('/landing');
-            }
-          } catch (error) {
-            console.error('Error checking session:', error);
-          }
-        }, 1000);
-
-        pollTimeout = window.setTimeout(() => {
-          clearPolling();
-        }, 10 * 60 * 1000);
       } catch (error) {
         console.error('Failed to initiate IDM flow:', error);
         router.replace('/landing');
