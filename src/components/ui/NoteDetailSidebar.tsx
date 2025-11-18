@@ -67,11 +67,10 @@ export function NoteDetailSidebar({
   const contentContainerRef = useRef<HTMLDivElement>(null);
   const titleIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const exitSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wasEditingRef = useRef(isEditing);
   const prevNoteIdRef = useRef(note.$id);
 
   const { showSuccess, showError } = useToast();
-  const noteFormat = (note.format as 'text' | 'doodle') || 'text';
   const router = useRouter();
   const { closeSidebar } = useDynamicSidebar();
 
@@ -109,18 +108,15 @@ export function NoteDetailSidebar({
 
   useEffect(() => {
     const noteIdChanged = note.$id !== prevNoteIdRef.current;
-    if (noteIdChanged || !isEditing) {
-      setTitle(note.title || '');
-      setContent(note.content || '');
-      setFormat((note.format as 'text' | 'doodle') || 'text');
-      setTags((note.tags || []).join(', '));
-      if (noteIdChanged) {
-        prevNoteIdRef.current = note.$id;
-        setIsEditingTitle(false);
-        setIsEditingContent(false);
-      }
-    }
-  }, [note.$id, note.title, note.content, note.format, note.tags, isEditing]);
+    if (!noteIdChanged) return;
+    prevNoteIdRef.current = note.$id;
+    setTitle(note.title || '');
+    setContent(note.content || '');
+    setFormat((note.format as 'text' | 'doodle') || 'text');
+    setTags((note.tags || []).join(', '));
+    setIsEditingTitle(false);
+    setIsEditingContent(false);
+  }, [note.$id, note.title, note.content, note.format, note.tags]);
 
   const normalizedTags = useMemo(() => {
     return tags
@@ -128,6 +124,11 @@ export function NoteDetailSidebar({
       .map((tag) => tag.trim())
       .filter(Boolean);
   }, [tags]);
+
+  const displayTitle = title || note.title || 'Untitled note';
+  const displayContent = content || note.content || '';
+  const displayFormat = format;
+  const displayTags = normalizedTags.length > 0 ? normalizedTags : (note.tags || []);
 
   const resetTitleIdleTimer = () => {
     if (titleIdleTimer.current) {
@@ -233,30 +234,14 @@ export function NoteDetailSidebar({
   });
 
   useEffect(() => {
-    if (exitSaveTimerRef.current) {
-      clearTimeout(exitSaveTimerRef.current);
-      exitSaveTimerRef.current = null;
-    }
-    if (isEditing || !autosaveCandidate.$id) {
-      return;
-    }
-    exitSaveTimerRef.current = setTimeout(() => {
+    if (wasEditingRef.current && !isEditing && autosaveCandidate.$id) {
       forceSave(autosaveCandidate);
-      exitSaveTimerRef.current = null;
-    }, 1200);
-    return () => {
-      if (exitSaveTimerRef.current) {
-        clearTimeout(exitSaveTimerRef.current);
-        exitSaveTimerRef.current = null;
-      }
-    };
+    }
+    wasEditingRef.current = isEditing;
   }, [isEditing, autosaveCandidate, forceSave]);
 
   useEffect(() => {
     return () => {
-      if (exitSaveTimerRef.current) {
-        clearTimeout(exitSaveTimerRef.current);
-      }
       if (autosaveCandidate.$id) {
         forceSave(autosaveCandidate);
       }
@@ -425,7 +410,7 @@ export function NoteDetailSidebar({
             onFocus={activateTitleEditing}
             className="text-xl font-bold text-foreground cursor-text"
           >
-            {note.title || 'Untitled note'}
+            {displayTitle}
           </div>
         )}
       </div>
@@ -506,15 +491,15 @@ export function NoteDetailSidebar({
             className="space-y-3 cursor-text"
           >
             <NoteContentRenderer
-              content={note.content || ''}
-              format={noteFormat}
+              content={displayContent}
+              format={displayFormat}
               textClassName="text-foreground"
               doodleClassName="rounded-lg border border-border mb-2"
               emptyFallback={<span className="italic text-muted">No content</span>}
-              onEditDoodle={noteFormat === 'doodle' ? activateContentEditing : undefined}
+              onEditDoodle={displayFormat === 'doodle' ? activateContentEditing : undefined}
             />
 
-            {noteFormat !== 'doodle' && note.content && (
+            {displayFormat !== 'doodle' && displayContent && (
               <div className="pt-2">
                 <Button
                   variant="outline"
@@ -524,7 +509,7 @@ export function NoteDetailSidebar({
                   onClick={async (event) => {
                     event.stopPropagation();
                     try {
-                      await navigator.clipboard.writeText(note.content || '');
+                      await navigator.clipboard.writeText(displayContent);
                       showSuccess('Copied', 'Content copied to clipboard');
                     } catch (err) {
                       console.error('Failed to copy note content', err);
@@ -555,10 +540,10 @@ export function NoteDetailSidebar({
             className="w-full px-3 py-2 border border-border rounded-lg bg-card text-foreground"
           />
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {note.tags?.map((tag: string, index: number) => (
+            <div className="flex flex-wrap gap-2">
+            {displayTags.map((tag: string, index: number) => (
               <span
-                key={index}
+                key={`${tag}-${index}`}
                 className="px-2 py-1 bg-accent/20 text-accent rounded-full text-xs"
               >
                 {tag}
