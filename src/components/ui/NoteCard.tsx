@@ -8,16 +8,12 @@ import { toggleNoteVisibility, getShareableUrl, isNotePublic } from '@/lib/appwr
 import type { Notes } from '@/types/appwrite';
 import { Button } from './Button';
 import { DoodleStroke } from '@/types/notes';
-import { 
-  PencilIcon, 
-  TrashIcon, 
-  EyeIcon, 
-  DocumentDuplicateIcon,
+import {
+  TrashIcon,
   GlobeAltIcon,
   LockClosedIcon,
   ClipboardDocumentIcon,
   UserGroupIcon,
-  ArrowTopRightOnSquareIcon,
   EllipsisVerticalIcon
 } from '@heroicons/react/24/outline';
 
@@ -86,29 +82,6 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete }) => {
     );
   };
 
-  const handleEdit = () => {
-    openSidebar(
-      <NoteDetailSidebar
-        note={note}
-        onUpdate={onUpdate || (() => {})}
-        onDelete={onDelete || (() => {})}
-      />
-    );
-  };
-
-  const handleDuplicate = () => {
-    const duplicatedNote: Notes = {
-      ...note,
-      $id: '',
-      title: `${note.title} (Copy)`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    if (onUpdate) {
-      onUpdate(duplicatedNote);
-    }
-  };
-
   const handleDelete = () => {
     if (onDelete && note.$id) {
       onDelete(note.$id);
@@ -145,32 +118,6 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete }) => {
 
   const contextMenuItems = [
     {
-      label: 'Open In New Tab',
-      icon: <ArrowTopRightOnSquareIcon className="w-4 h-4" />,
-      onClick: () => {
-        if (note.$id) {
-          // Open the note page in a new tab
-          window.open(`/notes/${note.$id}`, '_blank');
-        }
-      }
-    },
-    {
-      label: 'View Details',
-      icon: <EyeIcon className="w-4 h-4" />,
-      onClick: handleClick
-    },
-    {
-      label: 'Edit',
-      icon: <PencilIcon className="w-4 h-4" />,
-      onClick: handleEdit
-    },
-    {
-      label: 'Duplicate',
-      icon: <DocumentDuplicateIcon className="w-4 h-4" />,
-      onClick: handleDuplicate
-    },
-    // Sharing options
-    {
       label: 'Share With',
       icon: <UserGroupIcon className="w-4 h-4" />,
       onClick: handleShareWith
@@ -180,11 +127,13 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete }) => {
       icon: noteIsPublic ? <LockClosedIcon className="w-4 h-4" /> : <GlobeAltIcon className="w-4 h-4" />,
       onClick: handleToggleVisibility
     },
-    // Show copy link option only if note is public
     ...(noteIsPublic ? [{
       label: 'Copy Share Link',
       icon: <ClipboardDocumentIcon className="w-4 h-4" />,
-      onClick: handleCopyShareLink
+      onClick: () => {
+        handleCopyShareLink();
+        closeMenu();
+      }
     }] : []),
     {
       label: 'Delete',
@@ -282,16 +231,17 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete }) => {
             </div>
           )}
           {noteIsPublic && (
-            <a
-              href={`/shared/${note.$id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCopyShareLink();
+              }}
               className="absolute bottom-3 right-3 p-2 rounded-lg bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-800/40 transition-all duration-200 shadow-card-light dark:shadow-card-dark hover:shadow-lg"
-              title="Open shared note"
+              title="Copy shared note link"
             >
-              <ArrowTopRightOnSquareIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
-            </a>
+              <ClipboardDocumentIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
+            </button>
           )}
         </CardContent>
       </Card>
