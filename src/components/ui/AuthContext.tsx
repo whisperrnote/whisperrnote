@@ -233,6 +233,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const openIDMWindow = useCallback(() => {
     if (typeof window === 'undefined') return;
 
+    const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent);
+
     const launch = async () => {
       try {
         await refreshUser();
@@ -261,12 +263,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
 
         const idmUrl = `https://${authSubdomain}.${domain}/login`;
+        const idmUrlObj = new URL(idmUrl);
+        const mobileTargetUrl = (() => {
+          const mobileUrl = new URL(idmUrl);
+          mobileUrl.searchParams.set('source', window.location.href);
+          return mobileUrl.toString();
+        })();
         const width = 400;
         const height = 600;
         const left = window.screenX + (window.outerWidth - width) / 2;
         const top = window.screenY + (window.outerHeight - height) / 2;
 
-        idmOriginRef.current = new URL(idmUrl).origin;
+        idmOriginRef.current = idmUrlObj.origin;
+
+        if (isMobileDevice) {
+          window.location.assign(mobileTargetUrl);
+          return;
+        }
 
         if (idmWindowRef.current && !idmWindowRef.current.closed) {
           idmWindowRef.current.focus();
