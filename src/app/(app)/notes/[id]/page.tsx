@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { MinusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useToast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/modal';
+import { useTheme, useMediaQuery } from '@mui/material';
 
 export default function NoteEditorPage() {
   const { id } = useParams();
@@ -77,6 +78,14 @@ export default function NoteEditorPage() {
   };
 
   const title = useMemo(() => note?.title || 'Untitled note', [note]);
+  const theme = useTheme();
+  const isMobileViewport = useMediaQuery(theme.breakpoints.down('md'));
+
+  const handleMinimize = () => {
+    if (!note?.$id) return;
+    const target = isMobileViewport ? '/notes' : `/notes?openNoteId=${note.$id}`;
+    router.push(target);
+  };
 
   if (isLoading) {
     return (
@@ -102,7 +111,7 @@ export default function NoteEditorPage() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => note.$id && router.push(`/notes?openNoteId=${note.$id}`)}
+              onClick={handleMinimize}
               disabled={isDeleting}
               aria-label="Minimize to notes sidebar"
             >
