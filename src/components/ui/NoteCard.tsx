@@ -16,6 +16,7 @@ import {
   UserGroupIcon,
   EllipsisVerticalIcon
 } from '@heroicons/react/24/outline';
+import { CheckIcon } from '@heroicons/react/24/solid';
 
 interface NoteCardProps {
   note: Notes;
@@ -29,6 +30,8 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete }) => {
   const { openMenu, closeMenu } = useContextMenu();
   const { openSidebar } = useDynamicSidebar();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const copyFeedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isCopySuccess, setIsCopySuccess] = useState(false);
 
   // Render doodle preview on canvas
   useEffect(() => {
@@ -62,6 +65,14 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete }) => {
       console.error('Failed to render doodle preview');
     }
   }, [note.format, note.content]);
+
+  useEffect(() => {
+    return () => {
+      if (copyFeedbackTimer.current) {
+        clearTimeout(copyFeedbackTimer.current);
+      }
+    };
+  }, []);
 
   const handleRightClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -106,7 +117,13 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete }) => {
     
     const shareUrl = getShareableUrl(note.$id);
     navigator.clipboard.writeText(shareUrl);
-    // You could add a toast notification here
+    setIsCopySuccess(true);
+    if (copyFeedbackTimer.current) {
+      clearTimeout(copyFeedbackTimer.current);
+    }
+    copyFeedbackTimer.current = setTimeout(() => {
+      setIsCopySuccess(false);
+    }, 2000);
   };
 
   const handleShareWith = () => {
@@ -238,9 +255,13 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete }) => {
                 handleCopyShareLink();
               }}
               className="absolute bottom-3 right-3 p-2 rounded-lg bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-800/40 transition-all duration-200 shadow-card-light dark:shadow-card-dark hover:shadow-lg"
-              title="Copy shared note link"
+              title={isCopySuccess ? 'Copied!' : 'Copy shared note link'}
             >
-              <ClipboardDocumentIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
+              {isCopySuccess ? (
+                <CheckIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
+              ) : (
+                <ClipboardDocumentIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
+              )}
             </button>
           )}
         </CardContent>

@@ -194,18 +194,6 @@ export default function NotesPage() {
             Notes
           </h1>
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleToggleSidebar}
-              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {isCollapsed ? (
-                <ArrowRightOnRectangleIcon className="h-5 w-5" />
-              ) : (
-                <ArrowLeftOnRectangleIcon className="h-5 w-5" />
-              )}
-            </Button>
             <Button size="icon" onClick={handleCreateNoteClick}>
               <PlusCircleIcon className="h-6 w-6" />
             </Button>
