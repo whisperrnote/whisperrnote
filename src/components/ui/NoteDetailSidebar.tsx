@@ -323,7 +323,7 @@ export function NoteDetailSidebar({
               event.stopPropagation();
               handleOpenFullPage();
             }}
-            className="h-9 w-9"
+            className="h-9 w-9 hidden md:inline-flex"
             aria-label="Open full page"
           >
             <ArrowTopRightOnSquareIcon className="h-4 w-4" />
