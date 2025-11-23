@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 const slides = [
   {
     id: 1,
-    title: "WhisperRNote",
+    title: "Whisperrnote",
     subtitle: "AI × Blockchain Intelligence",
     content: (
       <div className="space-y-12">

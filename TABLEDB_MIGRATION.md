@@ -1,7 +1,7 @@
 # TablesDB Migration Summary
 
 ## Overview
-Successfully migrated WhisperRNote's Appwrite database layer from the legacy `Databases` API to the new `TablesDB` API terminology while maintaining full backward compatibility.
+Successfully migrated Whisperrnote's Appwrite database layer from the legacy `Databases` API to the new `TablesDB` API terminology while maintaining full backward compatibility.
 
 ## Changes Made
 

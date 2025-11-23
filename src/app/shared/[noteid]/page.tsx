@@ -42,13 +42,13 @@ export async function generateMetadata({ params }: { params: { noteid: string } 
 
      if (!note) {
        return {
-         title: 'Note Not Found • WhisperRNote',
+         title: 'Note Not Found • Whisperrnote',
          description: 'This note is not available or is not public.'
        };
      }
 
      const titleText = note.title && note.title.trim() ? truncate(note.title.trim(), 70) : truncate(firstParagraph(note.content), 70);
-     const description = truncate(firstParagraph(note.content) || 'Shared via WhisperRNote', 160);
+     const description = truncate(firstParagraph(note.content) || 'Shared via Whisperrnote', 160);
      const url = `${baseUrl}/shared/${params.noteid}`;
      const image = `${baseUrl}/logo/whisperrnote.png`;
 
@@ -62,12 +62,12 @@ export async function generateMetadata({ params }: { params: { noteid: string } 
          images: [
            {
              url: image,
-             alt: 'WhisperRNote',
+             alt: 'Whisperrnote',
              width: 1200,
              height: 630
            }
          ],
-         siteName: 'WhisperRNote',
+         siteName: 'Whisperrnote',
          type: 'article'
        },
        twitter: {
@@ -79,8 +79,8 @@ export async function generateMetadata({ params }: { params: { noteid: string } 
      } as any;
    } catch (err) {
      return {
-       title: 'Shared Note • WhisperRNote',
-       description: 'A note shared via WhisperRNote.'
+       title: 'Shared Note • Whisperrnote',
+       description: 'A note shared via Whisperrnote.'
      };
    }
 }

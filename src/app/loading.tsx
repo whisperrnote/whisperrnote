@@ -9,7 +9,7 @@ export default function Loading() {
       <div className="w-full max-w-md p-12 bg-card border border-border rounded-3xl shadow-3d-light dark:shadow-3d-dark transform perspective-500 rotate-x-[10deg] rotate-y-[-5deg] preserve-3d transition-all duration-400 ease-out animate-fade-in-delayed">
         {/* App title with 3D effect */}
         <h1 className="text-4xl font-black text-center mb-6 bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent transform perspective-500 rotate-x-[10deg] origin-bottom tracking-tight">
-          WhisperRNote
+          Whisperrnote
         </h1>
         
         {/* Loading text */}
@@ -35,7 +35,7 @@ export default function Loading() {
       
       {/* Footer */}
       <div className="absolute bottom-4 w-full text-center text-foreground/40 text-xs">
-        © 2025 WhisperRNote. All Rights Reserved.
+        © 2025 Whisperrnote. All Rights Reserved.
       </div>
       
       {/* Background decorative elements */}

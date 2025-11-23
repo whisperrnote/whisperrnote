@@ -100,15 +100,15 @@ export default function AppHeader({ className = '' }: AppHeaderProps) {
   return (
     <header className={`fixed top-0 right-0 left-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border ${className}`}>
       <div className="flex items-center justify-between px-6 py-3 gap-4">
-        {/* Left: WhisperRNote Logo - Always at the edge */}
+        {/* Left: Whisperrnote Logo - Always at the edge */}
         <div className="flex items-center gap-3 shrink-0">
           <img 
             src="/logo/whisperrnote.png" 
-            alt="WhisperRNote Logo" 
+            alt="Whisperrnote Logo" 
             className="w-8 h-8 rounded-lg shadow-lg"
           />
           <h1 className="hidden sm:block text-xl font-black text-foreground bg-gradient-to-r from-accent to-accent/80 bg-clip-text text-transparent">
-            WhisperRNote
+            Whisperrnote
           </h1>
         </div>
 

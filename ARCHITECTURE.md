@@ -1,7 +1,7 @@
-WhisperRNote — Architecture Overview (Language-agnostic)
+Whisperrnote — Architecture Overview (Language-agnostic)
 
 Purpose
-- Explain high-level structure and responsibilities of the WhisperRNote system for engineers and architects.
+- Explain high-level structure and responsibilities of the Whisperrnote system for engineers and architects.
 - Provide a quick reference for onboarding, design decisions, and components without requiring language-specific details.
 
 Scope
@@ -12,7 +12,7 @@ Scope
 - Deployment, developer workflows, and operational notes
 
 1. System Overview
-- WhisperRNote is a web-first note-taking and AI-assisted editing application. It provides a rich client UI, server-side APIs, and integrations with AI services and identity/back-end storage.
+- Whisperrnote is a web-first note-taking and AI-assisted editing application. It provides a rich client UI, server-side APIs, and integrations with AI services and identity/back-end storage.
 - The project follows a modular structure: a frontend app (Next.js), shared utilities, integration adapters, and small scripts for ops/tests.
 
 2. Major Components

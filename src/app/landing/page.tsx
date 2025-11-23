@@ -75,10 +75,10 @@ export default function LandingPage() {
         <div className="flex items-center gap-3">
           <img 
             src="/logo/whisperrnote.png" 
-            alt="WhisperRNote Logo" 
+            alt="Whisperrnote Logo" 
             className="h-8 w-8 rounded-lg"
           />
-          <h2 className="text-xl font-bold text-light-fg dark:text-dark-fg">WhisperRNote</h2>
+          <h2 className="text-xl font-bold text-light-fg dark:text-dark-fg">Whisperrnote</h2>
         </div>
           <nav className="hidden flex-1 justify-center gap-8 md:flex">
             <a
@@ -199,7 +199,7 @@ export default function LandingPage() {
               </a>
             </div>
             <p className="text-sm text-light-fg/40 dark:text-dark-fg/40">
-              © 2025 WhisperRNote. All rights reserved.
+              © 2025 Whisperrnote. All rights reserved.
             </p>
           </div>
         </div>

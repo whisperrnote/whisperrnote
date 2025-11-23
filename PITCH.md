@@ -1,15 +1,15 @@
-# WhisperRNote – Your Ideas, Superpowered (and Actually Yours)
+# Whisperrnote – Your Ideas, Superpowered (and Actually Yours)
 
-Imagine if Notion, ChatGPT, and a personal vault had a baby that respected your privacy, never held your thoughts hostage, and helped you think clearer, faster, and braver. That’s WhisperRNote.
+Imagine if Notion, ChatGPT, and a personal vault had a baby that respected your privacy, never held your thoughts hostage, and helped you think clearer, faster, and braver. That’s Whisperrnote.
 
 ## In Plain Words
-WhisperRNote is where you:
+Whisperrnote is where you:
 - Turn a fuzzy thought into a polished note in seconds with built‑in AI.
 - Keep ownership of everything because your data is anchored with web3 tech (no silent lock-in, no data mining).
 - Collaborate, brainstorm, and grow an actual knowledge base that *feels alive*.
 
 ## Why It’s Different (Not Just Another “AI Notes App”)
-**Most apps either farm your data or overwhelm you. WhisperRNote does neither.** It quietly:
+**Most apps either farm your data or overwhelm you. Whisperrnote does neither.** It quietly:
 1. **Helps you start** – Stuck? Type a seed like “urban farming” and get a structured draft (title, body, tags) you can immediately refine.
 2. **Keeps going when others fail** – Multiple AI brains under the hood. If one model stumbles, a fallback answers. You don’t even notice the switchover.
 3. **Respects your sovereignty** – Notes aren’t trapped in a corporate silo; web3 integration means your content path can be verifiable and portable.
@@ -50,10 +50,10 @@ You don’t need to “understand blockchain.” Here’s what you feel:
 - You can walk away with your knowledge—and that’s a feature, not a threat.
 
 ## The Emotional Pitch
-Most tools make you feel like you’re feeding a machine. WhisperRNote flips that: it *feeds you back*. It catches sparks before they fade, grows them into something useful, and protects them like assets—not throwaway scraps.
+Most tools make you feel like you’re feeding a machine. Whisperrnote flips that: it *feeds you back*. It catches sparks before they fade, grows them into something useful, and protects them like assets—not throwaway scraps.
 
 ## Why Now
-People are waking up: raw AI isn’t enough, and “cloud storage” isn’t real ownership. WhisperRNote sits exactly at the intersection of *creative acceleration* and *digital sovereignty*.
+People are waking up: raw AI isn’t enough, and “cloud storage” isn’t real ownership. Whisperrnote sits exactly at the intersection of *creative acceleration* and *digital sovereignty*.
 
 ## One-Line Taglines (Pick Your Flavor)
 - Your thinking, accelerated—and still yours.
@@ -65,4 +65,4 @@ People are waking up: raw AI isn’t enough, and “cloud storage” isn’t rea
 Try it. Type the messiest thought you had today. Watch it become something you can share, ship, or build on—without giving up control.
 
 ---
-**WhisperRNote** – Where intelligence meets integrity.
+**Whisperrnote** – Where intelligence meets integrity.

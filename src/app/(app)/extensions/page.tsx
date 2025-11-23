@@ -203,7 +203,7 @@ export default function ExtensionsPage() {
               Extensions Marketplace
             </h1>
             <p className="text-muted">
-              Extend WhisperRNote with powerful plugins and automations
+              Extend Whisperrnote with powerful plugins and automations
             </p>
           </div>
           <Button

@@ -29,11 +29,11 @@ function SharedNoteHeader() {
         <div className="flex items-center gap-3 shrink-0">
           <img 
             src="/logo/whisperrnote.png" 
-            alt="WhisperRNote Logo" 
+            alt="Whisperrnote Logo" 
             className="w-8 h-8 rounded-lg shadow-lg"
           />
           <h1 className="hidden sm:block text-xl font-black text-foreground bg-gradient-to-r from-accent to-accent/80 bg-clip-text text-transparent">
-            WhisperRNote
+            Whisperrnote
           </h1>
         </div>
 
@@ -221,7 +221,7 @@ export default function SharedNoteClient({ noteId }: SharedNoteClientProps) {
             <footer className="p-6 bg-background/50 dark:bg-dark-bg/50 border-t border-border dark:border-dark-border">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-muted">Last updated {formatNoteUpdatedDate(verifiedNote, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-                <div className="text-sm text-muted">Shared via WhisperRNote</div>
+                <div className="text-sm text-muted">Shared via Whisperrnote</div>
               </div>
             </footer>
           </article>
@@ -246,8 +246,8 @@ export default function SharedNoteClient({ noteId }: SharedNoteClientProps) {
       <header className="border-b border-light-border dark:border-dark-border bg-white/50 dark:bg-black/50 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Image src="/logo/whisperrnote.png" alt="WhisperRNote" width={32} height={32} className="rounded-lg" />
-            <h1 className="text-xl font-bold text-light-fg dark:text-dark-fg">WhisperRNote</h1>
+            <Image src="/logo/whisperrnote.png" alt="Whisperrnote" width={32} height={32} className="rounded-lg" />
+            <h1 className="text-xl font-bold text-light-fg dark:text-dark-fg">Whisperrnote</h1>
           </div>
           <div className="hidden sm:flex items-center gap-3">
             <a href="/" className="rounded-xl px-3 py-2 text-sm font-medium bg-accent/10">Home</a>
@@ -305,7 +305,7 @@ export default function SharedNoteClient({ noteId }: SharedNoteClientProps) {
           <footer className="p-6 bg-light-bg/50 dark:bg-dark-bg/50 border-t border-light-border dark:border-dark-border">
             <div className="flex items-center justify-between">
               <div className="text-sm text-light-fg/60 dark:text-dark-fg/60">Last updated {formatNoteUpdatedDate(verifiedNote, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-              <div className="text-sm text-light-fg/60 dark:text-dark-fg/60">Shared via WhisperRNote</div>
+              <div className="text-sm text-light-fg/60 dark:text-dark-fg/60">Shared via Whisperrnote</div>
             </div>
           </footer>
         </article>
@@ -313,7 +313,7 @@ export default function SharedNoteClient({ noteId }: SharedNoteClientProps) {
         <div className="mt-12 text-center">
           <div className="bg-gradient-to-r from-accent/10 to-accent/5 rounded-2xl p-8 border border-accent/20">
             <h2 className="text-2xl font-bold text-light-fg dark:text-dark-fg mb-4">Create Your Own Notes</h2>
-            <p className="text-light-fg/70 dark:text-dark-fg/70 mb-6 max-w-lg mx-auto">Join thousands of users who trust WhisperRNote to capture, organize, and share their thoughts.</p>
+            <p className="text-light-fg/70 dark:text-dark-fg/70 mb-6 max-w-lg mx-auto">Join thousands of users who trust Whisperrnote to capture, organize, and share their thoughts.</p>
             <a href="/" className="inline-flex items-center justify-center rounded-xl px-6 py-3 bg-accent text-white font-semibold">
               Start Writing for Free
               <ArrowRightIcon className="h-5 w-5 ml-3" />

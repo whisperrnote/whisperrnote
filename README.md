@@ -3,7 +3,7 @@
 # 🚀 WhisperrNote
 ### *Where AI Meets Blockchain Intelligence*
 
-<img src="public/logo/whisperrnote.png" alt="WhisperRNote Logo" width="200"/>
+<img src="public/logo/whisperrnote.png" alt="Whisperrnote Logo" width="200"/>
 
 **🔮 AI-Powered Note Evolution • 🛡️ Blockchain-Secured Privacy • ⚡ Next-Gen Productivity**
 
@@ -25,7 +25,7 @@
 ## 🌟 **Revolutionary AI + Blockchain Synergy**
 
 > **The Future of Note-Taking Has Arrived**  
-> WhisperRNote isn't just another note app—it's an **intelligent ecosystem** where artificial intelligence amplifies your creativity while blockchain technology ensures your thoughts remain truly yours.
+> Whisperrnote isn't just another note app—it's an **intelligent ecosystem** where artificial intelligence amplifies your creativity while blockchain technology ensures your thoughts remain truly yours.
 
 ### 🧠 **AI-Powered Intelligence**
 - **Smart Auto-Enhancement**: AI automatically refines and structures your notes
@@ -167,7 +167,7 @@ Experience our bleeding-edge blockchain integration:
 
 ## 📜 **License**
 
-WhisperRNote is open-source and licensed under the [MIT License](LICENSE).
+Whisperrnote is open-source and licensed under the [MIT License](LICENSE).
 
 ---
 
@@ -175,7 +175,7 @@ WhisperRNote is open-source and licensed under the [MIT License](LICENSE).
 
 ### **🌟 Where Your Ideas Meet Tomorrow's Technology**
 
-*Thank you for joining the WhisperRNote revolution. Together, we're building a future where AI amplifies human creativity and blockchain protects digital freedom.*
+*Thank you for joining the Whisperrnote revolution. Together, we're building a future where AI amplifies human creativity and blockchain protects digital freedom.*
 
 **✨ Experience the synergy. Own your thoughts. Shape the future. ✨**
 

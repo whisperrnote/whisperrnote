@@ -8,11 +8,11 @@ export interface EcosystemApp {
 export const NEXT_PUBLIC_DOMAIN = process.env.NEXT_PUBLIC_DOMAIN || 'whisperrnote.app';
 
 export const ECOSYSTEM_APPS: EcosystemApp[] = [
-  { id: 'whisperrnote', label: 'WhisperRNote', subdomain: 'app', type: 'app' },
-  { id: 'whisperrtask', label: 'WhisperRTask', subdomain: 'whisperrtask', type: 'app' },
-  { id: 'whisperrmeet', label: 'WhisperRMeet', subdomain: 'whisperrmeet', type: 'app' },
-  { id: 'whisperrcal', label: 'WhisperRCal', subdomain: 'whisperrcal', type: 'app' },
-  { id: 'whisperrevents', label: 'WhisperREvents', subdomain: 'whisperrevents', type: 'app' },
+  { id: 'whisperrnote', label: 'Whisperrnote', subdomain: 'app', type: 'app' },
+  { id: 'whisperrtask', label: 'Whisperrtask', subdomain: 'whisperrtask', type: 'app' },
+  { id: 'whisperrmeet', label: 'Whisperrmeet', subdomain: 'whisperrmeet', type: 'app' },
+  { id: 'whisperrcal', label: 'Whisperrcal', subdomain: 'whisperrcal', type: 'app' },
+  { id: 'whisperrevents', label: 'Whisperrevents', subdomain: 'whisperrevents', type: 'app' },
   { id: 'tenchat', label: 'TenChat', subdomain: 'tenchat', type: 'app' },
   { id: 'accounts', label: 'Accounts', subdomain: 'accounts', type: 'accounts' },
   { id: 'support', label: 'Support', subdomain: 'support', type: 'support' },
