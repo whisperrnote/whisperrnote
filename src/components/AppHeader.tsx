@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Cog6ToothIcon, ArrowRightOnRectangleIcon, SparklesIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/components/ui/AuthContext';
 // AI context removed for lazy loading
@@ -19,6 +19,8 @@ interface AppHeaderProps {
 export default function AppHeader({ className = '' }: AppHeaderProps) {
   const { user, isAuthenticated, logout } = useAuth();
   const { openOverlay, closeOverlay } = useOverlay();
+  const appsMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const appsMenuRef = useRef<HTMLDivElement>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiGenerating, setAiGenerating] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
@@ -97,6 +99,20 @@ export default function AppHeader({ className = '' }: AppHeaderProps) {
     window.location.href = getEcosystemUrl(subdomain);
   };
 
+  useEffect(() => {
+    if (!isAppsMenuOpen) return;
+
+    const onClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (!appsMenuRef.current?.contains(target) && !appsMenuButtonRef.current?.contains(target)) {
+        setIsAppsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, [isAppsMenuOpen]);
+
   return (
     <header className={`fixed top-0 right-0 left-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border ${className}`}>
       <div className="flex items-center justify-between px-6 py-3 gap-4">
@@ -141,6 +157,7 @@ export default function AppHeader({ className = '' }: AppHeaderProps) {
               className="gap-2"
               onClick={() => setIsAppsMenuOpen((prev) => !prev)}
               aria-expanded={isAppsMenuOpen}
+              ref={appsMenuButtonRef}
             >
               <Squares2X2Icon className="h-4 w-4" />
               <span>Apps</span>
@@ -161,7 +178,10 @@ export default function AppHeader({ className = '' }: AppHeaderProps) {
                 className="fixed inset-0 z-10"
                 onClick={() => setIsAppsMenuOpen(false)}
               />
-              <div className="absolute top-full right-0 mt-2 w-48 max-h-[70vh] overflow-y-auto rounded-2xl border border-border bg-card shadow-lg shadow-black/5 z-20">
+              <div
+                ref={appsMenuRef}
+                className="absolute top-full right-0 mt-2 w-48 max-h-[70vh] overflow-y-auto rounded-2xl border border-border bg-card shadow-lg shadow-black/5 z-20"
+              >
                 <div className="px-4 py-2 text-[10px] font-semibold text-muted-foreground">
                   Apps
                 </div>
