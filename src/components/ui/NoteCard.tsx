@@ -23,6 +23,7 @@ interface NoteCardProps {
   note: Notes;
   onUpdate?: (updatedNote: Notes) => void;
   onDelete?: (noteId: string) => void;
+  onNoteSelect?: (note: Notes) => void;
 }
 
 const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete }) => {
@@ -85,6 +86,10 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete }) => {
   };
 
   const handleClick = () => {
+    if (onNoteSelect) {
+      onNoteSelect(note);
+      return;
+    }
     openSidebar(
       <NoteDetailSidebar
         note={note}

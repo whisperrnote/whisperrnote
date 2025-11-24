@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Notes, Tags } from '@/types/appwrite';
 import { getNotesByTag } from '@/lib/appwrite';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { NoteDetailSidebar } from './NoteDetailSidebar';
 import NoteCard from '@/components/ui/NoteCard';
 import { NoteCardSkeleton } from './NoteCardSkeleton';
 
@@ -23,6 +24,7 @@ export function TagNotesListSidebar({
   const [notes, setNotes] = useState<Notes[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedNote, setSelectedNote] = useState<Notes | null>(null);
 
   useEffect(() => {
     const fetchNotes = async () => {
@@ -42,45 +44,91 @@ export function TagNotesListSidebar({
     fetchNotes();
   }, [tag.$id]);
 
+  const handleHeaderBack = useCallback(() => {
+    if (selectedNote) {
+      setSelectedNote(null);
+      return;
+    }
+    onBack();
+  }, [selectedNote, onBack]);
+
+  const handleNoteUpdate = (updatedNote: Notes) => {
+    setNotes((prev) => prev.map((n) => (n.$id === updatedNote.$id ? updatedNote : n)));
+    onNoteUpdate(updatedNote);
+    if (selectedNote?.$id === updatedNote.$id) {
+      setSelectedNote(updatedNote);
+    }
+  };
+
+  const handleNoteDelete = (noteId: string) => {
+    setNotes((prev) => prev.filter((n) => n.$id !== noteId));
+    onNoteDelete(noteId);
+    if (selectedNote?.$id === noteId) {
+      setSelectedNote(null);
+    }
+  };
+
+  const renderContent = () => {
+    if (selectedNote) {
+      return (
+        <div className="overflow-y-auto px-4 py-4">
+          <NoteDetailSidebar
+            note={selectedNote}
+            onUpdate={handleNoteUpdate}
+            onDelete={handleNoteDelete}
+            showExpandButton={false}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="px-4 py-4 space-y-4">
+        {loading ? (
+          Array.from({ length: 3 }).map((_, index) => (
+            <NoteCardSkeleton key={index} />
+          ))
+        ) : error ? (
+          <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl">
+            <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+          </div>
+        ) : notes.length === 0 ? (
+          <div className="p-4 text-center">
+            <p className="text-foreground/60 text-sm">No notes with this tag</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {notes.map((note) => (
+              <NoteCard
+                key={note.$id}
+                note={note}
+                onUpdate={handleNoteUpdate}
+                onDelete={handleNoteDelete}
+                onNoteSelect={setSelectedNote}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 pb-4 border-b border-border">
         <button
-          onClick={onBack}
+          onClick={handleHeaderBack}
           className="flex items-center gap-2 text-foreground/70 hover:text-foreground transition-colors"
         >
           <ArrowLeftIcon className="h-5 w-5" />
-          <span className="text-sm font-medium">Back</span>
+          <span className="text-sm font-medium">
+            {selectedNote ? 'Back to notes' : 'Back'}
+          </span>
         </button>
       </div>
 
       <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="px-4 py-4 space-y-4">
-          {loading ? (
-            Array.from({ length: 3 }).map((_, index) => (
-              <NoteCardSkeleton key={index} />
-            ))
-          ) : error ? (
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl">
-              <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
-            </div>
-          ) : notes.length === 0 ? (
-            <div className="p-4 text-center">
-              <p className="text-foreground/60 text-sm">No notes with this tag</p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4">
-              {notes.map((note) => (
-                <NoteCard
-                  key={note.$id}
-                  note={note}
-                  onUpdate={onNoteUpdate}
-                  onDelete={onNoteDelete}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        {renderContent()}
       </div>
     </div>
   );
