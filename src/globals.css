@@ -41,7 +41,9 @@
   }
 
   /* Ensure all containers prevent horizontal overflow */
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     box-sizing: border-box;
   }
 
@@ -49,25 +51,32 @@
     overflow-x: hidden !important;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-bold;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
+    font-weight: 800;
   }
 
   h1 {
-    @apply text-4xl;
+    @apply text-4xl lg:text-5xl tracking-tight;
   }
 
   h2 {
-    @apply text-3xl;
+    @apply text-3xl lg:text-4xl tracking-tight;
+    font-weight: 700;
   }
 
   h3 {
     @apply text-2xl;
   }
-  
+
   /* Enhanced 3D styling for UI elements */
   .card-3d {
-    box-shadow: 
+    box-shadow:
       0 4px 12px rgba(0, 0, 0, 0.15),
       0 2px 4px rgba(0, 0, 0, 0.12),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -75,20 +84,23 @@
 
   /* Glow effects for AI elements */
   .shadow-glow-accent {
-    box-shadow: 
+    box-shadow:
       0 0 10px rgba(var(--accent-rgb), 0.3),
       0 0 20px rgba(var(--accent-rgb), 0.15),
       0 0 30px rgba(var(--accent-rgb), 0.1);
   }
 
   @keyframes pulse-glow {
-    0%, 100% {
-      box-shadow: 
+
+    0%,
+    100% {
+      box-shadow:
         0 0 10px rgba(var(--accent-rgb), 0.3),
         0 0 20px rgba(var(--accent-rgb), 0.15);
     }
+
     50% {
-      box-shadow: 
+      box-shadow:
         0 0 15px rgba(var(--accent-rgb), 0.5),
         0 0 30px rgba(var(--accent-rgb), 0.25),
         0 0 45px rgba(var(--accent-rgb), 0.15);
@@ -98,24 +110,24 @@
   .animate-pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
   }
-  
+
   .card-3d:hover {
     @apply shadow-3d-light dark:shadow-3d-dark;
     transform: translateY(-1px);
   }
-  
+
   .btn-3d {
     @apply shadow-3d-light dark:shadow-3d-dark;
     @apply border border-border;
     @apply rounded-xl;
     transition: all 0.2s ease;
   }
-  
+
   .btn-3d:hover {
     @apply shadow-3d-elevated;
     transform: translateY(-2px);
   }
-  
+
   .btn-3d:active {
     @apply shadow-inner-light dark:shadow-inner-dark;
     transform: translateY(0);
@@ -127,19 +139,42 @@
 
   /* Loading animations for InitialLoadingScreen */
   @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
   }
 
   @keyframes scale-in {
-    from { transform: scale(0.8); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    from {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 
   @keyframes loading-bar {
-    0% { width: 0%; margin-left: 0%; }
-    50% { width: 100%; margin-left: 0%; }
-    100% { width: 0%; margin-left: 100%; }
+    0% {
+      width: 0%;
+      margin-left: 0%;
+    }
+
+    50% {
+      width: 100%;
+      margin-left: 0%;
+    }
+
+    100% {
+      width: 0%;
+      margin-left: 100%;
+    }
   }
 
   .animate-fade-in {

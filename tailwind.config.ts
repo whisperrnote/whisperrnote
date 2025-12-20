@@ -9,6 +9,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-inter)", "Inter", "sans-serif"],
+        display: ["var(--font-outfit)", "Outfit", "sans-serif"],
+      },
       colors: {
         // Base color palette (very dark brown & brownish white per UI spec)
         'brown-darkest': '#1a120e', // very dark brown for dark mode foregrounds
@@ -16,14 +20,14 @@ const config: Config = {
         'brown-medium': '#6b5b4f',  // medium brown
         'brown-light': '#a69080',   // light brown
         'brown-lightest': '#f5f2f0', // brownish white for light mode foregrounds
-        
+
         // Ash colors (dark ash & ash-white per UI spec) 
         'ash-darkest': '#0f0f0f',   // very dark ash for dark mode backgrounds
         'ash-dark': '#1a1a1a',      // dark ash
         'ash-medium': '#3c3c3c',    // medium ash
         'ash-light': '#d1d1d1',     // light ash
         'ash-lightest': '#f8f8f8',  // ash-white for light mode backgrounds
-        
+
         // Sun yellow accent (as specified for avoiding monotony)
         'sun-yellow': '#ffc700',
         'sun-yellow-dark': '#d9a900',
@@ -47,10 +51,10 @@ const config: Config = {
         'accent': '#ffc700',        // sun-yellow
         'accent-hover': '#ffe066',  // lighter sun-yellow
         'accent-dark': '#d9a900',   // darker sun-yellow
-        
+
         // Success, warning, error states
         'success': '#10b981',
-        'warning': '#f59e0b', 
+        'warning': '#f59e0b',
         'error': '#ef4444',
         'info': '#3b82f6',
 
@@ -60,7 +64,7 @@ const config: Config = {
         'card': 'var(--card)',
         'border': 'var(--border)',
         'muted': 'var(--muted)',
-        
+
         // Additional design system tokens
         'card-foreground': 'var(--foreground)',
         'muted-foreground': 'var(--muted)',
@@ -76,16 +80,16 @@ const config: Config = {
         '3d-light': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
         '3d-dark': '0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3)',
         '3d-elevated': '0 20px 40px -12px rgba(0, 0, 0, 0.25)',
-        
+
         // Inner shadows for sunken effect
         'inner-light': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
         'inner-dark': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.3)',
         'inner-deep': 'inset 0 4px 8px 0 rgba(0, 0, 0, 0.4)',
-        
+
         // Soft glows
         'glow-accent': '0 0 20px rgba(255, 199, 0, 0.3)',
         'glow-soft': '0 0 15px rgba(255, 255, 255, 0.1)',
-        
+
         // Card shadows with brown/ash tints
         'card-light': '0 4px 16px rgba(45, 34, 30, 0.1), 0 2px 4px rgba(45, 34, 30, 0.06)',
         'card-dark': '0 4px 16px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2)',
