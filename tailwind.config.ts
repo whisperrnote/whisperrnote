@@ -14,39 +14,48 @@ const config: Config = {
         mono: ["var(--font-mono)", "monospace"],
         display: ["var(--font-mono)", "monospace"],
       },
-      colors: {
-        // The Void (Background)
-        'void': '#1B1C20',
+      // The Void / Solar Substrate
+      'void': 'var(--void)',
 
-        // The Matter (Structure/Cards)
-        'matter': {
-          DEFAULT: '#2D2421', // Baked Laterite Base
-          highlight: '#484A3B', // Material Highlight
-          dark: '#1E1917',
-        },
-
-        // The Light (Energy/Actions)
-        'sun': {
-          DEFAULT: '#FFC107', // Tungsten Sun
-          glow: 'rgba(255, 193, 7, 0.4)',
-        },
-
-        // The Shadow (Depth)
-        'indigo-shadow': 'rgba(26, 35, 126, 0.4)',
-
-        // The Life (States)
-        'life': '#004D40', // Circuit Teal
-
-        // Map to standard tokens for existing components
-        'background': '#1B1C20',
-        'foreground': '#FAF8F6', // Brownish White
-        'card': '#2D2421',
-        'border': '#3D3D3D',
-        'muted': '#A69080',
-
-        'accent': '#FFC107',
-        'accent-foreground': '#1B1C20',
+      // The Matter (Structure/Cards)
+      'matter': {
+        DEFAULT: 'var(--matter)',
+        highlight: 'var(--matter-highlight)',
       },
+
+      // The Light (Energy/Actions)
+      'sun': {
+        DEFAULT: 'var(--tungsten)',
+        glow: 'rgba(var(--accent-rgb), 0.4)',
+      },
+
+      // The Shadow (Depth)
+      'indigo-shadow': 'rgba(var(--shadow-indigo), 0.4)',
+
+      // The Life (States)
+      'life': '#004D40', // Circuit Teal
+
+      // Legacy Semantic Mapping (Adaptive)
+      'light-bg': 'var(--background)',
+      'dark-bg': 'var(--background)',
+      'light-fg': 'var(--foreground)',
+      'dark-fg': 'var(--foreground)',
+      'light-card': 'var(--card)',
+      'dark-card': 'var(--card)',
+      'light-border': 'var(--border)',
+      'dark-border': 'var(--border)',
+      'light-muted': 'var(--muted)',
+      'dark-muted': 'var(--muted)',
+
+      // Map to standard tokens for existing components
+      'background': 'var(--background)',
+      'foreground': 'var(--foreground)',
+      'card': 'var(--card)',
+      'border': 'var(--border)',
+      'muted': 'var(--muted)',
+
+      'accent': 'var(--accent)',
+      'accent-foreground': 'var(--void)',
       borderRadius: {
         'sm': '4px',
         'DEFAULT': '8px',

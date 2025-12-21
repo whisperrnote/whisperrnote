@@ -4,28 +4,48 @@
 
 @layer base {
   :root {
-    /* The Spectrum */
+    /* Solar (Light) Theme - Derived from the Nigerian Landscape */
+    --void: #FAF8F6;
+    /* Brownish White / Paper */
+    --matter: #EADDD3;
+    /* Sand / Light Laterite */
+    --matter-highlight: #D8C8BD;
+    --tungsten: #FFC107;
+    --shadow-indigo: 26, 35, 126;
+
+    --background: var(--void);
+    --foreground: #1B1C20;
+    /* Deep Ash text in light mode */
+    --card: var(--matter);
+    --border: rgba(26, 35, 126, 0.1);
+    --accent: var(--tungsten);
+    --accent-rgb: 255, 193, 7;
+    --muted: #8D7B6D;
+  }
+
+  .dark {
+    /* The Void (Dark) Theme */
     --void: #1B1C20;
     --matter: #2D2421;
     --matter-highlight: #484A3B;
     --tungsten: #FFC107;
     --shadow-indigo: 26, 35, 126;
-    /* rgba components for shadow */
 
     --background: var(--void);
     --foreground: #FAF8F6;
     --card: var(--matter);
     --border: #3D3D3D;
-    /* Map accents */
     --accent: var(--tungsten);
     --accent-rgb: 255, 193, 7;
+    --muted: #A69080;
   }
 
-  /* Force dark theme globally as per the new philosophy of "The Void" */
+  /* Adaptive theme substrate (Void / Solar) */
   html,
   body {
-    background-color: var(--void);
+    background-color: var(--background);
     color: var(--foreground);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   body {
