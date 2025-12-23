@@ -211,12 +211,12 @@ export default function NotesPage() {
             </h1>
             <p className="text-lg text-muted font-medium">
               {allNotes.length < totalNotes && !hasSearchResults ? (
-                <>Syncing <span className="font-mono font-bold text-accent">{allNotes.length}</span> of <span className="font-mono font-bold">{totalNotes}</span> volumes</>
+                <>Syncing <span className="font-mono font-bold text-accent">{allNotes.length}</span> of <span className="font-mono font-bold">{totalNotes}</span> notes</>
               ) : (
                 hasSearchResults ? (
-                  <><span className="font-mono font-bold text-accent">{totalCount}</span> {totalCount === 1 ? 'fragment' : 'fragments'} identified</>
+                  <><span className="font-mono font-bold text-accent">{totalCount}</span> {totalCount === 1 ? 'result' : 'results'} found</>
                 ) : (
-                  <><span className="font-mono font-bold text-accent">{totalNotes}</span> {totalNotes === 1 ? 'sovereign volume' : 'sovereign volumes'} secured</>
+                  <><span className="font-mono font-bold text-accent">{totalNotes}</span> {totalNotes === 1 ? 'private note' : 'private notes'} secured</>
                 )
               )}
             </p>
@@ -304,12 +304,12 @@ export default function NotesPage() {
               )}
             </div>
             <h3 className="text-2xl font-black text-foreground mb-3 font-mono">
-              {hasSearchResults ? 'QUERY_NULL' : 'VAULT_EMPTY'}
+              {hasSearchResults ? 'NO_RESULTS' : 'VAULT_EMPTY'}
             </h3>
             <p className="text-muted mb-6 max-w-md font-medium">
               {hasSearchResults
-                ? `The void returns no matches for "${searchQuery}". Refine your query or expand the search.`
-                : 'Your resistance starts with a single thought. Capture your sovereign insights here before they are lost to the walled gardens.'
+                ? `No matches found for "${searchQuery}". Try a different search term.`
+                : 'Capture your thoughts and ideas here. Your notes are private and secure.'
               }
             </p>
             {hasSearchResults ? (

@@ -227,21 +227,21 @@ export default function AppHeader({ className = '' }: AppHeaderProps) {
               <div className="relative">
                 <img
                   src={smallProfileUrl}
-                  alt={user?.name || user?.email || 'Sovereign ID'}
+                  alt={user?.name || user?.email || 'User Profile'}
                   className="h-5 w-5 rounded-full object-cover"
                 />
-                <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-life rounded-full border border-void shadow-sm" title="Verified Sovereign" />
+                <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-life rounded-full border border-void shadow-sm" title="Verified Account" />
               </div>
             ) : (
               <div className="relative overflow-visible">
                 <div className="h-5 w-5 rounded-full bg-accent/80 flex items-center justify-center text-white text-xs font-medium">
                   {user?.name ? user.name[0].toUpperCase() : user?.email ? user.email[0].toUpperCase() : 'U'}
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-life rounded-full border border-void shadow-sm" title="Verified Sovereign" />
+                <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-life rounded-full border border-void shadow-sm" title="Verified Account" />
               </div>
             )}
             <span className="hidden sm:inline text-sm font-bold tracking-tight text-foreground">
-              {user?.name || user?.email || 'Sovereign ID'}
+              {user?.name || user?.email || 'User Profile'}
             </span>
           </button>
 
@@ -257,7 +257,7 @@ export default function AppHeader({ className = '' }: AppHeaderProps) {
               {/* Menu */}
               <div className="absolute top-full right-0 mt-2 w-56 bg-card border border-border rounded-xl shadow-tangible z-20 py-2 divide-y divide-border">
                 <div className="px-4 py-2">
-                  <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-muted">Sovereign Identity</p>
+                  <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-muted">Account Identity</p>
                   <p className="text-xs font-medium truncate opacity-70">{user?.email}</p>
                 </div>
 
@@ -273,13 +273,13 @@ export default function AppHeader({ className = '' }: AppHeaderProps) {
 
                   <button
                     onClick={() => {
-                      alert('Nuke & Export: Your sovereign data is being compiled for Markdown export...');
+                      alert('Exporting your data to Markdown...');
                       setIsAccountMenuOpen(false);
                     }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sun hover:bg-void transition-colors duration-200"
                   >
                     <ArrowRightOnRectangleIcon className="h-4 w-4 rotate-180" />
-                    <span className="text-xs font-bold uppercase tracking-wider">Sovereign Export</span>
+                    <span className="text-xs font-bold uppercase tracking-wider">Export Data</span>
                   </button>
                 </div>
 

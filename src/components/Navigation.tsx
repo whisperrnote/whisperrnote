@@ -90,9 +90,9 @@ export const DesktopSidebar: React.FC<NavigationProps> = ({ className = '' }) =>
 
   const navItems = [
     { icon: HomeIcon, label: 'Private Vault', path: '/notes' },
-    { icon: ShareIcon, label: 'Sovereign Links', path: '/shared' },
-    { icon: TagIcon, label: 'Taxonomy', path: '/tags' },
-    { icon: PuzzlePieceIcon, label: 'Capabilities', path: '/extensions' },
+    { icon: ShareIcon, label: 'Shared Links', path: '/shared' },
+    { icon: TagIcon, label: 'Tags', path: '/tags' },
+    { icon: PuzzlePieceIcon, label: 'Extensions', path: '/extensions' },
     { icon: Cog6ToothIcon, label: 'Vault Settings', path: '/settings' },
   ];
 
@@ -102,7 +102,7 @@ export const DesktopSidebar: React.FC<NavigationProps> = ({ className = '' }) =>
         } ${className}`}
     >
       <div className="flex items-center justify-between p-4 border-b-2 border-border mb-2">
-        {!isCollapsed && <span className="text-[10px] font-bold font-mono tracking-[0.2em] text-muted uppercase">Inventory</span>}
+        {!isCollapsed && <span className="text-[10px] font-bold font-mono tracking-[0.2em] text-muted uppercase">Navigation</span>}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="p-2 rounded-xl hover:bg-void text-foreground transition-all duration-200"
@@ -155,7 +155,7 @@ export const DesktopSidebar: React.FC<NavigationProps> = ({ className = '' }) =>
                 </p>
                 <div className="flex items-center gap-1">
                   <div className="w-1.5 h-1.5 bg-life rounded-full" />
-                  <p className="text-[9px] font-bold font-mono text-muted uppercase tracking-tighter">Sovereign</p>
+                  <p className="text-[9px] font-bold font-mono text-muted uppercase tracking-tighter">Active</p>
                 </div>
               </div>
             )}
@@ -169,7 +169,7 @@ export const DesktopSidebar: React.FC<NavigationProps> = ({ className = '' }) =>
               }`}
           >
             <PowerIcon className="h-5 w-5" />
-            {!isCollapsed && <span>Eject</span>}
+            {!isCollapsed && <span>Logout</span>}
           </button>
         )}
       </div>

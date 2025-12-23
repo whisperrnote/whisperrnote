@@ -178,7 +178,7 @@ export function TopBarSearch({ className = '' }: TopBarSearchProps) {
             <div className="py-2">
               <div className="px-4 py-2 border-b-2 border-border bg-void">
                 <p className="text-[10px] font-bold font-mono uppercase tracking-[0.2em] text-muted">
-                  {searchResults.length} {searchResults.length !== 1 ? 'fragments' : 'fragment'} identified
+                  {searchResults.length} {searchResults.length !== 1 ? 'results' : 'result'} found
                 </p>
               </div>
               <div className="max-h-80 overflow-y-auto">
@@ -226,10 +226,10 @@ export function TopBarSearch({ className = '' }: TopBarSearchProps) {
                 <MagnifyingGlassIcon className="h-8 w-8 text-muted/50" />
               </div>
               <h3 className="text-lg font-black font-mono tracking-tighter text-foreground mb-1">
-                VAULT_NULL
+                NO_RESULTS
               </h3>
               <p className="text-xs text-muted font-medium mb-4">
-                No fragments matched &quot;{searchQuery}&quot;
+                No results matched &quot;{searchQuery}&quot;
               </p>
               <Button size="sm" variant="outline" onClick={handleClear}>
                 Reset Search
