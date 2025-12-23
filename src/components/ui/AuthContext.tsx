@@ -293,16 +293,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const launch = async () => {
       try {
-        await refreshUser();
+        // First, check if we already have a session locally
         const currentUser = await getCurrentUser();
 
         if (currentUser) {
+          console.log('Active session detected, skipping IDM window');
           setUser(currentUser);
           setIDMWindowOpen(false);
           if (idmWindowRef.current && !idmWindowRef.current.closed) {
             idmWindowRef.current.close();
             idmWindowRef.current = null;
           }
+          if (pathname === '/' || pathname === '/landing') {
+            router.replace('/notes');
+          }
+          return;
+        }
+
+        // If no local session, try one last silent check before opening window
+        await attemptSilentAuth();
+        const silentUser = await getCurrentUser();
+        if (silentUser) {
+          setUser(silentUser);
           if (pathname === '/' || pathname === '/landing') {
             router.replace('/notes');
           }

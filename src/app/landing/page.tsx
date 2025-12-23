@@ -42,8 +42,7 @@ export default function LandingPage() {
       router.replace('/notes');
       return;
     }
-    openIDMWindow();
-  }, [isAuthenticated, openIDMWindow, router]);
+  }, [isAuthenticated, router]);
 
   // Generate user initials from name or email
   const getUserInitials = (user: any): string => {
