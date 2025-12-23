@@ -133,6 +133,17 @@ export default function LandingPage() {
               Transform your ideas with AI assistance and secure your notes. 
               Generate comprehensive content instantly, collaborate seamlessly, and own your data forever.
             </p>
+
+            <div className="flex flex-col items-center gap-4 mb-12">
+              <Button 
+                size="lg" 
+                className="px-12 py-6 text-lg font-bold bg-accent hover:bg-accent/90 text-white shadow-3d-light dark:shadow-3d-dark"
+                onClick={() => openIDMWindow()}
+                isLoading={isAuthenticating}
+              >
+                Get Started Free
+              </Button>
+            </div>
             
             {/* AI Hero Input */}
             <AIHeroInput onPromptSelectAction={handlePromptSelect} className="mb-8" />
