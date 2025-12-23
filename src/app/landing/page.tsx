@@ -34,7 +34,7 @@ const features = [
 ];
 
 export default function LandingPage() {
-  const { openIDMWindow, isAuthenticated, user } = useAuth();
+  const { openIDMWindow, isAuthenticated, user, isAuthenticating } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -116,6 +116,7 @@ export default function LandingPage() {
             <Button 
               variant="ghost" 
               onClick={() => openIDMWindow()}
+              isLoading={isAuthenticating}
             >
               Login
             </Button>

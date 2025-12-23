@@ -19,6 +19,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  isAuthenticating: boolean;
   isAuthenticated: boolean;
   login: (user: User) => void;
   logout: () => Promise<void>;
@@ -40,6 +41,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [idmWindowOpen, setIDMWindowOpen] = useState(false);
   const [emailVerificationReminderDismissed, setEmailVerificationReminderDismissed] = useState(false);
   const idmWindowRef = useRef<Window | null>(null);
@@ -183,6 +185,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       refreshUser();
       setIDMWindowOpen(false);
+      setIsAuthenticating(false);
       if (idmWindowRef.current && !idmWindowRef.current.closed) {
         idmWindowRef.current.close();
       }
@@ -207,6 +210,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         clearInterval(interval);
         idmWindowRef.current = null;
         setIDMWindowOpen(false);
+        setIsAuthenticating(false);
         refreshUser();
       }
     }, 700);
@@ -287,8 +291,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Opens IDM window for authentication
   const openIDMWindow = useCallback(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || isAuthenticating) return;
 
+    setIsAuthenticating(true);
     const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent);
 
     const launch = async () => {
@@ -300,6 +305,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log('Active session detected, skipping IDM window');
           setUser(currentUser);
           setIDMWindowOpen(false);
+          setIsAuthenticating(false);
           if (idmWindowRef.current && !idmWindowRef.current.closed) {
             idmWindowRef.current.close();
             idmWindowRef.current = null;
@@ -315,6 +321,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const silentUser = await getCurrentUser();
         if (silentUser) {
           setUser(silentUser);
+          setIsAuthenticating(false);
           if (pathname === '/' || pathname === '/landing') {
             router.replace('/notes');
           }
@@ -326,6 +333,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (!authSubdomain || !domain) {
           console.error('IDM configuration missing: AUTH_SUBDOMAIN or DOMAIN not set');
+          setIsAuthenticating(false);
           router.replace('/landing');
           return;
         }
@@ -361,6 +369,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (!windowRef) {
             console.error('Failed to open IDM window');
             setIDMWindowOpen(false);
+            setIsAuthenticating(false);
             router.replace('/landing');
             return;
           }
@@ -371,12 +380,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIDMWindowOpen(true);
       } catch (error) {
         console.error('Failed to initiate IDM flow:', error);
+        setIsAuthenticating(false);
         router.replace('/landing');
       }
     };
 
     launch();
-  }, [refreshUser, router, pathname]);
+  }, [refreshUser, router, pathname, isAuthenticating, attemptSilentAuth]);
 
   const closeIDMWindow = useCallback(() => {
     if (idmWindowRef.current && !idmWindowRef.current.closed) {
@@ -384,6 +394,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
     idmWindowRef.current = null;
     setIDMWindowOpen(false);
+    setIsAuthenticating(false);
     if (!user) {
       router.replace('/landing');
     }
@@ -392,6 +403,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value = {
     user,
     isLoading,
+    isAuthenticating,
     isAuthenticated: !!user,
     login,
     logout,
