@@ -227,82 +227,140 @@ export default function SharedNoteClient({ noteId }: SharedNoteClientProps) {
 
   if (isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background dark:bg-dark-bg">
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
         <SharedNoteHeader />
-        <main className="max-w-4xl mx-auto px-6 py-8 pt-20">
-          <article className="bg-card dark:bg-dark-card rounded-3xl border border-border dark:border-dark-border overflow-hidden">
-            <header className="p-8 border-b border-border dark:border-dark-border">
-              <div className="space-y-6">
-                <h1 className="text-3xl font-bold text-foreground dark:text-dark-fg leading-tight">{verifiedNote.title || 'Untitled Note'}</h1>
+        <Container maxWidth="md" sx={{ py: 8, pt: 12 }}>
+          <Paper 
+            elevation={0}
+            sx={{ 
+              borderRadius: '32px', 
+              border: '1px solid',
+              borderColor: 'divider',
+              bgcolor: 'rgba(10, 10, 10, 0.7)',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              overflow: 'hidden'
+            }}
+          >
+            <Box sx={{ p: { xs: 4, md: 6 }, borderBottom: '1px solid', borderColor: 'divider' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Typography variant="h3" sx={{ fontWeight: 800, fontFamily: 'var(--font-space-grotesk)', lineHeight: 1.2 }}>
+                  {verifiedNote.title || 'Untitled Note'}
+                </Typography>
 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-muted">
-                  <div className="flex items-center gap-2">
-                    <ClockIcon className="h-4 w-4" />
-                    <span>Created {formatNoteCreatedDate(verifiedNote, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <EyeIcon className="h-4 w-4" />
-                    <span>Public Note</span>
-                  </div>
-                </div>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
+                    <ClockIcon style={{ width: 16, height: 16 }} />
+                    <Typography variant="caption" sx={{ fontWeight: 500 }}>
+                      Created {formatNoteCreatedDate(verifiedNote, { month: 'long', day: 'numeric', year: 'numeric' })}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
+                    <EyeIcon style={{ width: 16, height: 16 }} />
+                    <Typography variant="caption" sx={{ fontWeight: 500 }}>Public Note</Typography>
+                  </Box>
+                </Box>
 
                 {verifiedNote.tags && verifiedNote.tags.length > 0 && (
-                  <div className="flex items-center gap-2 flex-wrap text-sm text-muted">
-                    <TagIcon className="h-4 w-4" />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                    <TagIcon style={{ width: 16, height: 16, color: 'rgba(255, 255, 255, 0.4)' }} />
                     {verifiedNote.tags.map((tag: string, i: number) => (
-                      <span key={i} className="px-2 py-1 bg-background dark:bg-dark-bg rounded-full text-xs">{tag}</span>
+                      <Chip 
+                        key={i} 
+                        label={tag} 
+                        size="small" 
+                        sx={{ 
+                          bgcolor: 'rgba(255, 255, 255, 0.05)', 
+                          color: 'text.secondary',
+                          borderRadius: '8px',
+                          fontSize: '0.7rem',
+                          fontWeight: 600
+                        }} 
+                      />
                     ))}
-                  </div>
+                  </Box>
                 )}
-              </div>
-            </header>
+              </Box>
+            </Box>
 
-            <div className="relative p-8 bg-background/70 dark:bg-dark-bg/40 rounded-xl">
-              <button
+            <Box sx={{ position: 'relative', p: { xs: 4, md: 6 }, bgcolor: 'rgba(255, 255, 255, 0.02)' }}>
+              <IconButton
                 onClick={handleCopyContent}
-                className={`absolute top-4 right-4 p-2 rounded-lg border transition-all duration-200 group ${
-                  isCopied
-                    ? 'bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700'
-                    : 'bg-background dark:bg-dark-card border-border hover:bg-card dark:hover:bg-dark-card/80'
-                }`}
+                sx={{
+                  position: 'absolute',
+                  top: 24,
+                  right: 24,
+                  bgcolor: isCopied ? 'rgba(0, 240, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid',
+                  borderColor: isCopied ? 'primary.main' : 'divider',
+                  borderRadius: '12px',
+                  color: isCopied ? 'primary.main' : 'text.primary',
+                  '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' }
+                }}
                 title={isCopied ? 'Copied!' : 'Copy content'}
               >
                 {isCopied ? (
-                  <CheckIcon className="h-5 w-5 text-green-600 dark:text-green-400 transition-colors" />
+                  <CheckIcon style={{ width: 20, height: 20 }} />
                 ) : (
-                  <svg className="h-5 w-5 text-foreground group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg style={{ width: 20, height: 20 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 )}
-              </button>
+              </IconButton>
               <NoteContentRenderer
                 content={verifiedNote.content || ''}
                 format={(verifiedNote.format as 'text' | 'doodle') || 'text'}
-                textClassName="text-foreground dark:text-dark-fg"
-                emptyFallback={<div className="text-muted italic">This note is empty.</div>}
+                textClassName="text-foreground"
+                emptyFallback={<Typography sx={{ color: 'text.disabled', fontStyle: 'italic' }}>This note is empty.</Typography>}
               />
-            </div>
+            </Box>
 
-            <footer className="p-6 bg-background/50 dark:bg-dark-bg/50 border-t border-border dark:border-dark-border">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-muted">Last updated {formatNoteUpdatedDate(verifiedNote, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-                <div className="text-sm text-muted">Shared via Whisperrnote</div>
-              </div>
-            </footer>
-          </article>
+            <Box sx={{ p: 3, bgcolor: 'rgba(0, 0, 0, 0.3)', borderTop: '1px solid', borderColor: 'divider' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                  Last updated {formatNoteUpdatedDate(verifiedNote, { month: 'short', day: 'numeric', year: 'numeric' })}
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                  Shared via Whisperrnote
+                </Typography>
+              </Box>
+            </Box>
+          </Paper>
 
-          <div className="mt-12 text-center">
-            <div className="bg-gradient-to-r from-accent/10 to-accent/5 rounded-2xl p-8 border border-accent/20">
-              <h2 className="text-2xl font-bold text-foreground dark:text-dark-fg mb-4">View Your Notes</h2>
-              <p className="text-muted mb-6 max-w-lg mx-auto">Check out all your notes and continue organizing your thoughts.</p>
-              <a href="/notes" className="inline-flex items-center justify-center rounded-xl px-6 py-3 bg-accent text-white font-semibold">
+          <Box sx={{ mt: 8, textAlign: 'center' }}>
+            <Paper
+              sx={{
+                p: 6,
+                borderRadius: '24px',
+                bgcolor: 'rgba(0, 240, 255, 0.03)',
+                border: '1px solid',
+                borderColor: 'rgba(0, 240, 255, 0.1)',
+              }}
+            >
+              <Typography variant="h4" sx={{ fontWeight: 800, mb: 2, fontFamily: 'var(--font-space-grotesk)' }}>
+                View Your Notes
+              </Typography>
+              <Typography variant="body1" sx={{ color: 'text.secondary', mb: 4, maxWidth: 500, mx: 'auto' }}>
+                Check out all your notes and continue organizing your thoughts.
+              </Typography>
+              <Button
+                component={Link}
+                href="/notes"
+                variant="contained"
+                size="large"
+                endIcon={<ArrowRightIcon style={{ width: 20, height: 20 }} />}
+                sx={{ 
+                  borderRadius: '16px', 
+                  px: 4, 
+                  py: 1.5,
+                  boxShadow: '0 8px 24px rgba(0, 240, 255, 0.2)'
+                }}
+              >
                 Go to Your Notes
-                <ArrowRightIcon className="h-5 w-5 ml-3" />
-              </a>
-            </div>
-          </div>
-        </main>
-      </div>
+              </Button>
+            </Paper>
+          </Box>
+        </Container>
+      </Box>
     );
   }
 
