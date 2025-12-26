@@ -365,85 +365,148 @@ export default function SharedNoteClient({ noteId }: SharedNoteClientProps) {
   }
 
   return (
-    <div className="min-h-screen bg-light-bg dark:bg-dark-bg">
-      <header className="border-b border-light-border dark:border-dark-border bg-white/50 dark:bg-black/50 backdrop-blur-sm">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Image src="/logo/whisperrnote.png" alt="Whisperrnote" width={32} height={32} className="rounded-lg" />
-            <h1 className="text-xl font-bold text-light-fg dark:text-dark-fg">Whisperrnote</h1>
-          </div>
-          <div className="hidden sm:flex items-center gap-3">
-            <a href="/" className="rounded-xl px-3 py-2 text-sm font-medium bg-accent/10">Home</a>
-            <a href="/" className="rounded-xl px-3 py-2 text-sm font-medium bg-accent text-white">Join</a>
-          </div>
-        </div>
-      </header>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+      <AppBar position="fixed" sx={{ bgcolor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(20px)', borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Toolbar sx={{ justifyContent: 'space-between', maxWidth: 'lg', mx: 'auto', width: '100%' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Image src="/logo/whisperrnote.png" alt="Whisperrnote" width={32} height={32} style={{ borderRadius: '8px' }} />
+            <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em', fontFamily: 'var(--font-space-grotesk)' }}>
+              Whisperrnote
+            </Typography>
+          </Box>
+          <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 2 }}>
+            <Button component={Link} href="/" sx={{ color: 'text.secondary', fontWeight: 600 }}>Home</Button>
+            <Button component={Link} href="/" variant="contained" sx={{ borderRadius: '12px', fontWeight: 700 }}>Join</Button>
+          </Box>
+        </Toolbar>
+      </AppBar>
 
-      <section className="border-b border-light-border dark:border-dark-border bg-gradient-to-r from-accent/10 via-transparent to-accent/10">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-light-fg/70 dark:text-dark-fg/70">Organize unlimited notes, AI insights & secure sharing.</p>
-          <a href="/" className="inline-flex items-center rounded-lg px-4 py-2 bg-accent text-white text-sm font-medium">
-            Get Started Free <ArrowRightIcon className="h-4 w-4 ml-1" />
-          </a>
-        </div>
-      </section>
+      <Box sx={{ pt: 12, pb: 4, bgcolor: 'rgba(0, 240, 255, 0.02)', borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Container maxWidth="md">
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+              Organize unlimited notes, AI insights & secure sharing.
+            </Typography>
+            <Button 
+              component={Link} 
+              href="/" 
+              endIcon={<ArrowRightIcon style={{ width: 16, height: 16 }} />}
+              sx={{ fontWeight: 700, color: 'primary.main' }}
+            >
+              Get Started Free
+            </Button>
+          </Box>
+        </Container>
+      </Box>
 
-      <main className="max-w-4xl mx-auto px-6 py-8">
-        <article className="bg-light-card dark:bg-dark-card rounded-3xl border-2 border-light-border dark:border-dark-border overflow-hidden">
-          <header className="p-8 border-b border-light-border dark:border-dark-border">
-            <div className="space-y-6">
-              <h1 className="text-3xl font-bold text-light-fg dark:text-dark-fg leading-tight">{verifiedNote.title || 'Untitled Note'}</h1>
+      <Container maxWidth="md" sx={{ py: 8 }}>
+        <Paper 
+          elevation={0}
+          sx={{ 
+            borderRadius: '32px', 
+            border: '1px solid',
+            borderColor: 'divider',
+            bgcolor: 'rgba(10, 10, 10, 0.7)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            overflow: 'hidden'
+          }}
+        >
+          <Box sx={{ p: { xs: 4, md: 6 }, borderBottom: '1px solid', borderColor: 'divider' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <h1 style={{ fontSize: '2.25rem', fontWeight: 800, fontFamily: 'var(--font-space-grotesk)', lineHeight: 1.2, margin: 0 }}>
+                {verifiedNote.title || 'Untitled Note'}
+              </h1>
 
-              <div className="flex flex-wrap items-center gap-4 text-sm text-light-fg/60 dark:text-dark-fg/60">
-                <div className="flex items-center gap-2">
-                  <ClockIcon className="h-4 w-4" />
-                  <span>Created {formatNoteCreatedDate(verifiedNote, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <EyeIcon className="h-4 w-4" />
-                  <span>Public Note</span>
-                </div>
-              </div>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
+                  <ClockIcon style={{ width: 16, height: 16 }} />
+                  <Typography variant="caption" sx={{ fontWeight: 500 }}>
+                    Created {formatNoteCreatedDate(verifiedNote, { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
+                  <EyeIcon style={{ width: 16, height: 16 }} />
+                  <Typography variant="caption" sx={{ fontWeight: 500 }}>Public Note</Typography>
+                </Box>
+              </Box>
 
               {verifiedNote.tags && verifiedNote.tags.length > 0 && (
-                <div className="flex items-center gap-2 flex-wrap text-sm text-light-fg/60 dark:text-dark-fg/60">
-                  <TagIcon className="h-4 w-4" />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                  <TagIcon style={{ width: 16, height: 16, color: 'rgba(255, 255, 255, 0.4)' }} />
                   {verifiedNote.tags.map((tag: string, i: number) => (
-                    <span key={i} className="px-2 py-1 bg-light-bg dark:bg-dark-bg rounded-full text-xs">{tag}</span>
+                    <Chip 
+                      key={i} 
+                      label={tag} 
+                      size="small" 
+                      sx={{ 
+                        bgcolor: 'rgba(255, 255, 255, 0.05)', 
+                        color: 'text.secondary',
+                        borderRadius: '8px',
+                        fontSize: '0.7rem',
+                        fontWeight: 600
+                      }} 
+                    />
                   ))}
-                </div>
+                </Box>
               )}
-            </div>
-          </header>
+            </Box>
+          </Box>
 
-          <div className="p-8">
+          <Box sx={{ p: { xs: 4, md: 6 } }}>
             <NoteContentRenderer
               content={verifiedNote.content || ''}
               format={(verifiedNote.format as 'text' | 'doodle') || 'text'}
-              textClassName="text-light-fg dark:text-dark-fg"
-              emptyFallback={<div className="text-light-fg/60 dark:text-dark-fg/60 italic">This note is empty.</div>}
+              textClassName="text-foreground"
+              emptyFallback={<Typography sx={{ color: 'text.disabled', fontStyle: 'italic' }}>This note is empty.</Typography>}
             />
-          </div>
+          </Box>
 
-          <footer className="p-6 bg-light-bg/50 dark:bg-dark-bg/50 border-t border-light-border dark:border-dark-border">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-light-fg/60 dark:text-dark-fg/60">Last updated {formatNoteUpdatedDate(verifiedNote, { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-              <div className="text-sm text-light-fg/60 dark:text-dark-fg/60">Shared via Whisperrnote</div>
-            </div>
-          </footer>
-        </article>
+          <Box sx={{ p: 3, bgcolor: 'rgba(0, 0, 0, 0.3)', borderTop: '1px solid', borderColor: 'divider' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                Last updated {formatNoteUpdatedDate(verifiedNote, { month: 'short', day: 'numeric', year: 'numeric' })}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                Shared via Whisperrnote
+              </Typography>
+            </Box>
+          </Box>
+        </Paper>
 
-        <div className="mt-12 text-center">
-          <div className="bg-gradient-to-r from-accent/10 to-accent/5 rounded-2xl p-8 border border-accent/20">
-            <h2 className="text-2xl font-bold text-light-fg dark:text-dark-fg mb-4">Create Your Own Notes</h2>
-            <p className="text-light-fg/70 dark:text-dark-fg/70 mb-6 max-w-lg mx-auto">Join thousands of users who trust Whisperrnote to capture, organize, and share their thoughts.</p>
-            <a href="/" className="inline-flex items-center justify-center rounded-xl px-6 py-3 bg-accent text-white font-semibold">
+        <Box sx={{ mt: 8, textAlign: 'center' }}>
+          <Paper
+            sx={{
+              p: 6,
+              borderRadius: '24px',
+              bgcolor: 'rgba(0, 240, 255, 0.03)',
+              border: '1px solid',
+              borderColor: 'rgba(0, 240, 255, 0.1)',
+            }}
+          >
+            <Typography variant="h4" sx={{ fontWeight: 800, mb: 2, fontFamily: 'var(--font-space-grotesk)' }}>
+              Create Your Own Notes
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary', mb: 4, maxWidth: 500, mx: 'auto' }}>
+              Join thousands of users who trust Whisperrnote to capture, organize, and share their thoughts.
+            </Typography>
+            <Button
+              component={Link}
+              href="/"
+              variant="contained"
+              size="large"
+              endIcon={<ArrowRightIcon style={{ width: 20, height: 20 }} />}
+              sx={{ 
+                borderRadius: '16px', 
+                px: 4, 
+                py: 1.5,
+                boxShadow: '0 8px 24px rgba(0, 240, 255, 0.2)'
+              }}
+            >
               Start Writing for Free
-              <ArrowRightIcon className="h-5 w-5 ml-3" />
-            </a>
-          </div>
-        </div>
-      </main>
-    </div>
+            </Button>
+          </Paper>
+        </Box>
+      </Container>
+    </Box>
   );
 }
