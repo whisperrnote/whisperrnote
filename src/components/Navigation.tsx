@@ -24,6 +24,28 @@ interface NavigationProps {
   className?: string;
 }
 
+import { 
+  Box, 
+  List, 
+  ListItemButton, 
+  ListItemIcon, 
+  ListItemText, 
+  Typography, 
+  IconButton, 
+  Avatar, 
+  Divider,
+  Paper,
+  Tooltip
+} from '@mui/material';
+import HomeIcon from '@mui/icons-material/Home';
+import ShareIcon from '@mui/icons-material/Share';
+import TagIcon from '@mui/icons-material/LocalOffer';
+import SettingsIcon from '@mui/icons-material/Settings';
+import ExtensionIcon from '@mui/icons-material/Extension';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import LogoutIcon from '@mui/icons-material/Logout';
+
 export const MobileBottomNav: React.FC<NavigationProps> = ({ className = '' }) => {
   const pathname = usePathname();
   const isActive = (path: string) => pathname === path || pathname.startsWith(path);
@@ -32,28 +54,62 @@ export const MobileBottomNav: React.FC<NavigationProps> = ({ className = '' }) =
     { icon: HomeIcon, href: '/notes', label: 'Vault' },
     { icon: ShareIcon, href: '/shared', label: 'Links' },
     { icon: TagIcon, href: '/tags', label: 'Tags' },
-    { icon: PuzzlePieceIcon, href: '/extensions', label: 'Caps' },
+    { icon: ExtensionIcon, href: '/extensions', label: 'Caps' },
   ];
 
   return (
-    <footer className={`fixed bottom-4 left-4 right-4 z-50 md:hidden ${className}`}>
-      <nav className="bg-card/90 border-2 border-border rounded-2xl px-4 py-3 shadow-tangible backdrop-blur-md">
-        <div className="flex justify-around items-center">
-          {navLinks.map(({ icon: Icon, href }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`flex flex-col items-center px-4 py-2.5 rounded-xl transition-all duration-300 ${isActive(href)
-                ? 'text-void bg-accent shadow-tangible-sm transform -translate-y-1'
-                : 'text-foreground hover:bg-void hover:transform hover:-translate-y-0.5'
-                }`}
-            >
-              <Icon className="h-6 w-6" />
-            </Link>
-          ))}
-        </div>
-      </nav>
-    </footer>
+    <Box
+      component="footer"
+      sx={{
+        position: 'fixed',
+        bottom: 16,
+        left: 16,
+        right: 16,
+        zIndex: 1300,
+        display: { xs: 'block', md: 'none' }
+      }}
+    >
+      <Paper
+        elevation={0}
+        sx={{
+          bgcolor: 'rgba(10, 10, 10, 0.8)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid',
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+          borderRadius: '20px',
+          px: 2,
+          py: 1.5,
+          display: 'flex',
+          justifyContent: 'space-around',
+          alignItems: 'center'
+        }}
+      >
+        {navLinks.map(({ icon: Icon, href }) => (
+          <IconButton
+            key={href}
+            component={Link}
+            href={href}
+            sx={{
+              color: isActive(href) ? 'background.default' : 'text.primary',
+              bgcolor: isActive(href) ? 'primary.main' : 'transparent',
+              borderRadius: '12px',
+              p: 1.5,
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              '&:hover': {
+                bgcolor: isActive(href) ? 'primary.dark' : 'rgba(255, 255, 255, 0.05)',
+                transform: 'translateY(-2px)'
+              },
+              ...(isActive(href) && {
+                boxShadow: '0 4px 12px rgba(0, 240, 255, 0.3)',
+                transform: 'translateY(-4px)'
+              })
+            }}
+          >
+            <Icon sx={{ fontSize: 24 }} />
+          </IconButton>
+        ))}
+      </Paper>
+    </Box>
   );
 };
 
@@ -92,88 +148,196 @@ export const DesktopSidebar: React.FC<NavigationProps> = ({ className = '' }) =>
     { icon: HomeIcon, label: 'Private Vault', path: '/notes' },
     { icon: ShareIcon, label: 'Shared Links', path: '/shared' },
     { icon: TagIcon, label: 'Tags', path: '/tags' },
-    { icon: PuzzlePieceIcon, label: 'Extensions', path: '/extensions' },
-    { icon: Cog6ToothIcon, label: 'Vault Settings', path: '/settings' },
+    { icon: ExtensionIcon, label: 'Extensions', path: '/extensions' },
+    { icon: SettingsIcon, label: 'Vault Settings', path: '/settings' },
   ];
 
   return (
-    <aside
-      className={`hidden md:flex flex-col fixed left-0 top-0 h-screen bg-card border-r-2 border-border shadow-tangible transition-all duration-300 z-20 ${isCollapsed ? 'w-20' : 'w-64'
-        } ${className}`}
+    <Box
+      component="aside"
+      sx={{
+        display: { xs: 'none', md: 'flex' },
+        flexDirection: 'column',
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        height: '100vh',
+        bgcolor: 'background.paper',
+        borderRight: '1px solid',
+        borderColor: 'divider',
+        transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        width: isCollapsed ? '64px' : '256px',
+        zIndex: 1200,
+        pt: '64px' // Offset for AppHeader
+      }}
     >
-      <div className="flex items-center justify-between p-4 border-b-2 border-border mb-2">
-        {!isCollapsed && <span className="text-[10px] font-bold font-mono tracking-[0.2em] text-muted uppercase">Navigation</span>}
-        <button
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: isCollapsed ? 'center' : 'space-between',
+        p: 2,
+        borderBottom: '1px solid',
+        borderColor: 'divider'
+      }}>
+        {!isCollapsed && (
+          <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: '0.2em', color: 'text.secondary', textTransform: 'uppercase' }}>
+            Navigation
+          </Typography>
+        )}
+        <IconButton 
+          size="small" 
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-2 rounded-xl hover:bg-void text-foreground transition-all duration-200"
+          sx={{ 
+            color: 'text.primary',
+            bgcolor: 'rgba(255, 255, 255, 0.03)',
+            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.08)' }
+          }}
         >
-          {isCollapsed ? <ChevronRightIcon className="h-5 w-5" /> : <ChevronLeftIcon className="h-5 w-5" />}
-        </button>
-      </div>
+          {isCollapsed ? <ChevronRightIcon fontSize="small" /> : <ChevronLeftIcon fontSize="small" />}
+        </IconButton>
+      </Box>
 
-      <nav className="flex-1 p-4 space-y-2 overflow-y-auto min-h-0">
+      <List sx={{ flex: 1, px: 1.5, py: 2, overflowY: 'auto' }}>
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
 
           return (
-            <Link
-              key={item.path}
-              href={item.path}
-              className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 group ${active
-                ? 'bg-accent text-void shadow-tangible-sm transform translate-x-1'
-                : 'text-foreground hover:bg-void hover:transform hover:translate-x-1'
-                } ${isCollapsed ? 'justify-center px-0' : ''}`}
-            >
-              <Icon className="h-5 w-5 flex-shrink-0" />
-              {!isCollapsed && <span className="font-bold text-sm tracking-tight">{item.label}</span>}
-              {active && !isCollapsed && <div className="w-1 h-5 bg-void/20 rounded-full ml-auto"></div>}
-            </Link>
+            <Tooltip key={item.path} title={isCollapsed ? item.label : ''} placement="right">
+              <ListItemButton
+                component={Link}
+                href={item.path}
+                sx={{
+                  borderRadius: '12px',
+                  mb: 1,
+                  px: isCollapsed ? 1.5 : 2,
+                  py: 1.5,
+                  transition: 'all 0.2s',
+                  bgcolor: active ? 'primary.main' : 'transparent',
+                  color: active ? 'background.default' : 'text.primary',
+                  '&:hover': {
+                    bgcolor: active ? 'primary.dark' : 'rgba(255, 255, 255, 0.05)',
+                    transform: 'translateX(4px)'
+                  },
+                  justifyContent: isCollapsed ? 'center' : 'flex-start'
+                }}
+              >
+                <ListItemIcon sx={{ 
+                  minWidth: isCollapsed ? 0 : 40, 
+                  color: 'inherit',
+                  justifyContent: 'center'
+                }}>
+                  <Icon sx={{ fontSize: 20 }} />
+                </ListItemIcon>
+                {!isCollapsed && (
+                  <ListItemText 
+                    primary={item.label} 
+                    primaryTypographyProps={{ 
+                      variant: 'body2', 
+                      fontWeight: 700,
+                      letterSpacing: '-0.01em'
+                    }} 
+                  />
+                )}
+                {active && !isCollapsed && (
+                  <Box sx={{ width: 4, height: 20, bgcolor: 'rgba(0, 0, 0, 0.2)', borderRadius: '2px', ml: 'auto' }} />
+                )}
+              </ListItemButton>
+            </Tooltip>
           );
         })}
-      </nav>
+      </List>
 
-      <div className="p-4 border-t-2 border-border space-y-4">
-        <div className={`flex items-center ${isCollapsed ? 'justify-center px-0' : 'justify-between px-2'}`}>
-          {!isCollapsed && <span className="text-[10px] font-bold font-mono tracking-widest text-muted uppercase">Mode</span>}
+      <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: isCollapsed ? 'center' : 'space-between',
+          mb: 3,
+          px: isCollapsed ? 0 : 1
+        }}>
+          {!isCollapsed && (
+            <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: '0.1em', color: 'text.secondary', textTransform: 'uppercase' }}>
+              Mode
+            </Typography>
+          )}
           <ThemeToggle size="sm" />
-        </div>
+        </Box>
 
         {isAuthenticated && user && (
-          <div className={`flex items-center gap-3 p-2 rounded-xl bg-void/50 border border-border/50 ${isCollapsed ? 'justify-center' : ''}`}>
-            {smallProfileUrl ? (
-              <img src={smallProfileUrl} alt={user.name || user.email || 'User'} className="w-8 h-8 rounded-lg object-cover shadow-sm" />
-            ) : (
-              <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-void font-bold text-xs shadow-sm">
-                {user.name ? user.name[0].toUpperCase() : user.email ? user.email[0].toUpperCase() : 'U'}
-              </div>
-            )}
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1.5, 
+            p: 1.5, 
+            borderRadius: '12px', 
+            bgcolor: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid',
+            borderColor: 'rgba(255, 255, 255, 0.05)',
+            mb: 2,
+            justifyContent: isCollapsed ? 'center' : 'flex-start'
+          }}>
+            <Avatar 
+              src={smallProfileUrl || undefined}
+              sx={{ 
+                width: 32, 
+                height: 32, 
+                bgcolor: 'primary.main',
+                color: 'background.default',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                borderRadius: '8px'
+              }}
+            >
+              {user.name ? user.name[0].toUpperCase() : 'U'}
+            </Avatar>
             {!isCollapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-foreground truncate text-xs tracking-tight">
-                  {user.name || user.email || 'User'}
-                </p>
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 bg-life rounded-full" />
-                  <p className="text-[9px] font-bold font-mono text-muted uppercase tracking-tighter">Active</p>
-                </div>
-              </div>
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', truncate: true }}>
+                  {user.name || user.email}
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Box sx={{ width: 6, height: 6, bgcolor: '#00FF00', borderRadius: '50%' }} />
+                  <Typography variant="caption" sx={{ fontSize: '8px', fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Active
+                  </Typography>
+                </Box>
+              </Box>
             )}
-          </div>
+          </Box>
         )}
 
-        {isAuthenticated && (
-          <button
-            onClick={() => logout()}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-foreground hover:bg-red-500/10 hover:text-red-500 transition-all duration-300 text-xs font-bold uppercase tracking-wider ${isCollapsed ? 'justify-center px-0' : ''
-              }`}
-          >
-            <PowerIcon className="h-5 w-5" />
-            {!isCollapsed && <span>Logout</span>}
-          </button>
-        )}
-      </div>
-    </aside>
+        <ListItemButton
+          onClick={() => logout()}
+          sx={{
+            borderRadius: '12px',
+            px: isCollapsed ? 1.5 : 2,
+            py: 1.25,
+            color: 'text.secondary',
+            '&:hover': {
+              bgcolor: 'rgba(255, 0, 0, 0.05)',
+              color: 'error.main'
+            },
+            justifyContent: isCollapsed ? 'center' : 'flex-start'
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: isCollapsed ? 0 : 40, color: 'inherit', justifyContent: 'center' }}>
+            <LogoutIcon sx={{ fontSize: 20 }} />
+          </ListItemIcon>
+          {!isCollapsed && (
+            <ListItemText 
+              primary="Logout" 
+              primaryTypographyProps={{ 
+                variant: 'caption', 
+                fontWeight: 700, 
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em'
+              }} 
+            />
+          )}
+        </ListItemButton>
+      </Box>
+    </Box>
   );
 };
 

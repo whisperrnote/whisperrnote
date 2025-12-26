@@ -16,6 +16,10 @@ interface TopBarSearchProps {
   className?: string;
 }
 
+import { Box, InputBase, Paper, List, ListItemButton, Typography, Chip, CircularProgress, IconButton } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
+
 export function TopBarSearch({ className = '' }: TopBarSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -128,116 +132,191 @@ export function TopBarSearch({ className = '' }: TopBarSearchProps) {
   const showDropdown = isOpen && searchQuery.length > 0;
 
   return (
-    <div
-      className={`relative ${className}`}
+    <Box
       ref={searchRef}
+      sx={{ position: 'relative', width: '100%' }}
       {...sidebarIgnoreProps}
     >
       {/* Search Input */}
-      <div className="relative group">
-        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 transition-colors duration-200 group-focus-within:text-accent">
-          <MagnifyingGlassIcon className="h-5 w-5 text-muted" />
-        </div>
-        <input
-          id="topbar-search-input"
-          ref={inputRef}
-          type="text"
+      <Box
+        sx={{
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          bgcolor: 'rgba(255, 255, 255, 0.03)',
+          border: '1px solid',
+          borderColor: isOpen ? 'primary.main' : 'rgba(255, 255, 255, 0.1)',
+          borderRadius: '12px',
+          px: 2,
+          py: 0.5,
+          transition: 'all 0.2s ease',
+          '&:hover': {
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            bgcolor: 'rgba(255, 255, 255, 0.05)',
+          },
+          boxShadow: isOpen ? '0 0 0 4px rgba(0, 240, 255, 0.1)' : 'none',
+        }}
+      >
+        <SearchIcon sx={{ color: isOpen ? 'primary.main' : 'text.secondary', mr: 1.5, fontSize: 20 }} />
+        <InputBase
+          inputRef={inputRef}
           placeholder="Search Private Vault..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={handleFocus}
-          className={`
-            w-full pl-12 pr-12 py-2.5 
-            bg-matter border-2 border-border rounded-xl
-            text-foreground placeholder-muted/50 font-medium
-            focus:outline-none focus:ring-4 focus:ring-accent/10 focus:border-accent
-            transition-all duration-300
-            hover:shadow-tangible-sm
-            ${isOpen ? 'shadow-tangible border-accent/50' : ''}
-          `}
+          fullWidth
+          sx={{
+            color: 'text.primary',
+            fontSize: '0.9375rem',
+            fontWeight: 500,
+            '& .MuiInputBase-input::placeholder': {
+              color: 'text.secondary',
+              opacity: 0.5,
+            },
+          }}
         />
         {searchQuery && (
-          <button
-            onClick={handleClear}
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1.5 rounded-lg hover:bg-void transition-colors text-muted hover:text-foreground"
-          >
-            <XMarkIcon className="h-4 w-4" />
-          </button>
+          <IconButton size="small" onClick={handleClear} sx={{ color: 'text.secondary' }}>
+            <CloseIcon sx={{ fontSize: 18 }} />
+          </IconButton>
         )}
-      </div>
+      </Box>
 
       {/* Search Results Dropdown */}
       {showDropdown && (
-        <div className="absolute top-full left-0 right-0 mt-3 bg-card border-2 border-border rounded-2xl shadow-tangible z-50 max-h-[70vh] overflow-hidden transition-all animate-fade-in">
+        <Paper
+          elevation={0}
+          sx={{
+            position: 'absolute',
+            top: 'calc(100% + 12px)',
+            left: 0,
+            right: 0,
+            bgcolor: 'background.paper',
+            backgroundImage: 'none',
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: '16px',
+            overflow: 'hidden',
+            zIndex: 1300,
+            maxHeight: '70vh',
+            backdropFilter: 'blur(20px)',
+            backgroundColor: 'rgba(10, 10, 10, 0.8)',
+          }}
+        >
           {isSearching ? (
-            <div className="p-4 text-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-2 border-accent border-t-transparent mx-auto mb-2"></div>
-              <p className="text-sm text-muted">Searching...</p>
-            </div>
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <CircularProgress size={24} sx={{ mb: 2 }} />
+              <Typography variant="body2" color="text.secondary">Searching...</Typography>
+            </Box>
           ) : hasSearchResults ? (
-            <div className="py-2">
-              <div className="px-4 py-2 border-b-2 border-border bg-void">
-                <p className="text-[10px] font-bold font-mono uppercase tracking-[0.2em] text-muted">
+            <Box>
+              <Box sx={{ px: 2, py: 1, bgcolor: 'rgba(255, 255, 255, 0.02)', borderBottom: '1px solid', borderColor: 'divider' }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: '0.1em', color: 'text.secondary', textTransform: 'uppercase' }}>
                   {searchResults.length} {searchResults.length !== 1 ? 'results' : 'result'} found
-                </p>
-              </div>
-              <div className="max-h-80 overflow-y-auto">
+                </Typography>
+              </Box>
+              <List sx={{ p: 0, maxHeight: 400, overflowY: 'auto' }}>
                 {searchResults.map((note: Notes) => (
-                  <button
+                  <ListItemButton
                     key={note.$id}
-                    type="button"
-                    className="w-full text-left block px-5 py-4 hover:bg-void transition-all duration-200 border-b border-border last:border-b-0 group"
                     onClick={() => handleResultSelect(note)}
+                    sx={{
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      px: 2.5,
+                      py: 2,
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                      '&:last-child': { borderBottom: 'none' },
+                      '&:hover': {
+                        bgcolor: 'rgba(255, 255, 255, 0.03)',
+                        '& .note-title': { color: 'primary.main' }
+                      }
+                    }}
                   >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-bold text-foreground truncate group-hover:text-accent transition-colors">
-                          {note.title || 'Untitled Note'}
-                        </h4>
-                        {note.content && (
-                          <p className="text-xs text-muted/80 mt-1 line-clamp-2">
-                            {note.content.substring(0, 100)}
-                          </p>
-                        )}
-                        {note.tags && note.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mt-2.5">
-                            {note.tags.slice(0, 3).map((tag: string) => (
-                              <span
-                                key={tag}
-                                className="inline-block px-2 py-0.5 text-[10px] font-bold bg-secondary/10 text-secondary border border-secondary/20 rounded uppercase tracking-wider"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div className="shrink-0 text-[10px] font-mono font-bold text-muted/60 bg-void px-2 py-1 rounded border border-border">
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', mb: 0.5 }}>
+                      <Typography className="note-title" variant="subtitle2" sx={{ fontWeight: 700, transition: 'color 0.2s' }}>
+                        {note.title || 'Untitled Note'}
+                      </Typography>
+                      <Typography variant="caption" sx={{ 
+                        fontFamily: 'monospace', 
+                        color: 'text.secondary',
+                        bgcolor: 'rgba(255, 255, 255, 0.03)',
+                        px: 1,
+                        borderRadius: '4px',
+                        border: '1px solid',
+                        borderColor: 'divider'
+                      }}>
                         {formatNoteCreatedDate(note, { year: '2-digit', month: 'short', day: '2-digit' })}
-                      </div>
-                    </div>
-                  </button>
+                      </Typography>
+                    </Box>
+                    {note.content && (
+                      <Typography variant="caption" color="text.secondary" sx={{ 
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        mb: 1.5
+                      }}>
+                        {note.content.substring(0, 100)}
+                      </Typography>
+                    )}
+                    {note.tags && note.tags.length > 0 && (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {note.tags.slice(0, 3).map((tag: string) => (
+                          <Chip
+                            key={tag}
+                            label={tag}
+                            size="small"
+                            sx={{
+                              height: 18,
+                              fontSize: '9px',
+                              fontWeight: 700,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.05em',
+                              bgcolor: 'rgba(0, 240, 255, 0.05)',
+                              color: 'primary.main',
+                              border: '1px solid',
+                              borderColor: 'rgba(0, 240, 255, 0.2)',
+                              borderRadius: '4px',
+                              '& .MuiChip-label': { px: 1 }
+                            }}
+                          />
+                        ))}
+                      </Box>
+                    )}
+                  </ListItemButton>
                 ))}
-              </div>
-            </div>
+              </List>
+            </Box>
           ) : (
-            <div className="p-10 text-center bg-void">
-              <div className="w-16 h-16 bg-card border-2 border-border rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-tangible">
-                <MagnifyingGlassIcon className="h-8 w-8 text-muted/50" />
-              </div>
-              <h3 className="text-lg font-black font-mono tracking-tighter text-foreground mb-1">
-                NO_RESULTS
-              </h3>
-              <p className="text-xs text-muted font-medium mb-4">
-                No results matched &quot;{searchQuery}&quot;
-              </p>
-              <Button size="sm" variant="outline" onClick={handleClear}>
+            <Box sx={{ p: 6, textAlign: 'center' }}>
+              <Box sx={{ 
+                width: 64, 
+                height: 64, 
+                bgcolor: 'rgba(255, 255, 255, 0.03)', 
+                border: '1px solid', 
+                borderColor: 'divider', 
+                borderRadius: '16px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 2
+              }}>
+                <SearchIcon sx={{ fontSize: 32, color: 'text.secondary', opacity: 0.5 }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 900, letterSpacing: '-0.02em', mb: 0.5 }}>NO_RESULTS</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                No results matched "{searchQuery}"
+              </Typography>
+              <Button size="small" variant="outline" onClick={handleClear}>
                 Reset Search
               </Button>
-            </div>
+            </Box>
           )}
-        </div>
+        </Paper>
       )}
-    </div>
+    </Box>
   );
 }

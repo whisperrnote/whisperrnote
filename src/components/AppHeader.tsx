@@ -1,16 +1,26 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { Cog6ToothIcon, ArrowRightOnRectangleIcon, SparklesIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
-import { useAuth } from '@/components/ui/AuthContext';
-// AI context removed for lazy loading
-import { TopBarSearch } from '@/components/TopBarSearch';
-import { Button } from '@/components/ui/Button';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { useOverlay } from '@/components/ui/OverlayContext';
-import { fetchProfilePreview, getCachedProfilePreview } from '@/lib/profilePreview';
-import { getUserProfilePicId } from '@/lib/utils';
-import { ECOSYSTEM_APPS, getEcosystemUrl, DEFAULT_ECOSYSTEM_LOGO } from '@/constants/ecosystem';
+import { 
+  AppBar, 
+  Toolbar, 
+  Box, 
+  Typography, 
+  IconButton, 
+  Menu, 
+  MenuItem, 
+  Avatar, 
+  Tooltip, 
+  Divider,
+  ListItemIcon,
+  ListItemText,
+  Grid,
+  Paper
+} from '@mui/material';
+import SettingsIcon from '@mui/icons-material/Settings';
+import LogoutIcon from '@mui/icons-material/Logout';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import AppsIcon from '@mui/icons-material/Apps';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
 interface AppHeaderProps {
   className?: string;
@@ -19,12 +29,9 @@ interface AppHeaderProps {
 export default function AppHeader({ className = '' }: AppHeaderProps) {
   const { user, isAuthenticated, logout } = useAuth();
   const { openOverlay, closeOverlay } = useOverlay();
-  const appsMenuButtonRef = useRef<HTMLButtonElement>(null);
-  const appsMenuRef = useRef<HTMLDivElement>(null);
   const [aiLoading, setAiLoading] = useState(false);
-  const [aiGenerating, setAiGenerating] = useState(false);
-  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
-  const [isAppsMenuOpen, setIsAppsMenuOpen] = useState(false);
+  const [anchorElAccount, setAnchorElAccount] = useState<null | HTMLElement>(null);
+  const [anchorElApps, setAnchorElApps] = useState<null | HTMLElement>(null);
   const [currentSubdomain, setCurrentSubdomain] = useState<string | null>(null);
   const [smallProfileUrl, setSmallProfileUrl] = useState<string | null>(null);
   const profilePicId = getUserProfilePicId(user);
@@ -65,7 +72,7 @@ export default function AppHeader({ className = '' }: AppHeaderProps) {
   }, [profilePicId]);
 
   const handleLogout = () => {
-    setIsAccountMenuOpen(false);
+    setAnchorElAccount(null);
     logout();
   };
 
@@ -99,212 +106,232 @@ export default function AppHeader({ className = '' }: AppHeaderProps) {
     window.location.href = getEcosystemUrl(subdomain);
   };
 
-  useEffect(() => {
-    if (!isAppsMenuOpen) return;
-
-    const onClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (!appsMenuRef.current?.contains(target) && !appsMenuButtonRef.current?.contains(target)) {
-        setIsAppsMenuOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
-  }, [isAppsMenuOpen]);
-
   return (
-    <header className={`fixed top-0 right-0 left-0 z-30 bg-background/80 backdrop-blur-md border-b-2 border-border/50 ${className}`}>
-      <div className="flex items-center justify-between px-6 py-3 gap-6">
-        {/* Left: Whisperrnote Logo - Always at the edge */}
-        <div className="flex items-center gap-4 shrink-0">
-          <div className="w-10 h-10 bg-card border-2 border-border flex items-center justify-center rounded-xl shadow-tangible overflow-hidden bg-void">
-            <img
-              src="/logo/whisperrnote.png"
-              alt="Whisperrnote Logo"
-              className="w-7 h-7 object-contain"
-            />
-          </div>
-          <h1 className="hidden sm:block text-2xl font-black font-mono tracking-tighter text-foreground">
-            WHISPERR<span className="text-accent">NOTE</span>
-          </h1>
-        </div>
+    <AppBar 
+      position="fixed" 
+      elevation={0}
+      sx={{ 
+        zIndex: 1201,
+        bgcolor: 'rgba(0, 0, 0, 0.7)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+      }}
+    >
+      <Toolbar sx={{ gap: { xs: 2, md: 4 }, px: { xs: 2, md: 3 } }}>
+        {/* Left: Logo */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+          <Box sx={{ 
+            width: 40, 
+            height: 40, 
+            bgcolor: 'background.paper', 
+            border: '1px solid', 
+            borderColor: 'divider', 
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden'
+          }}>
+            <img src="/logo/whisperrnote.png" alt="Logo" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+          </Box>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              display: { xs: 'none', sm: 'block' },
+              fontWeight: 900, 
+              letterSpacing: '-0.05em',
+              fontFamily: 'Space Grotesk, sans-serif'
+            }}
+          >
+            WHISPERR<Box component="span" sx={{ color: 'primary.main' }}>NOTE</Box>
+          </Typography>
+        </Box>
 
-        {/* Center: Search Bar */}
-        <div className="flex-1 max-w-2xl">
+        {/* Center: Search */}
+        <Box sx={{ flexGrow: 1, maxWidth: 700 }}>
           <TopBarSearch />
-        </div>
+        </Box>
 
-        {/* Right: AI Generate Button (Desktop) + Account Menu */}
-        <div className="relative flex items-center gap-3 shrink-0">
-          {/* AI Generate Button - Desktop Only */}
-          <div className="hidden md:block">
-            <Button
+        {/* Right: Actions */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+          <Tooltip title="AI Generate">
+            <IconButton 
               onClick={handleAIGenerateClick}
-              disabled={aiLoading || aiGenerating}
-              className={`gap-2 ${aiLoading ? 'opacity-60 cursor-wait' : ''}`}
-              variant="default"
-              title={aiLoading ? 'Loading AI...' : 'Generate with AI'}
+              disabled={aiLoading}
+              sx={{ 
+                display: { xs: 'none', md: 'flex' },
+                bgcolor: 'primary.main',
+                color: 'background.default',
+                '&:hover': { bgcolor: 'primary.dark' },
+                borderRadius: '10px',
+                width: 40,
+                height: 40
+              }}
             >
-              <SparklesIcon className={`h-4 w-4 ${aiLoading || aiGenerating ? 'animate-pulse' : ''}`} />
-              {aiLoading ? 'Loading...' : aiGenerating ? 'Generating...' : 'AI Generate'}
-            </Button>
-          </div>
+              <AutoAwesomeIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Tooltip>
 
-          {/* Apps Dropdown Button */}
-          <div className="hidden md:block">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-2"
-              onClick={() => setIsAppsMenuOpen((prev) => !prev)}
-              aria-expanded={isAppsMenuOpen}
-              ref={appsMenuButtonRef}
+          <IconButton 
+            onClick={(e) => setAnchorElApps(e.currentTarget)}
+            sx={{ 
+              color: 'text.primary',
+              bgcolor: 'rgba(255, 255, 255, 0.05)',
+              borderRadius: '10px',
+              width: 40,
+              height: 40
+            }}
+          >
+            <AppsIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+
+          <IconButton 
+            onClick={(e) => setAnchorElAccount(e.currentTarget)}
+            sx={{ p: 0.5 }}
+          >
+            <Avatar 
+              src={smallProfileUrl || undefined}
+              sx={{ 
+                width: 36, 
+                height: 36, 
+                bgcolor: 'primary.main',
+                fontSize: '0.875rem',
+                fontWeight: 700,
+                color: 'background.default',
+                border: '2px solid',
+                borderColor: 'rgba(255, 255, 255, 0.1)'
+              }}
             >
-              <Squares2X2Icon className="h-4 w-4" />
-              <span>Apps</span>
-            </Button>
-          </div>
+              {user?.name ? user.name[0].toUpperCase() : 'U'}
+            </Avatar>
+          </IconButton>
+        </Box>
 
-          <button
-            onClick={() => setIsAppsMenuOpen((prev) => !prev)}
-            className="md:hidden flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-card/80 transition-all duration-200"
-          >
-            <Squares2X2Icon className="h-4 w-4" />
-            <span>Apps</span>
-          </button>
-
-          {isAppsMenuOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setIsAppsMenuOpen(false)}
-              />
-              <div
-                ref={appsMenuRef}
-                className="absolute top-full right-0 mt-2 w-48 max-h-[70vh] overflow-y-auto rounded-2xl border border-border bg-card shadow-lg shadow-black/5 z-20"
-              >
-                <div className="px-4 py-2 text-[10px] font-semibold text-muted-foreground">
-                  Apps
-                </div>
-                <div className="flex flex-wrap justify-center gap-3 px-3 py-2">
-                  {ECOSYSTEM_APPS.map((app) => {
-                    const isActive = currentSubdomain === app.subdomain;
-                    return (
-                      <button
-                        key={app.id}
-                        type="button"
-                        onClick={() => handleAppClick(app.subdomain)}
-                        disabled={isActive}
-                        className={`flex min-w-[60px] flex-col items-center gap-2 rounded-2xl px-1 py-2 text-[10px] font-semibold transition duration-150 shadow-sm shadow-black/20 ${isActive
-                          ? 'cursor-default opacity-70'
-                          : 'text-foreground hover:text-foreground hover:bg-yellow-50 dark:hover:bg-yellow-500/20 active:bg-yellow-100 dark:active:bg-yellow-400/20'
-                          }`}
-                      >
-                        <img
-                          src="/logo/whisperrnote.png"
-                          alt="Whisperrnote logo"
-                          className={`h-8 w-8 rounded-md object-cover shadow-lg shadow-yellow-500/30`}
-                        />
-                        <p className="text-[9px] font-semibold text-foreground">
-                          {app.label}
-                        </p>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Account Menu Button - Mobile Only */}
-          <button
-            onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
-            className="md:hidden flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-card hover:bg-card/80 transition-all duration-200"
-          >
-            {/* Render profile picture if available, otherwise fallback to initials */}
-            {smallProfileUrl ? (
-              <div className="relative">
-                <img
-                  src={smallProfileUrl}
-                  alt={user?.name || user?.email || 'User Profile'}
-                  className="h-5 w-5 rounded-full object-cover"
-                />
-                <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-life rounded-full border border-void shadow-sm" title="Verified Account" />
-              </div>
-            ) : (
-              <div className="relative overflow-visible">
-                <div className="h-5 w-5 rounded-full bg-accent/80 flex items-center justify-center text-white text-xs font-medium">
-                  {user?.name ? user.name[0].toUpperCase() : user?.email ? user.email[0].toUpperCase() : 'U'}
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-life rounded-full border border-void shadow-sm" title="Verified Account" />
-              </div>
-            )}
-            <span className="hidden sm:inline text-sm font-bold tracking-tight text-foreground">
-              {user?.name || user?.email || 'User Profile'}
-            </span>
-          </button>
-
-          {/* Account Dropdown Menu */}
-          {isAccountMenuOpen && (
-            <>
-              {/* Backdrop */}
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => setIsAccountMenuOpen(false)}
-              />
-
-              {/* Menu */}
-              <div className="absolute top-full right-0 mt-2 w-56 bg-card border border-border rounded-xl shadow-tangible z-20 py-2 divide-y divide-border">
-                <div className="px-4 py-2">
-                  <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-muted">Account Identity</p>
-                  <p className="text-xs font-medium truncate opacity-70">{user?.email}</p>
-                </div>
-
-                <div className="py-1">
-                  <a
-                    href={`https://${process.env.NEXT_PUBLIC_AUTH_SUBDOMAIN}.${process.env.NEXT_PUBLIC_DOMAIN}/settings?source=${encodeURIComponent(window.location.origin)}`}
-                    onClick={() => setIsAccountMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-foreground hover:bg-void transition-colors duration-200"
-                  >
-                    <Cog6ToothIcon className="h-4 w-4 text-muted" />
-                    <span className="text-xs font-bold uppercase tracking-wider">Vault Settings</span>
-                  </a>
-
-                  <button
-                    onClick={() => {
-                      alert('Exporting your data to Markdown...');
-                      setIsAccountMenuOpen(false);
+        {/* Apps Menu */}
+        <Menu
+          anchorEl={anchorElApps}
+          open={Boolean(anchorElApps)}
+          onClose={() => setAnchorElApps(null)}
+          PaperProps={{
+            sx: {
+              mt: 1.5,
+              width: 280,
+              bgcolor: 'background.paper',
+              backgroundImage: 'none',
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: '16px',
+              p: 2,
+              backdropFilter: 'blur(20px)',
+              backgroundColor: 'rgba(10, 10, 10, 0.8)',
+            }
+          }}
+        >
+          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.1em', mb: 2, display: 'block' }}>
+            Ecosystem Apps
+          </Typography>
+          <Grid container spacing={1}>
+            {ECOSYSTEM_APPS.map((app) => {
+              const isActive = currentSubdomain === app.subdomain;
+              return (
+                <Grid item xs={4} key={app.id}>
+                  <Paper
+                    component="button"
+                    onClick={() => handleAppClick(app.subdomain)}
+                    disabled={isActive}
+                    elevation={0}
+                    sx={{
+                      width: '100%',
+                      aspectRatio: '1/1',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 1,
+                      bgcolor: isActive ? 'rgba(255, 255, 255, 0.02)' : 'transparent',
+                      border: '1px solid',
+                      borderColor: isActive ? 'primary.main' : 'transparent',
+                      borderRadius: '12px',
+                      cursor: isActive ? 'default' : 'pointer',
+                      transition: 'all 0.2s',
+                      '&:hover': isActive ? {} : {
+                        bgcolor: 'rgba(255, 255, 255, 0.05)',
+                        borderColor: 'divider'
+                      }
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sun hover:bg-void transition-colors duration-200"
                   >
-                    <ArrowRightOnRectangleIcon className="h-4 w-4 rotate-180" />
-                    <span className="text-xs font-bold uppercase tracking-wider">Export Data</span>
-                  </button>
-                </div>
+                    <img src="/logo/whisperrnote.png" alt={app.label} style={{ width: 24, height: 24, opacity: isActive ? 0.5 : 1 }} />
+                    <Typography variant="caption" sx={{ fontSize: '9px', fontWeight: 700, color: isActive ? 'text.secondary' : 'text.primary' }}>
+                      {app.label}
+                    </Typography>
+                  </Paper>
+                </Grid>
+              );
+            })}
+          </Grid>
+        </Menu>
 
-                <div className="py-1">
-                  {/* Theme Toggle */}
-                  <div className="flex items-center justify-between px-4 py-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-muted">Mode</span>
-                    <ThemeToggle size="sm" />
-                  </div>
-                </div>
-
-                <div className="py-1">
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-red-500 hover:bg-red-500/10 transition-colors duration-200"
-                  >
-                    <ArrowRightOnRectangleIcon className="h-4 w-4" />
-                    <span className="text-xs font-bold uppercase tracking-wider">Sign Out</span>
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </header>
+        {/* Account Menu */}
+        <Menu
+          anchorEl={anchorElAccount}
+          open={Boolean(anchorElAccount)}
+          onClose={() => setAnchorElAccount(null)}
+          PaperProps={{
+            sx: {
+              mt: 1.5,
+              width: 240,
+              bgcolor: 'background.paper',
+              backgroundImage: 'none',
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: '16px',
+              backdropFilter: 'blur(20px)',
+              backgroundColor: 'rgba(10, 10, 10, 0.8)',
+            }
+          }}
+        >
+          <Box sx={{ px: 2, py: 1.5 }}>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              Account Identity
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary', mt: 0.5, opacity: 0.7 }}>
+              {user?.email}
+            </Typography>
+          </Box>
+          <Divider sx={{ borderColor: 'divider' }} />
+          <MenuItem 
+            onClick={() => {
+              window.location.href = `https://${process.env.NEXT_PUBLIC_AUTH_SUBDOMAIN}.${process.env.NEXT_PUBLIC_DOMAIN}/settings?source=${encodeURIComponent(window.location.origin)}`;
+              setAnchorElAccount(null);
+            }}
+            sx={{ py: 1.5 }}
+          >
+            <ListItemIcon><SettingsIcon fontSize="small" /></ListItemIcon>
+            <ListItemText primary="Vault Settings" primaryTypographyProps={{ variant: 'caption', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }} />
+          </MenuItem>
+          <MenuItem 
+            onClick={() => {
+              alert('Exporting your data to Markdown...');
+              setAnchorElAccount(null);
+            }}
+            sx={{ py: 1.5 }}
+          >
+            <ListItemIcon><FileDownloadIcon fontSize="small" /></ListItemIcon>
+            <ListItemText primary="Export Data" primaryTypographyProps={{ variant: 'caption', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }} />
+          </MenuItem>
+          <Divider sx={{ borderColor: 'divider' }} />
+          <Box sx={{ px: 2, py: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary' }}>Mode</Typography>
+            <ThemeToggle size="sm" />
+          </Box>
+          <Divider sx={{ borderColor: 'divider' }} />
+          <MenuItem onClick={handleLogout} sx={{ py: 1.5, color: 'error.main' }}>
+            <ListItemIcon><LogoutIcon fontSize="small" color="error" /></ListItemIcon>
+            <ListItemText primary="Sign Out" primaryTypographyProps={{ variant: 'caption', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }} />
+          </MenuItem>
+        </Menu>
+      </Toolbar>
+    </AppBar>
   );
 }
