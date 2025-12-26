@@ -2,9 +2,11 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { Box, Typography, Button, Paper, Stack, alpha, useTheme } from '@mui/material';
 
 export default function NotFound() {
   const router = useRouter();
+  const theme = useTheme();
   const [bounce, setBounce] = useState(false);
   const [noteFloat, setNoteFloat] = useState(false);
 
@@ -26,81 +28,100 @@ export default function NotFound() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="max-w-lg w-full text-center">
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3 }}>
+      <Box sx={{ maxWidth: 512, width: '100%', textAlign: 'center' }}>
         {/* Floating decorative notes */}
-        <div className="relative mb-8">
-          <div className={`absolute -top-4 -left-8 w-6 h-8 bg-accent rounded-lg shadow-3d-light dark:shadow-3d-dark transform transition-transform duration-2000 ${noteFloat ? 'translate-y-2 rotate-12' : '-translate-y-1 -rotate-6'}`}></div>
-          <div className={`absolute -top-2 -right-6 w-4 h-6 bg-accent/70 rounded-lg shadow-3d-light dark:shadow-3d-dark transform transition-transform duration-2000 ${noteFloat ? '-translate-y-3 -rotate-12' : 'translate-y-1 rotate-12'}`}></div>
-        </div>
+        <Box sx={{ relative: 'relative', mb: 4 }}>
+          <Box sx={{ 
+            position: 'absolute', top: -16, left: -32, width: 24, height: 32, bgcolor: 'primary.main', borderRadius: 2, 
+            boxShadow: 3, transition: 'transform 2s', 
+            transform: noteFloat ? 'translateY(8px) rotate(12deg)' : 'translateY(-4px) rotate(-6deg)' 
+          }} />
+          <Box sx={{ 
+            position: 'absolute', top: -8, right: -24, width: 16, height: 24, bgcolor: alpha(theme.palette.primary.main, 0.7), borderRadius: 2, 
+            boxShadow: 3, transition: 'transform 2s', 
+            transform: noteFloat ? 'translateY(-12px) rotate(-12deg)' : 'translateY(4px) rotate(12deg)' 
+          }} />
+        </Box>
 
         {/* Main card */}
-        <div className="bg-card border border-border rounded-3xl p-8 shadow-3d-light dark:shadow-3d-dark">
+        <Paper sx={{ p: 4, borderRadius: 6, border: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
           {/* Giant 404 with bounce animation */}
-          <div className={`text-8xl md:text-9xl font-black text-accent mb-4 transition-transform duration-500 ${bounce ? 'scale-110' : 'scale-100'}`}>
+          <Typography variant="h1" sx={{ 
+            fontSize: { xs: '5rem', md: '6rem' }, fontWeight: 900, color: 'primary.main', mb: 2, 
+            transition: 'transform 0.5s', transform: bounce ? 'scale(1.1)' : 'scale(1)' 
+          }}>
             4🤔4
-          </div>
+          </Typography>
 
           {/* Goofy whisper note illustration */}
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="w-24 h-16 bg-gradient-to-br from-accent to-accent-dark rounded-2xl shadow-3d-light dark:shadow-3d-dark transform -rotate-6">
-                <div className="absolute inset-2 bg-card rounded-xl p-2">
-                  <div className="h-1 bg-foreground/20 rounded mb-1"></div>
-                  <div className="h-1 bg-foreground/20 rounded mb-1 w-3/4"></div>
-                  <div className="h-1 bg-foreground/20 rounded w-1/2"></div>
-                </div>
-              </div>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+            <Box sx={{ position: 'relative' }}>
+              <Box sx={{ 
+                width: 96, height: 64, bgcolor: 'primary.main', borderRadius: 4, 
+                boxShadow: 3, transform: 'rotate(-6deg)', position: 'relative' 
+              }}>
+                <Box sx={{ position: 'absolute', inset: 8, bgcolor: 'background.paper', borderRadius: 3, p: 1 }}>
+                  <Box sx={{ h: 4, bgcolor: alpha(theme.palette.text.primary, 0.2), borderRadius: 1, mb: 0.5 }} />
+                  <Box sx={{ h: 4, bgcolor: alpha(theme.palette.text.primary, 0.2), borderRadius: 1, mb: 0.5, width: '75%' }} />
+                  <Box sx={{ h: 4, bgcolor: alpha(theme.palette.text.primary, 0.2), borderRadius: 1, width: '50%' }} />
+                </Box>
+              </Box>
               {/* Speech bubble */}
-              <div className="absolute -top-8 -right-4 bg-foreground text-background px-3 py-1 rounded-2xl text-xs font-medium">
+              <Box sx={{ 
+                position: 'absolute', top: -32, right: -16, bgcolor: 'text.primary', color: 'background.default', 
+                px: 1.5, py: 0.5, borderRadius: 4, fontSize: '0.75rem', fontWeight: 500 
+              }}>
                 &quot;Where am I?&quot;
-                <div className="absolute bottom-0 left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-foreground transform translate-y-full"></div>
-              </div>
-            </div>
-          </div>
+                <Box sx={{ 
+                  position: 'absolute', bottom: 0, left: 16, width: 0, height: 0, 
+                  borderLeft: '4px solid transparent', borderRight: '4px solid transparent', 
+                  borderTop: `4px solid ${theme.palette.text.primary}`, transform: 'translateY(100%)' 
+                }} />
+              </Box>
+            </Box>
+          </Box>
 
           {/* Title */}
-          <h1 className="text-3xl font-bold text-foreground mb-3">
+          <Typography variant="h2" sx={{ mb: 1.5, fontWeight: 'bold' }}>
             Oops! This note got lost
-          </h1>
+          </Typography>
 
           {/* Description */}
-          <p className="text-foreground/70 mb-8 text-lg leading-relaxed">
+          <Typography variant="body1" sx={{ color: 'text.secondary', mb: 4, lineHeight: 1.6 }}>
             This page seems to have wandered off like a rogue whisper note. 
             Maybe it&apos;s hiding in someone else&apos;s collection? 🕵️‍♀️
-          </p>
+          </Typography>
 
           {/* Action buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
+            <Button
+              variant="contained"
+              size="large"
               onClick={() => router.push('/')}
-              className="bg-gradient-to-r from-accent to-accent-dark text-brown-dark px-8 py-4 rounded-2xl font-semibold shadow-3d-light dark:shadow-3d-dark hover:shadow-inner-light dark:hover:shadow-inner-dark transform transition-all duration-300 hover:scale-105 active:scale-95"
+              sx={{ borderRadius: 4, px: 4, py: 1.5, fontWeight: 'bold' }}
             >
               🏠 Take me home
-            </button>
+            </Button>
             
-            <button
+            <Button
+              variant="outlined"
+              size="large"
               onClick={() => router.back()}
-              className="bg-card border-2 border-border text-foreground px-8 py-4 rounded-2xl font-semibold shadow-3d-light dark:shadow-3d-dark hover:shadow-inner-light dark:hover:shadow-inner-dark transform transition-all duration-300 hover:scale-105 active:scale-95"
+              sx={{ borderRadius: 4, px: 4, py: 1.5, fontWeight: 'bold' }}
             >
               ⬅️ Go back
-            </button>
-          </div>
+            </Button>
+          </Stack>
 
           {/* Fun footer message */}
-          <div className="mt-8 pt-6 border-t border-border">
-            <p className="text-sm text-foreground/50 italic">
+          <Box sx={{ mt: 4, pt: 3, borderTop: 1, borderColor: 'divider' }}>
+            <Typography variant="body2" sx={{ color: 'text.disabled', fontStyle: 'italic' }}>
               &quot;Not all who wander are lost... but this page definitely is.&quot; 📝✨
-            </p>
-          </div>
-        </div>
-
-        {/* More floating decorative elements */}
-        <div className="relative mt-4">
-          <div className={`absolute bottom-0 left-12 w-3 h-4 bg-accent/50 rounded transform transition-transform duration-3000 ${noteFloat ? 'translate-x-4 rotate-45' : 'translate-x-0 rotate-0'}`}></div>
-          <div className={`absolute bottom-2 right-8 w-5 h-3 bg-accent/30 rounded transform transition-transform duration-3000 ${noteFloat ? '-translate-x-2 -rotate-12' : 'translate-x-0 rotate-6'}`}></div>
-        </div>
-      </div>
-    </div>
+            </Typography>
+          </Box>
+        </Paper>
+      </Box>
+    </Box>
   );
 }

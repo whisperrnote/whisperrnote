@@ -11,6 +11,8 @@ const DesktopSidebar = lazy(() => import('@/components/Navigation').then(m => ({
 const MobileBottomNav = lazy(() => import('@/components/Navigation').then(m => ({ default: m.MobileBottomNav })));
 const AppHeader = lazy(() => import('@/components/AppHeader'));
 
+import { Box, Container } from '@mui/material';
+
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const { isCollapsed } = useSidebar();
   const { isOpen: isDynamicSidebarOpen, closeSidebar } = useDynamicSidebar();
@@ -36,33 +38,40 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   }, [isDynamicSidebarOpen, closeSidebar]);
   
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', overflowX: 'hidden' }}>
       {/* Header spans full width */}
-      <Suspense fallback={<div className="h-16 bg-background border-b border-border" />}>
+      <Suspense fallback={<Box sx={{ h: 64, bgcolor: 'background.default', borderBottom: 1, borderColor: 'divider' }} />}>
         <AppHeader />
       </Suspense>
       
       {/* Main layout container */}
-      <div className="pt-16">
+      <Box sx={{ pt: '64px' }}>
         {/* Sidebar - now fixed positioned */}
         <Suspense fallback={null}>
           <DesktopSidebar />
         </Suspense>
         
         {/* Main content area - offset to account for fixed sidebar and dynamic sidebar */}
-        <main className={`min-w-0 pb-24 md:pb-8 transition-all duration-300 ${
-          isCollapsed ? 'md:ml-16' : 'md:ml-64'
-        } ${
-          isDynamicSidebarOpen 
-            ? 'md:mr-[28rem] lg:mr-[32rem]' 
-            : ''
-        }`}>
+        <Box
+          component="main"
+          sx={{
+            minWidth: 0,
+            pb: { xs: 12, md: 4 },
+            transition: 'all 0.3s ease-in-out',
+            ml: {
+              md: isCollapsed ? '64px' : '256px'
+            },
+            mr: {
+              md: isDynamicSidebarOpen ? { md: '28rem', lg: '32rem' } : 0
+            }
+          }}
+        >
           {/* Content wrapper with proper padding */}
-          <div className="px-4 md:px-6 lg:px-8 py-6">
+          <Box sx={{ px: { xs: 2, md: 3, lg: 4 }, py: 3 }}>
             {children}
-          </div>
-        </main>
-      </div>
+          </Box>
+        </Box>
+      </Box>
       
       {/* Dynamic Sidebar */}
       <DynamicSidebar />
@@ -71,7 +80,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
       <Suspense fallback={null}>
         <MobileBottomNav />
       </Suspense>
-    </div>
+    </Box>
   );
 }
 

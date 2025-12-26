@@ -1,6 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { 
+  Box, 
+  TextField, 
+  IconButton, 
+  Typography, 
+  Button, 
+  Grid, 
+  alpha, 
+  useTheme,
+  InputAdornment
+} from '@mui/material';
 import { SparklesIcon } from '@heroicons/react/24/outline';
 
 interface AIHeroInputProps {
@@ -18,6 +29,7 @@ export function AIHeroInput({ onPromptSelectAction, className = '' }: AIHeroInpu
   const [displayText, setDisplayText] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [isActive, setIsActive] = useState(false);
+  const theme = useTheme();
 
   // Auto-typing animation effect
   useEffect(() => {
@@ -76,77 +88,119 @@ export function AIHeroInput({ onPromptSelectAction, className = '' }: AIHeroInpu
   };
 
   return (
-    <div className={`w-full max-w-4xl mx-auto ${className}`}>
+    <Box sx={{ width: '100%', maxWidth: '896px', mx: 'auto' }}>
       {/* Main Input */}
-      <form onSubmit={handleSubmit} className="relative mb-8">
-        <div className="relative">
-          <input
-            type="text"
-            value={inputValue}
-            onChange={handleInputChange}
-            onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
-            placeholder={isActive || inputValue ? '' : displayText}
-            className={`
-              w-full px-6 py-4 pr-16 text-lg rounded-2xl border-2
-              bg-light-card/50 dark:bg-dark-card/50 backdrop-blur-sm
-              border-accent/30 text-light-fg dark:text-dark-fg
-              placeholder:text-light-fg/50 dark:placeholder:text-dark-fg/50
-              transition-all duration-300 outline-none
-              ${inputValue ? 'border-accent shadow-glow-accent' : 'border-accent/30'}
-              ${!isActive ? 'animate-pulse-glow' : ''}
-            `}
-          />
-          
-          {/* Generate Button */}
-          <button
-            type="submit"
-            disabled={!inputValue.trim()}
-            className={`
-              absolute right-2 top-1/2 -translate-y-1/2
-              p-3 rounded-xl transition-all duration-300
-              ${inputValue.trim() 
-                ? 'bg-accent text-white shadow-glow-accent animate-pulse-glow' 
-                : 'bg-accent/20 text-accent/50'
-              }
-            `}
-          >
-            <SparklesIcon className="h-5 w-5" />
-          </button>
-        </div>
+      <Box component="form" onSubmit={handleSubmit} sx={{ position: 'relative', mb: 4 }}>
+        <TextField
+          fullWidth
+          value={inputValue}
+          onChange={handleInputChange}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
+          placeholder={isActive || inputValue ? '' : displayText}
+          variant="outlined"
+          InputProps={{
+            sx: {
+              borderRadius: 4,
+              bgcolor: alpha(theme.palette.background.paper, 0.5),
+              backdropFilter: 'blur(8px)',
+              fontSize: '1.125rem',
+              py: 1,
+              px: 2,
+              '& fieldset': {
+                borderColor: inputValue ? 'primary.main' : alpha(theme.palette.primary.main, 0.3),
+                borderWidth: 2,
+                transition: 'all 0.3s',
+              },
+              '&:hover fieldset': {
+                borderColor: 'primary.main',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: 'primary.main',
+                boxShadow: `0 0 15px ${alpha(theme.palette.primary.main, 0.3)}`,
+              },
+            },
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  type="submit"
+                  disabled={!inputValue.trim()}
+                  sx={{
+                    bgcolor: inputValue.trim() ? 'primary.main' : alpha(theme.palette.primary.main, 0.2),
+                    color: inputValue.trim() ? 'primary.contrastText' : alpha(theme.palette.primary.main, 0.5),
+                    borderRadius: 3,
+                    p: 1.5,
+                    transition: 'all 0.3s',
+                    '&:hover': {
+                      bgcolor: inputValue.trim() ? alpha(theme.palette.primary.main, 0.8) : alpha(theme.palette.primary.main, 0.2),
+                    },
+                    '&.Mui-disabled': {
+                      bgcolor: alpha(theme.palette.primary.main, 0.1),
+                      color: alpha(theme.palette.primary.main, 0.3),
+                    }
+                  }}
+                >
+                  <SparklesIcon style={{ height: 20, width: 20 }} />
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
+        />
         
         {/* Typing Cursor */}
         {!isActive && !inputValue && (
-          <div className="absolute right-16 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-accent animate-pulse" />
+          <Box sx={{ 
+            position: 'absolute', 
+            right: 80, 
+            top: '50%', 
+            transform: 'translateY(-50%)', 
+            width: 2, 
+            height: 24, 
+            bgcolor: 'primary.main',
+            animation: 'pulse 1.5s infinite'
+          }} />
         )}
-      </form>
+      </Box>
 
       {/* Quick Suggestions */}
-      <div className="space-y-3">
-        <p className="text-sm font-medium text-light-fg/70 dark:text-dark-fg/70 text-center">
+      <Box sx={{ textAlign: 'center' }}>
+        <Typography variant="body2" sx={{ mb: 2, fontWeight: 500, color: 'text.secondary' }}>
           Instant create with AI!
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        </Typography>
+        <Grid container spacing={2}>
           {PROMPT_SUGGESTIONS.map((suggestion, index) => (
-            <button
-              key={index}
-              onClick={() => handleSuggestionClick(suggestion)}
-              className="
-                text-left p-4 rounded-xl border border-accent/20
-                bg-light-card/30 dark:bg-dark-card/30 backdrop-blur-sm
-                hover:border-accent/50 hover:bg-accent/5 
-                transition-all duration-200 group
-                text-sm text-light-fg/80 dark:text-dark-fg/80
-              "
-            >
-              <div className="flex items-center gap-3">
-                <SparklesIcon className="h-4 w-4 text-accent flex-shrink-0 group-hover:animate-pulse" />
-                <span className="line-clamp-1">{suggestion}</span>
-              </div>
-            </button>
+            <Grid item xs={12} md={6} key={index}>
+              <Button
+                fullWidth
+                onClick={() => handleSuggestionClick(suggestion)}
+                sx={{
+                  textAlign: 'left',
+                  justifyContent: 'flex-start',
+                  p: 2,
+                  borderRadius: 3,
+                  border: 1,
+                  borderColor: alpha(theme.palette.primary.main, 0.2),
+                  bgcolor: alpha(theme.palette.background.paper, 0.3),
+                  backdropFilter: 'blur(8px)',
+                  color: 'text.primary',
+                  textTransform: 'none',
+                  '&:hover': {
+                    borderColor: alpha(theme.palette.primary.main, 0.5),
+                    bgcolor: alpha(theme.palette.primary.main, 0.05),
+                  }
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <SparklesIcon style={{ height: 16, width: 16, color: theme.palette.primary.main }} />
+                  <Typography variant="body2" noWrap sx={{ opacity: 0.8 }}>
+                    {suggestion}
+                  </Typography>
+                </Box>
+              </Button>
+            </Grid>
           ))}
-        </div>
-      </div>
-    </div>
+        </Grid>
+      </Box>
+    </Box>
   );
 }

@@ -1,6 +1,20 @@
 "use client";
 
 import React, { useEffect } from 'react';
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  Button as MuiButton, 
+  Stack, 
+  Grid, 
+  AppBar, 
+  Toolbar, 
+  Link,
+  Avatar,
+  useTheme,
+  alpha
+} from '@mui/material';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { useAuth } from '@/components/ui/AuthContext';
@@ -14,19 +28,19 @@ import { useRouter } from 'next/navigation';
 
 const features = [
   {
-    icon: <SparklesIcon className="h-8 w-8 text-accent" />,
+    icon: <SparklesIcon style={{ height: 32, width: 32 }} />,
     title: 'AI-Powered Creation',
     description:
       "Generate comprehensive notes, research summaries, and creative content with advanced AI assistance in seconds.",
   },
   {
-    icon: <CpuChipIcon className="h-8 w-8 text-accent" />,
+    icon: <CpuChipIcon style={{ height: 32, width: 32 }} />,
     title: 'Secure Synchronization',
     description:
       'Securely store and share your notes with professional-grade encryption and private access control.',
   },
   {
-    icon: <ShieldCheckIcon className="h-8 w-8 text-accent" />,
+    icon: <ShieldCheckIcon style={{ height: 32, width: 32 }} />,
     title: 'Smart Collaboration',
     description:
       'Real-time collaborative editing with AI insights and secure note management.',
@@ -36,6 +50,7 @@ const features = [
 export default function LandingPage() {
   const { openIDMWindow, isAuthenticated, user, isAuthenticating } = useAuth();
   const router = useRouter();
+  const theme = useTheme();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -69,152 +84,154 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col overflow-x-hidden bg-light-bg dark:bg-dark-bg text-light-fg dark:text-dark-fg">
-      <header className="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-light-border dark:border-dark-border bg-light-bg/80 dark:bg-dark-bg/80 px-10 py-4 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <img 
-            src="/logo/whisperrnote.png" 
-            alt="Whisperrnote Logo" 
-            className="h-8 w-8 rounded-lg"
-          />
-          <h2 className="text-xl font-bold text-light-fg dark:text-dark-fg">Whisperrnote</h2>
-        </div>
-          <nav className="hidden flex-1 justify-center gap-8 md:flex">
-            <a
-              className="text-sm font-medium text-light-fg/60 dark:text-dark-fg/60 transition-colors hover:text-light-fg dark:hover:text-dark-fg"
-              href="#"
-            >
-              Product
-            </a>
-            <a
-              className="text-sm font-medium text-light-fg/60 dark:text-dark-fg/60 transition-colors hover:text-light-fg dark:hover:text-dark-fg"
-              href="#"
-            >
-              Solutions
-            </a>
-            <a
-              className="text-sm font-medium text-light-fg/60 dark:text-dark-fg/60 transition-colors hover:text-light-fg dark:hover:text-dark-fg"
-              href="#"
-            >
-              Resources
-            </a>
-            <a
-              className="text-sm font-medium text-light-fg/60 dark:text-dark-fg/60 transition-colors hover:text-light-fg dark:hover:text-dark-fg"
-              href="#"
-            >
-              Pricing
-            </a>
-          </nav>
-        <div className="flex items-center gap-3">
-          {isAuthenticated ? (
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-accent rounded-full flex items-center justify-center text-white text-sm font-medium shadow-3d-light dark:shadow-3d-dark">
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
+      <AppBar position="sticky" sx={{ bgcolor: alpha(theme.palette.background.default, 0.8), backdropFilter: 'blur(8px)', borderBottom: 1, borderColor: 'divider' }}>
+        <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, md: 5 } }}>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Box 
+              component="img"
+              src="/logo/whisperrnote.png" 
+              alt="Whisperrnote Logo" 
+              sx={{ h: 32, w: 32, borderRadius: 2 }}
+            />
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Whisperrnote</Typography>
+          </Stack>
+          
+          <Stack direction="row" spacing={4} sx={{ display: { xs: 'none', md: 'flex' }, flex: 1, justifyContent: 'center' }}>
+            {['Product', 'Solutions', 'Resources', 'Pricing'].map((item) => (
+              <Link
+                key={item}
+                href="#"
+                underline="none"
+                sx={{ 
+                  fontSize: '0.875rem', 
+                  fontWeight: 500, 
+                  color: 'text.secondary',
+                  transition: 'color 0.2s',
+                  '&:hover': { color: 'text.primary' }
+                }}
+              >
+                {item}
+              </Link>
+            ))}
+          </Stack>
+
+          <Box>
+            {isAuthenticated ? (
+              <Avatar sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', width: 36, height: 36, fontSize: '0.875rem', fontWeight: 500 }}>
                 {getUserInitials(user)}
-              </div>
-            </div>
-          ) : (
-            <Button 
-              variant="ghost" 
-              onClick={() => openIDMWindow()}
-              isLoading={isAuthenticating}
-            >
-              Login
-            </Button>
-          )}
-        </div>
-      </header>
-      <main className="flex-1">
-        <section className="relative flex items-center justify-center py-24 text-center md:py-32">
-          <div className="container relative z-20 mx-auto px-5">
-            <h1 className="mb-4 text-4xl font-black leading-tight tracking-tighter text-light-fg dark:text-dark-fg md:text-6xl">
+              </Avatar>
+            ) : (
+              <Button 
+                variant="text" 
+                onClick={() => openIDMWindow()}
+                isLoading={isAuthenticating}
+              >
+                Login
+              </Button>
+            )}
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      <Box component="main" sx={{ flex: 1 }}>
+        <Box sx={{ py: { xs: 12, md: 16 }, textAlign: 'center', position: 'relative' }}>
+          <Container maxWidth="md">
+            <Typography variant="h1" sx={{ mb: 2, fontSize: { xs: '2.5rem', md: '3.75rem' }, fontWeight: 900, lineHeight: 1.1 }}>
               Your notes, elevated by AI
-            </h1>
-            <p className="mx-auto mb-12 max-w-3xl text-lg text-light-fg/80 dark:text-dark-fg/80 md:text-xl">
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 6, color: 'text.secondary', fontSize: { xs: '1.125rem', md: '1.25rem' }, maxWidth: '768px', mx: 'auto' }}>
               Transform your ideas with AI assistance and secure your notes. 
               Generate comprehensive content instantly, collaborate seamlessly, and own your data forever.
-            </p>
+            </Typography>
 
-            <div className="flex flex-col items-center gap-4 mb-12">
+            <Stack direction="column" alignItems="center" spacing={2} sx={{ mb: 6 }}>
               <Button 
-                size="lg" 
-                className="px-12 py-6 text-lg font-bold bg-accent hover:bg-accent/90 text-white shadow-3d-light dark:shadow-3d-dark"
+                size="large" 
+                sx={{ px: 6, py: 2, fontSize: '1.125rem', fontWeight: 'bold' }}
                 onClick={() => openIDMWindow()}
                 isLoading={isAuthenticating}
               >
                 Get Started Free
               </Button>
-            </div>
+            </Stack>
             
-            {/* AI Hero Input */}
-            <AIHeroInput onPromptSelectAction={handlePromptSelect} className="mb-8" />
-          </div>
-        </section>
-        <section className="bg-light-card dark:bg-dark-card py-20 md:py-28">
-          <div className="container mx-auto px-5">
-            <div className="mx-auto mb-16 max-w-2xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-light-fg dark:text-dark-fg md:text-4xl">
+            <AIHeroInput onPromptSelectAction={handlePromptSelect} />
+          </Container>
+        </Box>
+
+        <Box sx={{ py: { xs: 10, md: 14 }, bgcolor: 'background.paper' }}>
+          <Container>
+            <Box sx={{ textAlign: 'center', mb: 8, maxWidth: '672px', mx: 'auto' }}>
+              <Typography variant="h2" sx={{ mb: 2, fontWeight: 'bold' }}>
                 AI-powered notes for the future
-              </h2>
-              <p className="mt-4 text-lg text-light-fg/60 dark:text-dark-fg/60">
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
                 Experience next-generation note-taking with intelligent content generation, 
                 private cloud storage, and advanced security built-in.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+              </Typography>
+            </Box>
+
+            <Grid container spacing={4}>
               {features.map((feature, index) => (
-                <Card key={index} className="flex flex-col gap-4 bg-light-card dark:bg-dark-card border-light-border dark:border-dark-border">
-                  <CardHeader>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 text-accent shadow-3d-light dark:shadow-3d-dark">
-                      {feature.icon}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <CardTitle className="text-xl font-bold text-light-fg dark:text-dark-fg">
-                      {feature.title}
-                    </CardTitle>
-                    <p className="text-light-fg/60 dark:text-dark-fg/60">{feature.description}</p>
-                  </CardContent>
-                </Card>
+                <Grid item xs={12} md={4} key={index}>
+                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <CardHeader>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        height: 48, 
+                        width: 48, 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        borderRadius: 3, 
+                        bgcolor: alpha(theme.palette.primary.main, 0.1), 
+                        color: 'primary.main' 
+                      }}>
+                        {feature.icon}
+                      </Box>
+                    </CardHeader>
+                    <CardContent>
+                      <CardTitle sx={{ mb: 1 }}>
+                        {feature.title}
+                      </CardTitle>
+                      <Typography variant="body2" color="text.secondary">
+                        {feature.description}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
               ))}
-            </div>
-          </div>
-        </section>
-      </main>
-      <footer className="border-t border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-bg">
-        <div className="container mx-auto px-5 py-12">
-          <div className="flex flex-col items-center justify-between md:flex-row">
-            <div className="mb-6 flex flex-wrap justify-center gap-6 md:mb-0 md:justify-start">
-              <a
-                className="text-sm text-light-fg/60 dark:text-dark-fg/60 transition-colors hover:text-light-fg dark:hover:text-dark-fg"
-                href="#"
-              >
-                About
-              </a>
-              <a
-                className="text-sm text-light-fg/60 dark:text-dark-fg/60 transition-colors hover:text-light-fg dark:hover:text-dark-fg"
-                href="#"
-              >
-                Contact
-              </a>
-              <a
-                className="text-sm text-light-fg/60 dark:text-dark-fg/60 transition-colors hover:text-light-fg dark:hover:text-dark-fg"
-                href="#"
-              >
-                Privacy Policy
-              </a>
-              <a
-                className="text-sm text-light-fg/60 dark:text-dark-fg/60 transition-colors hover:text-light-fg dark:hover:text-dark-fg"
-                href="#"
-              >
-                Terms of Service
-              </a>
-            </div>
-            <p className="text-sm text-light-fg/40 dark:text-dark-fg/40">
+            </Grid>
+          </Container>
+        </Box>
+      </Box>
+
+      <Box component="footer" sx={{ borderTop: 1, borderColor: 'divider', py: 6 }}>
+        <Container>
+          <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems="center" spacing={3}>
+            <Stack direction="row" spacing={3} flexWrap="wrap" justifyContent="center">
+              {['About', 'Contact', 'Privacy Policy', 'Terms of Service'].map((item) => (
+                <Link
+                  key={item}
+                  href="#"
+                  underline="none"
+                  sx={{ 
+                    fontSize: '0.875rem', 
+                    color: 'text.secondary',
+                    transition: 'color 0.2s',
+                    '&:hover': { color: 'text.primary' }
+                  }}
+                >
+                  {item}
+                </Link>
+              ))}
+            </Stack>
+            <Typography variant="body2" color="text.disabled">
               © 2025 Whisperrnote. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
-    </div>
+            </Typography>
+          </Stack>
+        </Container>
+      </Box>
+    </Box>
   );
 }

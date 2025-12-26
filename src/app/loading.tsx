@@ -1,42 +1,45 @@
 'use client';
 
 import React from 'react';
+import { Box, Skeleton, Grid, Stack } from '@mui/material';
 
 // Minimal skeleton loading - shows app structure instantly
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-background">
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       {/* Header skeleton */}
-      <div className="h-16 bg-card border-b border-border flex items-center px-4 gap-4">
-        <div className="w-8 h-8 rounded-lg bg-muted animate-pulse" />
-        <div className="flex-1 max-w-md h-10 rounded-xl bg-muted animate-pulse" />
-        <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
-      </div>
+      <Box sx={{ h: 64, bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', px: 2, gap: 2 }}>
+        <Skeleton variant="rectangular" width={32} height={32} sx={{ borderRadius: 2 }} />
+        <Skeleton variant="rectangular" width="100%" maxWidth={448} height={40} sx={{ borderRadius: 3 }} />
+        <Skeleton variant="circular" width={40} height={40} />
+      </Box>
       
       {/* Main content skeleton */}
-      <div className="flex">
+      <Box sx={{ display: 'flex' }}>
         {/* Sidebar skeleton - hidden on mobile */}
-        <div className="hidden md:block w-64 h-[calc(100vh-4rem)] bg-card border-r border-border p-4">
-          <div className="space-y-3">
+        <Box sx={{ display: { xs: 'none', md: 'block' }, width: 256, height: 'calc(100vh - 64px)', bgcolor: 'background.paper', borderRight: 1, borderColor: 'divider', p: 2 }}>
+          <Stack spacing={1.5}>
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-10 rounded-xl bg-muted animate-pulse" />
+              <Skeleton key={i} variant="rectangular" width="100%" height={40} sx={{ borderRadius: 3 }} />
             ))}
-          </div>
-        </div>
+          </Stack>
+        </Box>
         
         {/* Content area skeleton */}
-        <div className="flex-1 p-6">
+        <Box sx={{ flex: 1, p: 3 }}>
           {/* Title skeleton */}
-          <div className="h-8 w-48 rounded-lg bg-muted animate-pulse mb-6" />
+          <Skeleton variant="text" width={192} height={32} sx={{ mb: 3, borderRadius: 1 }} />
           
           {/* Grid skeleton */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <Grid container spacing={2}>
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="h-48 rounded-2xl bg-card border border-border animate-pulse" />
+              <Grid item xs={6} sm={4} md={3} lg={2.4} key={i}>
+                <Skeleton variant="rectangular" width="100%" height={192} sx={{ borderRadius: 4 }} />
+              </Grid>
             ))}
-          </div>
-        </div>
-      </div>
-    </div>
+          </Grid>
+        </Box>
+      </Box>
+    </Box>
   );
 }
