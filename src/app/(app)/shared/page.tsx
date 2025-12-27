@@ -3,13 +3,25 @@
 import React, { useState, useEffect } from 'react';
 import type { Notes } from '@/types/appwrite';
 import NoteCard from '@/components/ui/NoteCard';
-import { Button } from '@/components/ui/Button';
 import { getSharedNotes, listPublicNotesByUser, getCurrentUser } from '@/lib/appwrite';
 import {
-  MagnifyingGlassIcon,
-  GlobeAltIcon,
-  UserIcon,
-} from '@heroicons/react/24/outline';
+  Box,
+  Typography,
+  Button,
+  Tabs,
+  Tab,
+  Grid,
+  CircularProgress,
+  Container,
+  IconButton,
+  useTheme,
+  alpha
+} from '@mui/material';
+import {
+  Search as SearchIcon,
+  Public as GlobeAltIcon,
+  Person as UserIcon,
+} from '@mui/icons-material';
 import { MobileBottomNav } from '@/components/Navigation';
 
 interface SharedNote extends Notes {
@@ -22,7 +34,8 @@ export default function SharedNotesPage() {
   const [sharedNotes, setSharedNotes] = useState<SharedNote[]>([]);
   const [publicNotes, setPublicNotes] = useState<Notes[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'private' | 'public'>('private');
+  const [activeTab, setActiveTab] = useState(0);
+  const theme = useTheme();
 
   // Fetch shared and public notes once on mount
   useEffect(() => {
@@ -53,112 +66,140 @@ export default function SharedNotesPage() {
     fetchNotes();
   }, []);
 
-  const currentNotes = activeTab === 'private' ? sharedNotes : publicNotes;
+  const currentNotes = activeTab === 0 ? sharedNotes : publicNotes;
 
   return (
-    <div className="relative flex size-full min-h-screen flex-col overflow-x-hidden bg-background">
-      <div className="flex-grow px-4 pt-6 pb-24 sm:px-6 md:px-8 md:pb-8">
+    <Box sx={{ 
+      position: 'relative', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      minHeight: '100vh', 
+      bgcolor: 'background.default',
+      overflowX: 'hidden'
+    }}>
+      <Container maxWidth="xl" sx={{ flexGrow: 1, pt: 6, pb: { xs: 12, md: 4 } }}>
         {/* Mobile Header - Hidden on Desktop */}
-        <header className="mb-8 flex items-center justify-between md:hidden">
-          <h1 className="text-3xl font-bold text-foreground">
+        <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
+          <Typography variant="h2" sx={{ fontWeight: 900 }}>
             Shared
-          </h1>
-          <div className="flex items-center gap-3">
-            <Button size="icon" variant="secondary">
-              <MagnifyingGlassIcon className="h-6 w-6" />
-            </Button>
-          </div>
-        </header>
+          </Typography>
+          <IconButton sx={{ bgcolor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <SearchIcon />
+          </IconButton>
+        </Box>
 
         {/* Desktop Header */}
-        <header className="hidden md:flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-black text-foreground mb-2">
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', justifyContent: 'space-between', mb: 6 }}>
+          <Box>
+            <Typography variant="h1" sx={{ mb: 1 }}>
               Shared
-            </h1>
-              <p className="text-lg text-muted">
-               Notes shared with you and your public notes
-             </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button variant="secondary" className="gap-2">
-              <MagnifyingGlassIcon className="h-5 w-5" />
-              Search Shared Notes
-            </Button>
-          </div>
-        </header>
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+              Notes shared with you and your public notes
+            </Typography>
+          </Box>
+          <Button 
+            variant="outlined" 
+            startIcon={<SearchIcon />}
+            sx={{ 
+              borderRadius: 3,
+              borderColor: 'rgba(255,255,255,0.1)',
+              color: 'text.primary',
+              '&:hover': { borderColor: 'primary.main', bgcolor: 'rgba(0, 245, 255, 0.05)' }
+            }}
+          >
+            Search Shared Notes
+          </Button>
+        </Box>
 
         {/* Tabs */}
-        <div className="flex mb-6 bg-card rounded-lg p-1">
-          <button
-            onClick={() => setActiveTab('private')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-md transition-colors ${
-              activeTab === 'private'
-                ? 'bg-accent text-white'
-                : 'text-muted hover:text-light-fg dark:hover:text-dark-fg'
-            }`}
+        <Box sx={{ 
+          mb: 4, 
+          bgcolor: 'rgba(255,255,255,0.03)', 
+          borderRadius: 4, 
+          p: 0.5,
+          border: '1px solid rgba(255,255,255,0.05)'
+        }}>
+          <Tabs 
+            value={activeTab} 
+            onChange={(_, newValue) => setActiveTab(newValue)}
+            variant="fullWidth"
+            sx={{
+              '& .MuiTabs-indicator': { display: 'none' },
+              '& .MuiTab-root': {
+                borderRadius: 3.5,
+                minHeight: 48,
+                transition: 'all 0.2s',
+                color: 'text.secondary',
+                '&.Mui-selected': {
+                  bgcolor: 'primary.main',
+                  color: 'background.default',
+                  fontWeight: 700,
+                },
+                '&:hover:not(.Mui-selected)': {
+                  color: 'text.primary',
+                  bgcolor: 'rgba(255,255,255,0.05)'
+                }
+              }
+            }}
           >
-            <UserIcon className="h-4 w-4" />
-            Private ({sharedNotes.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('public')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-md transition-colors ${
-              activeTab === 'public'
-                ? 'bg-accent text-white'
-                : 'text-muted hover:text-light-fg dark:hover:text-dark-fg'
-            }`}
-          >
-            <GlobeAltIcon className="h-4 w-4" />
-            Public ({publicNotes.length})
-          </button>
-        </div>
+            <Tab icon={<UserIcon sx={{ fontSize: 20 }} />} iconPosition="start" label={`Private (${sharedNotes.length})`} />
+            <Tab icon={<GlobeAltIcon sx={{ fontSize: 20 }} />} iconPosition="start" label={`Public (${publicNotes.length})`} />
+          </Tabs>
+        </Box>
 
         {/* Content */}
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-muted">Loading...</div>
-          </div>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+            <CircularProgress color="primary" />
+          </Box>
         ) : currentNotes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-24 h-24 bg-card rounded-3xl flex items-center justify-center mb-6 shadow-lg">
-              {activeTab === 'private' ? (
-                <UserIcon className="h-12 w-12 text-muted" />
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 10, textAlign: 'center' }}>
+            <Box sx={{ 
+              width: 96, 
+              height: 96, 
+              bgcolor: 'rgba(255,255,255,0.03)', 
+              borderRadius: 6, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              mb: 3,
+              border: '1px solid rgba(255,255,255,0.05)'
+            }}>
+              {activeTab === 0 ? (
+                <UserIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
               ) : (
-                <GlobeAltIcon className="h-12 w-12 text-muted" />
+                <GlobeAltIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
               )}
-            </div>
-            <h3 className="text-2xl font-bold text-foreground mb-3">
-              {activeTab === 'private' ? 'No private shared notes yet' : 'No public notes yet'}
-            </h3>
-            <p className="text-muted mb-6 max-w-md">
-              {activeTab === 'private' 
+            </Box>
+            <Typography variant="h4" sx={{ mb: 2 }}>
+              {activeTab === 0 ? 'No private shared notes yet' : 'No public notes yet'}
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 400, mb: 4 }}>
+              {activeTab === 0 
                 ? "When others share notes with you, they'll appear here. Start collaborating by sharing your own notes!"
                 : "When you make your notes public, they’ll appear here."
               }
-            </p>
-          </div>
+            </Typography>
+          </Box>
         ) : (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {currentNotes.map((note) => (
-                <div key={note.$id} className="relative">
-                  <NoteCard note={note} />
-                  {/* Show sharing info for private notes */}
-                  {activeTab === 'private' && (note as SharedNote).sharedBy && (
-                    <div className="mt-2 text-xs text-muted">
-                      Shared by {(note as SharedNote).sharedBy?.name || (note as SharedNote).sharedBy?.email}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+          <Grid container spacing={3}>
+            {currentNotes.map((note) => (
+              <Grid item xs={6} sm={4} md={3} lg={2.4} key={note.$id}>
+                <NoteCard note={note} />
+                {activeTab === 0 && (note as SharedNote).sharedBy && (
+                  <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary', textAlign: 'center' }}>
+                    Shared by {(note as SharedNote).sharedBy?.name || (note as SharedNote).sharedBy?.email}
+                  </Typography>
+                )}
+              </Grid>
+            ))}
+          </Grid>
         )}
-      </div>
+      </Container>
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav />
-    </div>
+    </Box>
   );
 }
