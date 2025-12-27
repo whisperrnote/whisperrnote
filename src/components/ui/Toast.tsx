@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { XMarkIcon, CheckCircleIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { Snackbar, Alert, AlertTitle, Stack } from '@mui/material';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -44,12 +44,6 @@ export function ToastProvider({ children }: ToastProviderProps) {
     const toast: Toast = { id, type, title, message, duration };
     
     setToasts(prev => [...prev, toast]);
-    
-    if (duration > 0) {
-      setTimeout(() => {
-        dismissToast(id);
-      }, duration);
-    }
   }, []);
 
   const dismissToast = useCallback((id: string) => {
@@ -84,80 +78,34 @@ export function ToastProvider({ children }: ToastProviderProps) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-    </ToastContext.Provider>
-  );
-}
-
-interface ToastContainerProps {
-  toasts: Toast[];
-  onDismiss: (id: string) => void;
-}
-
-function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
-  return (
-    <div className="fixed top-4 right-4 z-50 space-y-2">
-      {toasts.map((toast) => (
-        <ToastItem key={toast.id} toast={toast} onDismiss={onDismiss} />
-      ))}
-    </div>
-  );
-}
-
-interface ToastItemProps {
-  toast: Toast;
-  onDismiss: (id: string) => void;
-}
-
-function ToastItem({ toast, onDismiss }: ToastItemProps) {
-  const iconMap = {
-    success: CheckCircleIcon,
-    error: ExclamationTriangleIcon,
-    warning: ExclamationTriangleIcon,
-    info: InformationCircleIcon,
-  };
-
-  const colorMap = {
-    success: 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-200',
-    error: 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200',
-    warning: 'bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-200',
-    info: 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-200',
-  };
-
-  const iconColorMap = {
-    success: 'text-green-500 dark:text-green-400',
-    error: 'text-red-500 dark:text-red-400',
-    warning: 'text-yellow-500 dark:text-yellow-400',
-    info: 'text-blue-500 dark:text-blue-400',
-  };
-
-  const Icon = iconMap[toast.type];
-
-  return (
-    <div className={`
-      max-w-sm w-full border rounded-lg shadow-lg p-4 transition-all duration-300 ease-in-out
-      animate-in slide-in-from-right-5 fade-in-0
-      ${colorMap[toast.type]}
-    `}>
-      <div className="flex items-start">
-        <div className="flex-shrink-0">
-          <Icon className={`h-5 w-5 ${iconColorMap[toast.type]}`} />
-        </div>
-        <div className="ml-3 flex-1">
-          <p className="text-sm font-medium">{toast.title}</p>
-          {toast.message && (
-            <p className="mt-1 text-xs opacity-75">{toast.message}</p>
-          )}
-        </div>
-        <div className="ml-4 flex-shrink-0">
-          <button
-            onClick={() => onDismiss(toast.id)}
-            className="inline-flex rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 opacity-50 hover:opacity-100 transition-opacity"
+      <Stack spacing={2} sx={{ position: 'fixed', top: 24, right: 24, zIndex: 9999, width: '100%', maxWidth: 400 }}>
+        {toasts.map((toast) => (
+          <Snackbar
+            key={toast.id}
+            open={true}
+            autoHideDuration={toast.duration}
+            onClose={() => dismissToast(toast.id)}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            sx={{ position: 'relative' }}
           >
-            <XMarkIcon className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-    </div>
+            <Alert 
+              onClose={() => dismissToast(toast.id)} 
+              severity={toast.type} 
+              variant="filled"
+              sx={{ 
+                width: '100%', 
+                borderRadius: '16px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255,255,255,0.1)'
+              }}
+            >
+              <AlertTitle sx={{ fontWeight: 800 }}>{toast.title}</AlertTitle>
+              {toast.message}
+            </Alert>
+          </Snackbar>
+        ))}
+      </Stack>
+    </ToastContext.Provider>
   );
 }

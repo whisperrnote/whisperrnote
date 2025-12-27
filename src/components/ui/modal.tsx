@@ -1,4 +1,6 @@
 import React from 'react';
+import { Dialog, DialogTitle, DialogContent, IconButton, Typography, Box } from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 
 export interface ModalProps {
   isOpen: boolean;
@@ -8,31 +10,42 @@ export interface ModalProps {
   className?: string;
 }
 
-export function Modal({ isOpen, onClose, title, children, className }: ModalProps) {
-  if (!isOpen) return null;
-
+export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className={`relative bg-card rounded-2xl shadow-2xl border border-border max-w-md w-full mx-4 max-h-[90vh] overflow-auto ${className}`}>
-        <div className="flex items-center justify-between p-6 border-b border-border">
-          <h2 className="text-xl font-bold text-foreground">
-            {title}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-muted hover:text-foreground text-2xl leading-none"
-          >
-            ×
-          </button>
-        </div>
-        <div className="p-6">
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          bgcolor: 'rgba(10, 10, 10, 0.95)',
+          backdropFilter: 'blur(25px) saturate(180%)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '24px',
+          backgroundImage: 'none',
+        }
+      }}
+    >
+      <DialogTitle sx={{ m: 0, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'var(--font-space-grotesk)' }}>
+          {title}
+        </Typography>
+        <IconButton
+          aria-label="close"
+          onClick={onClose}
+          sx={{
+            color: (theme) => theme.palette.grey[500],
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent sx={{ p: 3 }}>
+        <Box sx={{ color: 'text.primary' }}>
           {children}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </DialogContent>
+    </Dialog>
   );
 }

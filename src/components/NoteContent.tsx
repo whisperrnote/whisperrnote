@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import DoodleCanvas from '@/components/DoodleCanvas';
 import DoodleViewer from '@/components/DoodleViewer';
-import { Button } from '@/components/ui/Button';
-import { Pencil2Icon } from '@radix-ui/react-icons';
+import { Box, Typography, Button, TextField, Paper } from '@mui/material';
+import { Edit as EditIcon, Brush as BrushIcon } from '@mui/icons-material';
 
 interface NoteContentProps {
   format?: 'text' | 'doodle';
@@ -44,41 +44,56 @@ export default function NoteContent({
 
   if (format === 'doodle') {
     return (
-      <div className="space-y-4">
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {content && (
           <DoodleViewer data={content} onEdit={handleEditDoodle} />
         )}
 
         {!content && (
-          <div className="text-center py-12 border border-dashed border-slate-300 dark:border-slate-700 rounded-lg">
-            <p className="text-slate-500 dark:text-slate-400 mb-4">No doodle yet</p>
-            <Button onClick={handleSwitchToDoodle} disabled={disabled}>
+          <Paper 
+            variant="outlined" 
+            sx={{ 
+              textAlign: 'center', 
+              py: 6, 
+              borderRadius: 3, 
+              borderStyle: 'dashed',
+              bgcolor: 'transparent'
+            }}
+          >
+            <Typography color="text.secondary" sx={{ mb: 2 }}>
+              No doodle yet
+            </Typography>
+            <Button 
+              variant="contained" 
+              onClick={handleSwitchToDoodle} 
+              disabled={disabled}
+              startIcon={<BrushIcon />}
+            >
               Create Doodle
             </Button>
-          </div>
+          </Paper>
         )}
 
-        <div className="flex gap-2">
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           {content && (
             <Button
-              variant="outline"
+              variant="outlined"
               onClick={handleEditDoodle}
               disabled={disabled}
-              className="gap-2"
+              startIcon={<EditIcon />}
             >
-              <Pencil2Icon className="w-4 h-4" />
               Edit Doodle
             </Button>
           )}
           <Button
-            variant="ghost"
+            variant="text"
             onClick={handleSwitchToText}
             disabled={disabled}
-            size="sm"
+            size="small"
           >
             Switch to Text
           </Button>
-        </div>
+        </Box>
 
         {showDoodleEditor && (
           <DoodleCanvas
@@ -87,32 +102,43 @@ export default function NoteContent({
             onClose={() => setShowDoodleEditor(false)}
           />
         )}
-      </div>
+      </Box>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <textarea
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <TextField
         placeholder="Write your note content here..."
         value={content}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        maxLength={65000}
-        className="w-full min-h-[200px] p-4 border border-border rounded-xl bg-card text-foreground text-sm resize-vertical focus:outline-none focus:ring-2 focus:ring-accent"
+        multiline
+        minRows={8}
+        fullWidth
+        inputProps={{ maxLength: 65000 }}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 3,
+            bgcolor: 'rgba(255, 255, 255, 0.05)',
+            '& fieldset': {
+              borderColor: 'rgba(255, 255, 255, 0.1)',
+            },
+          },
+        }}
       />
 
-      <div className="text-sm text-gray-500 text-right">
+      <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'right' }}>
         {content.length}/65000 characters
-      </div>
+      </Typography>
 
       <Button
-        variant="outline"
+        variant="outlined"
         onClick={handleSwitchToDoodle}
         disabled={disabled}
-        className="gap-2"
+        startIcon={<BrushIcon />}
+        sx={{ alignSelf: 'flex-start' }}
       >
-        <Pencil2Icon className="w-4 h-4" />
         Create Doodle
       </Button>
 
@@ -123,6 +149,7 @@ export default function NoteContent({
           onClose={() => setShowDoodleEditor(false)}
         />
       )}
-    </div>
+    </Box>
   );
 }
+

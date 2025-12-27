@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { TurnstileWidget } from '@/components/TurnstileWidget';
-import { TURNSTILE_SITE_KEY, verifyTurnstileToken } from '@/lib/turnstile';
+import { TURNSTILE_SITE_KEY } from '@/lib/turnstile';
 import type { Notes } from '@/types/appwrite';
+import { Box, Typography, Button, Alert, CircularProgress } from '@mui/material';
 
 interface PublicNoteAccessProps {
   noteId: string;
@@ -91,50 +92,58 @@ export function PublicNoteAccess({ noteId, onVerified, onError }: PublicNoteAcce
   };
 
   return (
-    <div className="space-y-4">
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       {error && (
-        <div className="bg-red-100/80 dark:bg-red-900/30 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
+        <Alert severity="error" sx={{ borderRadius: 2 }}>
           {error}
-        </div>
+        </Alert>
       )}
       
-      <div className="text-center space-y-3">
+      <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {turnstileEnabled ? (
           <>
-            <p className="text-sm text-foreground/70">
+            <Typography variant="body2" color="text.secondary">
               Complete the verification to view this shared note
-            </p>
+            </Typography>
             
-            <TurnstileWidget
-              onToken={handleTurnstileSuccess}
-              onError={handleTurnstileError}
-              theme="auto"
-              size="normal"
-            />
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <TurnstileWidget
+                onToken={handleTurnstileSuccess}
+                onError={handleTurnstileError}
+                theme="auto"
+                size="normal"
+              />
+            </Box>
           </>
         ) : (
           <>
-            <p className="text-sm text-foreground/70">
+            <Typography variant="body2" color="text.secondary">
               Verification is temporarily unavailable. Loading the note directly.
-            </p>
+            </Typography>
             {!isLoading && (
-              <button
-                type="button"
+              <Button
+                variant="contained"
                 onClick={loadWithoutVerification}
-                className="inline-flex items-center justify-center rounded-lg px-4 py-2 bg-accent text-white text-sm font-medium"
+                sx={{ 
+                  alignSelf: 'center',
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  '&:hover': { bgcolor: 'primary.dark' }
+                }}
               >
                 Retry loading note
-              </button>
+              </Button>
             )}
           </>
         )}
         
         {isLoading && (
-          <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
-          </div>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+            <CircularProgress size={32} />
+          </Box>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
+

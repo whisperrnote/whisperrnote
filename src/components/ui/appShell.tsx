@@ -22,8 +22,9 @@ interface AppShellProps {
 export default function AppShell({ children }: AppShellProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { openIDMWindow } = useAuth();
+  const { openIDMWindow, idmWindowOpen } = useAuth();
   const [authChecked, setAuthChecked] = useState(false);
+
 
   useEffect(() => {
     if (isPublicRoute(pathname)) {

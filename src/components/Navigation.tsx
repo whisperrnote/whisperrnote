@@ -3,26 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import {
-  HomeIcon,
-  ShareIcon,
-  TagIcon,
-  Cog6ToothIcon,
-  PuzzlePieceIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  PowerIcon,
-} from '@heroicons/react/24/outline';
-import { useOverlay } from '@/components/ui/OverlayContext';
 import { useAuth } from '@/components/ui/AuthContext';
 import { useSidebar } from '@/components/ui/SidebarContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { fetchProfilePreview, getCachedProfilePreview } from '@/lib/profilePreview';
 import { getUserProfilePicId } from '@/lib/utils';
-
-interface NavigationProps {
-  className?: string;
-}
 
 import { 
   Box, 
@@ -33,7 +18,6 @@ import {
   Typography, 
   IconButton, 
   Avatar, 
-  Divider,
   Paper,
   Tooltip
 } from '@mui/material';
@@ -45,6 +29,11 @@ import ExtensionIcon from '@mui/icons-material/Extension';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import LogoutIcon from '@mui/icons-material/Logout';
+
+interface NavigationProps {
+  className?: string;
+}
+
 
 export const MobileBottomNav: React.FC<NavigationProps> = ({ className = '' }) => {
   const pathname = usePathname();

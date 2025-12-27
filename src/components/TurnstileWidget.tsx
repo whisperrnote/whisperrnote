@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { TURNSTILE_SITE_KEY } from '@/lib/turnstile';
+import { Box } from '@mui/material';
 
 declare global {
   interface Window {
@@ -90,10 +91,15 @@ export function TurnstileWidget({ onToken, onError, onExpire, theme = 'auto', si
   }, [theme, size]);
 
   return (
-    <div
+    <Box
       ref={containerRef}
-      className="flex justify-center my-4"
-      style={{ minHeight: '78px' }}
+      sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        my: 2,
+        minHeight: '78px'
+      }}
     />
   );
 }
+
