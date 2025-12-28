@@ -23,7 +23,8 @@ Scope
     - Pages & Routing: Located under `src/app/`. Routes follow a convention-based structure where each folder maps to a route. Examples: `landing`, `pitch`, `verify`, `reset`, note-specific routes in `shared/[noteid]`.
     - UI Components: `src/components/` contains reusable components like `NoteEditor`, `NoteCard`, `AppHeader`, search components, modals, and theme providers.
     - State & Context: `src/contexts/NotesContext.tsx` and components use React context/hooks for state management and local UI state.
-    - Styles: TailwindCSS utility classes with `globals.css` and `tailwind.config.ts`.
+    - Styles: Material UI (MUI) v6 with Emotion.
+    - Icons: @mui/icons-material.
 
 - Backend & API
   - Purpose: Provide server-side endpoints for AI-assisted operations, integration glue, authentication utilities, and helper services used by the frontend.
@@ -78,7 +79,7 @@ Scope
 - Builds & Local Dev
   - Next.js dev server used in development: `npm run dev` (configured to run on port 3001). Production build via `npm run build`.
 - Linting & Formatting
-  - ESLint and TailwindCSS are configured; follow repository guidelines in `AGENTS.md` and `CONTRIBUTING.md`.
+  - ESLint and MUI are configured; follow repository guidelines in `AGENTS.md` and `CONTRIBUTING.md`.
 - Testing
   - No test framework is configured by default. Add tests intentionally and align with existing patterns if introducing testing.
 

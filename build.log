@@ -1,14 +1,48 @@
-$ next build
+
+> whisperrnote@0.1.0 build
+> next build
+
+ ⚠ Warning: Found multiple lockfiles. Selecting /home/nathfavour/code/whisperrnote/package-lock.json.
+   Consider removing the lockfiles at:
+   * /home/nathfavour/code/whisperrnote/whisperrnote/package-lock.json
+
    ▲ Next.js 15.4.7
    - Environments: .env
+   - Experiments (use with caution):
+     · optimizePackageImports
 
    Creating an optimized production build ...
- ✓ Compiled successfully in 75s
-   Skipping validation of types
-   Skipping linting
-   Collecting page data ...
-unhandledRejection [Error [PageNotFoundError]: Cannot find module for page: /_document] {
-  type: 'PageNotFoundError',
-  code: 'ENOENT'
-}
-error: script "build" exited with code 1
+Failed to compile.
+
+./src/app/(app)/settings/page.tsx
+Module parse failed: Duplicate export 'default' (1856:7)
+File was processed with these loaders:
+ * ./node_modules/next/dist/build/webpack/loaders/next-flight-client-module-loader.js
+ * ./node_modules/next/dist/build/webpack/loaders/next-swc-loader.js
+You may need an additional loader to handle the result of these loaders.
+|     });
+| };
+> export default function SettingsPage() {
+|     const [user, setUser] = useState(null);
+|     const [settings, setSettings] = useState(null);
+
+Import trace for requested module:
+./src/app/(app)/settings/page.tsx
+
+./src/app/(app)/settings/page.tsx
+Module parse failed: Duplicate export 'default' (7:7)
+File was processed with these loaders:
+ * ./node_modules/next/dist/build/webpack/loaders/next-flight-loader/index.js
+ * ./node_modules/next/dist/build/webpack/loaders/next-swc-loader.js
+You may need an additional loader to handle the result of these loaders.
+| "default",
+| );
+> export default registerClientReference(
+| function() { throw new Error("Attempted to call the default export of \"/home/nathfavour/code/whisperrnote/whisperrnote/src/app/(app)/settings/page.tsx\" from the server, but it's on the client. It's not possible to invoke a client function from the server, it can only be rendered as a Component or passed to props of a Client Component."); },
+| "/home/nathfavour/code/whisperrnote/whisperrnote/src/app/(app)/settings/page.tsx",
+
+Import trace for requested module:
+./src/app/(app)/settings/page.tsx
+
+
+> Build failed because of webpack errors
