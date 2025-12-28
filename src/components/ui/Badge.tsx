@@ -4,7 +4,6 @@ import { Chip } from '@mui/material';
 interface BadgeProps {
   children: React.ReactNode;
   variant?: 'default' | 'secondary' | 'success' | 'warning' | 'error';
-  className?: string;
 }
 
 export function Badge({ children, variant = 'default' }: BadgeProps) {
