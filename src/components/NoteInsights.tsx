@@ -53,7 +53,7 @@ export default function NoteInsights({ note, content, onApplySuggestion, onRefre
     switch (sentiment) {
       case 'positive': return '#00FF00';
       case 'negative': return '#FF4D4D';
-      case 'neutral': return '#FFD700';
+      case 'neutral': return '#A1A1AA'; // Gunmetal for neutral
       default: return '#00F5FF';
     }
   };
@@ -271,8 +271,8 @@ export default function NoteInsights({ note, content, onApplySuggestion, onRefre
                 borderRadius: 3,
                 bgcolor: 'rgba(255, 255, 255, 0.05)',
                 '& .MuiLinearProgress-bar': {
-                  bgcolor: clarity > 70 ? '#00FF00' : clarity > 40 ? '#FFD700' : '#FF4D4D',
-                  boxShadow: `0 0 10px ${clarity > 70 ? '#00FF00' : clarity > 40 ? '#FFD700' : '#FF4D4D'}`
+                  bgcolor: clarity > 70 ? '#00FF00' : clarity > 40 ? '#00F5FF' : '#FF4D4D',
+                  boxShadow: `0 0 10px ${clarity > 70 ? '#00FF00' : clarity > 40 ? '#00F5FF' : '#FF4D4D'}`
                 }
               }}
             />

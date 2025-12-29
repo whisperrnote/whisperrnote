@@ -22,17 +22,17 @@
     /* Make inline links in the main body visible and underlined for clarity */
     .main-body a { text-decoration: underline !important; }
 
-    /* Exempt CTA (keep dark text on yellow) and header (sun-yellow background, dark text) */
-    .cta { color: #071018 !important; background-color: #FFCC00 !important; }
-    .header-cell { background-color: #FFCC00; color: #071018; }
+    /* Exempt CTA (keep dark text on teal) and header (cybernetic-teal background, dark text) */
+    .cta { color: #000000 !important; background-color: #00F0FF !important; }
+    .header-cell { background-color: #00F0FF; color: #000000; }
 
     /* Dark-mode friendly fallbacks for clients that support prefers-color-scheme */
     @media (prefers-color-scheme: dark) {
-      .body-bg { background-color: #071018 !important; }
-      .card { background-color: #071018 !important; border-color: rgba(255,204,0,0.06) !important; }
+      .body-bg { background-color: #000000 !important; }
+      .card { background-color: #000000 !important; border-color: rgba(0,240,255,0.1) !important; }
       /* Keep CTA and header appearance consistent in dark mode */
-      .header-cell { background-color: #FFCC00 !important; color: #071018 !important; }
-      .cta { background-color: #FFCC00 !important; color: #071018 !important; }
+      .header-cell { background-color: #00F0FF !important; color: #000000 !important; }
+      .cta { background-color: #00F0FF !important; color: #000000 !important; }
     }
 
     @media only screen and (max-width:520px){
@@ -94,7 +94,7 @@
               </div>
 
               <div style="text-align:center; margin:12px 0;">
-                <a class="cta" href="https://www.whisperrnote.space" style="background-color:#FFCC00; color:#071018; padding:12px 18px; border-radius:8px; font-weight:700; display:inline-block;">
+                <a class="cta" href="https://www.whisperrnote.space" style="background-color:#00F0FF; color:#000000; padding:12px 18px; border-radius:8px; font-weight:700; display:inline-block;">
                   Go to whisperrnote
                 </a>
               </div>

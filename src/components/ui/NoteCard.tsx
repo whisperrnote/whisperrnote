@@ -38,7 +38,7 @@ interface NoteCardProps {
   className?: string;
 }
 
-const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete, onNoteSelect, className }) => {
+const NoteCard: React.FC<NoteCardProps> = React.memo(({ note, onUpdate, onDelete, onNoteSelect, className }) => {
   const [showShareModal, setShowShareModal] = useState(false);
   const { openMenu, closeMenu } = useContextMenu();
   const { openSidebar } = useDynamicSidebar();
@@ -185,7 +185,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete, onNoteSel
         onClick={handleClick}
         onContextMenu={handleRightClick}
         sx={{
-          height: { xs: 192, sm: 208, md: 224, lg: 240 },
+          height: { xs: 160, sm: 180, md: 200, lg: 220 },
           display: 'flex',
           flexDirection: 'column',
           cursor: 'pointer',
@@ -194,7 +194,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete, onNoteSel
           bgcolor: 'rgba(10, 10, 10, 0.95)',
           backdropFilter: 'blur(25px) saturate(180%)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '24px',
+          borderRadius: '20px',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
             transform: 'translateY(-4px)',
@@ -204,13 +204,13 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete, onNoteSel
         }}
       >
         <CardHeader
-          sx={{ pb: 1, p: 2.5 }}
+          sx={{ pb: 0.5, p: 2 }}
           title={
             <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1 }}>
               <Typography 
                 variant="h4" 
                 sx={{ 
-                  fontSize: { xs: '1rem', sm: '1.125rem' }, 
+                  fontSize: { xs: '0.875rem', sm: '1rem' }, 
                   fontWeight: 900,
                   fontFamily: '"Space Grotesk", sans-serif',
                   color: '#00F5FF',
@@ -225,77 +225,54 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete, onNoteSel
                 {note.title}
               </Typography>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 {note.attachments && note.attachments.length > 0 && (
-                  <Tooltip title={`${note.attachments.length} attachment${note.attachments.length > 1 ? 's' : ''}`}>
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: 0.5, 
-                      px: 1, 
-                      py: 0.5, 
-                      borderRadius: '8px', 
-                      bgcolor: 'rgba(0, 245, 255, 0.1)',
-                      color: '#00F5FF',
-                      fontSize: '10px',
-                      fontWeight: 800,
-                      border: '1px solid rgba(0, 245, 255, 0.2)',
-                      fontFamily: '"Space Grotesk", sans-serif'
-                    }}>
-                      <AttachFileIcon sx={{ fontSize: 12 }} />
-                      {note.attachments.length}
-                    </Box>
-                  </Tooltip>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 0.3, 
+                    px: 0.8, 
+                    py: 0.3, 
+                    borderRadius: '6px', 
+                    bgcolor: 'rgba(0, 245, 255, 0.1)',
+                    color: '#00F5FF',
+                    fontSize: '9px',
+                    fontWeight: 800,
+                    border: '1px solid rgba(0, 245, 255, 0.2)',
+                    fontFamily: '"Space Grotesk", sans-serif'
+                  }}>
+                    <AttachFileIcon sx={{ fontSize: 10 }} />
+                    {note.attachments.length}
+                  </Box>
                 )}
                 {noteIsPublic && (
                   <Box sx={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: 0.5, 
-                    px: 1, 
-                    py: 0.5, 
-                    borderRadius: '8px', 
-                    bgcolor: 'rgba(255, 245, 0, 0.1)',
-                    color: '#FFD700',
-                    fontSize: '10px',
+                    gap: 0.3, 
+                    px: 0.8, 
+                    py: 0.3, 
+                    borderRadius: '6px', 
+                    bgcolor: 'rgba(255, 255, 255, 0.05)',
+                    color: 'rgba(255, 255, 255, 0.6)',
+                    fontSize: '9px',
                     fontWeight: 800,
-                    border: '1px solid rgba(255, 245, 0, 0.2)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
                     fontFamily: '"Space Grotesk", sans-serif'
                   }}>
-                    <GlobeAltIcon sx={{ fontSize: 12 }} />
-                    PUBLIC
+                    <GlobeAltIcon sx={{ fontSize: 10 }} />
+                    PUB
                   </Box>
                 )}
-
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const target = e.currentTarget as HTMLElement;
-                    const rect = target.getBoundingClientRect();
-                    openMenu({
-                      x: Math.round(rect.left + rect.width / 2),
-                      y: Math.round(rect.top + rect.height + 8),
-                      items: contextMenuItems
-                    });
-                  }}
-                  sx={{ 
-                    borderRadius: '8px',
-                    color: 'rgba(255, 255, 255, 0.4)',
-                    '&:hover': { color: '#00F5FF', bgcolor: 'rgba(0, 245, 255, 0.1)' }
-                  }}
-                >
-                  <EllipsisVerticalIcon fontSize="small" />
-                </IconButton>
               </Box>
             </Box>
           }
         />
-        <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 0, position: 'relative', p: 2.5, pt: 0 }}>
+        <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 0, position: 'relative', p: 2, pt: 0 }}>
           {note.format === 'doodle' ? (
             <Box sx={{ 
               flex: 1, 
-              borderRadius: '16px', 
+              borderRadius: '12px', 
               border: '1px solid rgba(255,255,255,0.05)', 
               overflow: 'hidden', 
               bgcolor: 'rgba(255, 255, 255, 0.02)',
@@ -314,10 +291,10 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete, onNoteSel
               sx={{ 
                 color: 'rgba(255, 255, 255, 0.6)',
                 fontFamily: '"Inter", sans-serif',
-                fontSize: '0.875rem',
-                lineHeight: 1.6,
+                fontSize: '0.75rem',
+                lineHeight: 1.5,
                 display: '-webkit-box',
-                WebkitLineClamp: { xs: 4, sm: 5, md: 6 },
+                WebkitLineClamp: { xs: 3, sm: 4, md: 5 },
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
                 whiteSpace: 'pre-wrap'
@@ -327,30 +304,25 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete, onNoteSel
             </Typography>
           )}
           
-          <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 0.5, overflow: 'hidden' }}>
-            {note.tags && note.tags.slice(0, 3).map((tag: string, index: number) => (
+          <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5, overflow: 'hidden' }}>
+            {note.tags && note.tags.slice(0, 2).map((tag: string, index: number) => (
               <Chip
                 key={index}
                 label={tag}
                 size="small"
                 sx={{ 
-                  height: 20, 
-                  fontSize: '9px', 
+                  height: 16, 
+                  fontSize: '8px', 
                   fontWeight: 700,
                   fontFamily: '"Space Grotesk", sans-serif',
                   textTransform: 'uppercase',
-                  bgcolor: 'rgba(255, 255, 255, 0.05)',
-                  color: 'rgba(255, 255, 255, 0.5)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  '& .MuiChip-label': { px: 1 }
+                  bgcolor: 'rgba(255, 255, 255, 0.03)',
+                  color: 'rgba(255, 255, 255, 0.4)',
+                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  '& .MuiChip-label': { px: 0.8 }
                 }}
               />
             ))}
-            {note.tags && note.tags.length > 3 && (
-              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.3)', alignSelf: 'center', ml: 0.5, fontSize: '10px', fontWeight: 700 }}>
-                +{note.tags.length - 3}
-              </Typography>
-            )}
           </Box>
 
           {noteIsPublic && (
@@ -361,18 +333,18 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete, onNoteSel
               }}
               sx={{
                 position: 'absolute',
-                bottom: 12,
-                right: 12,
+                bottom: 8,
+                right: 8,
                 bgcolor: '#00F5FF',
                 color: '#000000',
                 '&:hover': { bgcolor: '#00D1DA', transform: 'scale(1.1)' },
-                width: 32,
-                height: 32,
+                width: 28,
+                height: 28,
                 boxShadow: '0 0 15px rgba(0, 245, 255, 0.4)',
                 transition: 'all 0.2s ease'
               }}
             >
-              {isCopySuccess ? <CheckIcon sx={{ fontSize: 16 }} /> : <ClipboardDocumentIcon sx={{ fontSize: 16 }} />}
+              {isCopySuccess ? <CheckIcon sx={{ fontSize: 14 }} /> : <ClipboardDocumentIcon sx={{ fontSize: 14 }} />}
             </IconButton>
           )}
         </CardContent>
@@ -388,6 +360,8 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onUpdate, onDelete, onNoteSel
       )}
     </>
   );
-};
+});
+
+NoteCard.displayName = 'NoteCard';
 
 export default NoteCard;

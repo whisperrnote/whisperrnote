@@ -191,9 +191,9 @@ export default function NotesPage() {
     } else {
       return {
         display: 'grid',
-        gap: 2,
+        gap: { xs: 1.5, sm: 2 },
         gridTemplateColumns: {
-          xs: 'repeat(auto-fill, minmax(240px, 1fr))',
+          xs: 'repeat(2, 1fr)',
           sm: 'repeat(auto-fill, minmax(260px, 1fr))',
           md: 'repeat(auto-fill, minmax(280px, 1fr))',
           lg: 'repeat(auto-fill, minmax(300px, 1fr))',
