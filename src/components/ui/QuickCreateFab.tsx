@@ -93,8 +93,7 @@ export default function QuickCreateFab({
           },
         },
         '& .MuiSpeedDialAction-fab': {
-          bgcolor: 'rgba(10, 10, 10, 0.95)',
-          backdropFilter: 'blur(25px) saturate(180%)',
+          bgcolor: 'rgba(10, 10, 10, 0.98)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
           color: 'rgba(255, 255, 255, 0.7)',
           transition: 'all 0.2s ease',
@@ -106,8 +105,7 @@ export default function QuickCreateFab({
           },
         },
         '& .MuiSpeedDialAction-staticTooltipLabel': {
-          bgcolor: 'rgba(10, 10, 10, 0.95)',
-          backdropFilter: 'blur(25px) saturate(180%)',
+          bgcolor: 'rgba(10, 10, 10, 0.98)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
           color: '#FFFFFF',
           fontFamily: '"Space Grotesk", sans-serif',

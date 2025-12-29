@@ -111,12 +111,12 @@ export function getPasswordStrengthLabel(score: number): string {
 
 export function getPasswordStrengthColor(score: number): string {
   switch (score) {
-    case 0: return 'text-red-600 dark:text-red-400';
-    case 1: return 'text-orange-600 dark:text-orange-400';
-    case 2: return 'text-yellow-600 dark:text-yellow-400';
-    case 3: return 'text-blue-600 dark:text-blue-400';
-    case 4: return 'text-green-600 dark:text-green-400';
-    default: return 'text-gray-600 dark:text-gray-400';
+    case 0: return 'text-red-500';
+    case 1: return 'text-orange-500';
+    case 2: return 'text-slate-400';
+    case 3: return 'text-teal-400';
+    case 4: return 'text-teal-500';
+    default: return 'text-slate-500';
   }
 }
 

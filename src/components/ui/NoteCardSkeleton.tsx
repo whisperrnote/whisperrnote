@@ -7,12 +7,11 @@ export const NoteCardSkeleton: React.FC = () => {
   return (
     <Box 
       sx={{ 
-        bgcolor: 'rgba(10, 10, 10, 0.95)', 
-        backdropFilter: 'blur(25px) saturate(180%)',
-        borderRadius: '24px', 
-        p: 3, 
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        height: '100%',
+        bgcolor: 'rgba(10, 10, 10, 0.8)', 
+        borderRadius: '20px', 
+        p: 2, 
+        border: '1px solid rgba(255, 255, 255, 0.05)',
+        height: { xs: 160, sm: 180, md: 200, lg: 220 },
         display: 'flex',
         flexDirection: 'column'
       }}
@@ -21,29 +20,29 @@ export const NoteCardSkeleton: React.FC = () => {
       <Skeleton 
         variant="text" 
         width="75%" 
-        height={32} 
+        height={24} 
         sx={{ 
-          mb: 2, 
+          mb: 1.5, 
           borderRadius: '8px',
           bgcolor: 'rgba(255, 255, 255, 0.05)'
         }} 
       />
       
       {/* Content skeleton - 3 lines */}
-      <Box sx={{ mb: 2, flex: 1 }}>
-        <Skeleton variant="text" width="100%" height={20} sx={{ mb: 0.5, borderRadius: '4px', bgcolor: 'rgba(255, 255, 255, 0.03)' }} />
-        <Skeleton variant="text" width="85%" height={20} sx={{ mb: 0.5, borderRadius: '4px', bgcolor: 'rgba(255, 255, 255, 0.03)' }} />
-        <Skeleton variant="text" width="65%" height={20} sx={{ borderRadius: '4px', bgcolor: 'rgba(255, 255, 255, 0.03)' }} />
+      <Box sx={{ mb: 1.5, flex: 1 }}>
+        <Skeleton variant="text" width="100%" height={16} sx={{ mb: 0.5, borderRadius: '4px', bgcolor: 'rgba(255, 255, 255, 0.03)' }} />
+        <Skeleton variant="text" width="85%" height={16} sx={{ mb: 0.5, borderRadius: '4px', bgcolor: 'rgba(255, 255, 255, 0.03)' }} />
+        <Skeleton variant="text" width="65%" height={16} sx={{ borderRadius: '4px', bgcolor: 'rgba(255, 255, 255, 0.03)' }} />
       </Box>
       
       {/* Tags skeleton */}
-      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-        <Skeleton variant="rectangular" width={60} height={20} sx={{ borderRadius: '6px', bgcolor: 'rgba(255, 255, 255, 0.03)' }} />
-        <Skeleton variant="rectangular" width={45} height={20} sx={{ borderRadius: '6px', bgcolor: 'rgba(255, 255, 255, 0.03)' }} />
+      <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
+        <Skeleton variant="rectangular" width={50} height={16} sx={{ borderRadius: '6px', bgcolor: 'rgba(255, 255, 255, 0.03)' }} />
+        <Skeleton variant="rectangular" width={40} height={16} sx={{ borderRadius: '6px', bgcolor: 'rgba(255, 255, 255, 0.03)' }} />
       </Box>
       
       {/* Date skeleton */}
-      <Skeleton variant="text" width={100} height={16} sx={{ borderRadius: '4px', bgcolor: 'rgba(255, 255, 255, 0.02)' }} />
+      <Skeleton variant="text" width={80} height={14} sx={{ borderRadius: '4px', bgcolor: 'rgba(255, 255, 255, 0.02)' }} />
     </Box>
   );
 };
