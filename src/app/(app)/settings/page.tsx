@@ -61,7 +61,7 @@ import { getMFAStatus, createTOTPFactor, verifyTOTPFactor, deleteTOTPFactor, cre
 import { MFASettingsModal } from '@/components/ui/MFASettingsModal';
 import { SubscriptionTab } from "./SubscriptionTab";
 
-type TabType = 'profile' | 'preferences' | 'subscription';
+type TabType = 'profile' | 'preferences' | 'subscription' | 'account';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabType>('profile');
@@ -206,6 +206,40 @@ export default function SettingsPage() {
     }
   };
 
+  const handlePasswordReset = async () => {
+    if (!user?.email) return;
+    try {
+      await account.createRecovery(user.email, `${window.location.origin}/reset-password`);
+      setResetEmailSent(true);
+      setSuccess("Password reset email sent.");
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleCancelPasswordReset = () => {
+    setShowPasswordReset(false);
+    setResetEmailSent(false);
+  };
+
+  const handlePublicProfileToggle = async (enabled: boolean) => {
+    if (!user) return;
+    try {
+      const newPrefs = { ...(user.prefs || {}), publicProfile: enabled };
+      const updatedUser = await account.updatePrefs(newPrefs);
+      try {
+        const uid = updatedUser?.$id || user?.$id;
+        if (uid) await updateUser(uid, { publicProfile: enabled });
+      } catch (err) {
+        console.warn('Failed to mirror publicProfile to users collection', err);
+      }
+      setUser(updatedUser);
+      setSuccess(`Public profile ${enabled ? 'enabled' : 'disabled'}`);
+    } catch (err: any) {
+      setError('Failed to update profile visibility');
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'rgba(10, 10, 10, 0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -247,6 +281,7 @@ export default function SettingsPage() {
               <Tab label="Profile" value="profile" icon={<PersonIcon sx={{ fontSize: 20 }} />} iconPosition="start" />
               <Tab label="Preferences" value="preferences" icon={<SettingsIcon sx={{ fontSize: 20 }} />} iconPosition="start" />
               <Tab label="Subscription" value="subscription" icon={<SubscriptionIcon sx={{ fontSize: 20 }} />} iconPosition="start" />
+              <Tab label="Account" value="account" icon={<SecurityIcon sx={{ fontSize: 20 }} />} iconPosition="start" />
             </Tabs>
           </Box>
 
@@ -278,6 +313,26 @@ export default function SettingsPage() {
               />
             )}
             {activeTab === 'subscription' && <SubscriptionTab />}
+            {activeTab === 'account' && (
+              <SettingsTab 
+                user={user}
+                settings={settings}
+                isVerified={isVerified}
+                error={error}
+                success={success}
+                onUpdate={handleUpdate}
+                onSettingChange={handleSettingChange}
+                router={router}
+                showPasswordReset={showPasswordReset}
+                setShowPasswordReset={setShowPasswordReset}
+                resetEmailSent={resetEmailSent}
+                handlePasswordReset={handlePasswordReset}
+                handleCancelPasswordReset={handleCancelPasswordReset}
+                onPublicProfileToggle={handlePublicProfileToggle}
+                mfaStatus={mfaStatus}
+                setMfaStatus={setMfaStatus}
+              />
+            )}
           </Box>
         </Paper>
       </Container>
@@ -1068,269 +1123,4 @@ const SettingsTab = ({
   );
 };
 
-export default function SettingsPage() {
-  const [user, setUser] = useState<any>(null);
-  const [settings, setSettings] = useState<any>(null);
-  const [isVerified, setIsVerified] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState(0);
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [showPasswordReset, setShowPasswordReset] = useState(false);
-  const [resetEmailSent, setResetEmailSent] = useState(false);
-  const [mfaStatus, setMfaStatus] = useState({ totp: false, email: false });
-  const router = useRouter();
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [accountData, settingsData, mfa] = await Promise.all([
-          account.get(),
-          getUserSettings(),
-          getMFAStatus()
-        ]);
-        setUser(accountData);
-        setSettings(settingsData);
-        setIsVerified(accountData.emailVerification);
-        setMfaStatus(mfa);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadData();
-  }, []);
-
-  const handleUpdateSettings = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-    try {
-      await updateUserSettings(settings.settings);
-      setSuccess('Settings updated successfully');
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  const handleSettingChange = (key: string, value: any) => {
-    setSettings((prev: any) => ({
-      ...prev,
-      settings: {
-        ...prev.settings,
-        [key]: value
-      }
-    }));
-  };
-
-  const handleAIModeChange = async (newMode: string) => {
-    try {
-      const updatedSettings = { ...settings.settings, aiMode: newMode };
-      await updateUserSettings(updatedSettings);
-      setSettings((prev: any) => ({ ...prev, settings: updatedSettings }));
-      setSuccess(`AI mode updated to ${getAIModeDisplayName(newMode)}`);
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  const handleProfileUpdate = (updatedUser: any, picChanged: boolean) => {
-    setUser(updatedUser);
-    if (picChanged) {
-      setSuccess('Profile picture updated successfully');
-    } else {
-      setSuccess('Profile updated successfully');
-    }
-  };
-
-  const handleRemoveProfilePicture = async () => {
-    const oldId = getUserProfilePicId(user);
-    if (!oldId) return;
-    try {
-      await deleteProfilePicture(oldId);
-      const newPrefs = { ...user.prefs };
-      delete newPrefs.profilePicId;
-      const updatedUser = await account.updatePrefs(newPrefs);
-      try {
-        const uid = updatedUser?.$id || user?.$id;
-        if (uid) await updateUser(uid, { profilePicId: null });
-      } catch {}
-      setUser(updatedUser);
-      setSuccess('Profile picture removed');
-    } catch (err: any) {
-      setError('Failed to remove profile picture');
-    }
-  };
-
-  const handlePasswordReset = async () => {
-    try {
-      await account.createRecovery(user.email, `${window.location.origin}/reset-password`);
-      setResetEmailSent(true);
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  const handleCancelPasswordReset = () => {
-    setShowPasswordReset(false);
-    setResetEmailSent(false);
-  };
-
-  const handlePublicProfileToggle = async (enabled: boolean) => {
-    try {
-      const newPrefs = { ...user.prefs, publicProfile: enabled };
-      const updatedUser = await account.updatePrefs(newPrefs);
-      try {
-        const uid = updatedUser?.$id || user?.$id;
-        if (uid) await updateUser(uid, { publicProfile: enabled });
-      } catch {}
-      setUser(updatedUser);
-      setSuccess(`Public profile ${enabled ? 'enabled' : 'disabled'}`);
-    } catch (err: any) {
-      setError('Failed to update profile visibility');
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress sx={{ color: '#00F5FF' }} />
-      </Box>
-    );
-  }
-
-  return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, md: 6 } }}>
-      {isEditingProfile ? (
-        <EditProfileForm 
-          user={user} 
-          onClose={() => setIsEditingProfile(false)} 
-          onProfileUpdate={handleProfileUpdate}
-        />
-      ) : (
-        <>
-          <Box sx={{ mb: 8 }}>
-            <Typography variant="h2" sx={{ fontWeight: 900, mb: 2, fontFamily: 'var(--font-space-grotesk)', color: 'white' }}>
-              Settings
-            </Typography>
-            <Typography variant="h6" sx={{ color: 'rgba(255, 255, 255, 0.5)', fontWeight: 500 }}>
-              Manage your account, preferences, and security
-            </Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 6 }}>
-            <Paper 
-              sx={{ 
-                width: { xs: '100%', md: 280 }, 
-                flexShrink: 0,
-                bgcolor: 'rgba(255, 255, 255, 0.03)',
-                backdropFilter: 'blur(20px)',
-                borderRadius: '24px',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                p: 2,
-                height: 'fit-content'
-              }}
-            >
-              <Tabs
-                orientation="vertical"
-                value={activeTab}
-                onChange={(_, newValue) => setActiveTab(newValue)}
-                sx={{
-                  '& .MuiTabs-indicator': { display: 'none' },
-                  '& .MuiTab-root': {
-                    alignItems: 'flex-start',
-                    textAlign: 'left',
-                    textTransform: 'none',
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    color: 'rgba(255, 255, 255, 0.6)',
-                    borderRadius: '16px',
-                    mb: 1,
-                    minHeight: 56,
-                    '&.Mui-selected': {
-                      color: '#00F5FF',
-                      bgcolor: 'rgba(0, 245, 255, 0.1)',
-                    },
-                    '&:hover': {
-                      bgcolor: 'rgba(255, 255, 255, 0.05)',
-                    }
-                  }
-                }}
-              >
-                <Tab icon={<PersonIcon sx={{ mr: 2 }} />} iconPosition="start" label="Profile" />
-                <Tab icon={<SettingsIcon sx={{ mr: 2 }} />} iconPosition="start" label="Preferences" />
-                <Tab icon={<SecurityIcon sx={{ mr: 2 }} />} iconPosition="start" label="Account" />
-              </Tabs>
-            </Paper>
-
-            <Box sx={{ flex: 1 }}>
-              {success && (
-                <Alert 
-                  severity="success" 
-                  onClose={() => setSuccess(null)}
-                  sx={{ mb: 4, borderRadius: '16px', bgcolor: 'rgba(76, 175, 80, 0.1)', color: '#4caf50', border: '1px solid rgba(76, 175, 80, 0.2)' }}
-                >
-                  {success}
-                </Alert>
-              )}
-              {error && (
-                <Alert 
-                  severity="error" 
-                  onClose={() => setError(null)}
-                  sx={{ mb: 4, borderRadius: '16px', bgcolor: 'rgba(244, 67, 54, 0.1)', color: '#f44336', border: '1px solid rgba(244, 67, 54, 0.2)' }}
-                >
-                  {error}
-                </Alert>
-              )}
-
-              {activeTab === 0 && (
-                <ProfileTab 
-                  user={user} 
-                  onEditProfile={() => setIsEditingProfile(true)} 
-                  onRemoveProfilePicture={handleRemoveProfilePicture}
-                />
-              )}
-              {activeTab === 1 && (
-                <PreferencesTab 
-                  settings={settings} 
-                  onSettingChange={handleSettingChange} 
-                  onUpdate={handleUpdateSettings}
-                  currentAIMode={settings?.settings?.aiMode || 'balanced'}
-                  userTier={user?.prefs?.tier || 'free'}
-                  onAIModeChange={handleAIModeChange}
-                  user={user}
-                  isVerified={isVerified}
-                  mfaStatus={mfaStatus}
-                  setMfaStatus={setMfaStatus}
-                />
-              )}
-              {activeTab === 2 && (
-                <SettingsTab 
-                  user={user}
-                  settings={settings}
-                  isVerified={isVerified}
-                  error={error}
-                  success={success}
-                  onUpdate={handleUpdateSettings}
-                  onSettingChange={handleSettingChange}
-                  router={router}
-                  showPasswordReset={showPasswordReset}
-                  setShowPasswordReset={setShowPasswordReset}
-                  resetEmailSent={resetEmailSent}
-                  handlePasswordReset={handlePasswordReset}
-                  handleCancelPasswordReset={handleCancelPasswordReset}
-                  onPublicProfileToggle={handlePublicProfileToggle}
-                  mfaStatus={mfaStatus}
-                  setMfaStatus={setMfaStatus}
-                />
-              )}
-            </Box>
-          </Box>
-        </>
-      )}
-    </Box>
-  );
-}
 
