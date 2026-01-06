@@ -142,7 +142,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setEmailVerificationReminderDismissed(true);
       }
     }
+  }, []);
 
+  useEffect(() => {
     const initAuth = async () => {
       const localUser = await refreshUser();
       if (!localUser) {
@@ -152,7 +154,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     initAuth();
+  }, [refreshUser, attemptSilentAuth]);
 
+  useEffect(() => {
     let lastRefreshTime = Date.now();
     const MIN_REFRESH_INTERVAL = 5 * 60 * 1000; // Increased to 5 mins
 
@@ -171,7 +175,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       document.removeEventListener('click', handleUserActivity);
       document.removeEventListener('keydown', handleUserActivity);
     };
-  }, [user, isLoading, refreshUser, attemptSilentAuth]);
+  }, [user, isLoading, refreshUser]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {

@@ -42,35 +42,35 @@ export default function NotesPage() {
   const openNoteIdParam = searchParams.get('openNoteId');
 
   // Fetch notes action for the search hook
-  const fetchNotesAction = async () => {
+  const fetchNotesAction = useCallback(async () => {
     // Data is now coming from context, so we just return it
     return {
       documents: allNotes,
       total: allNotes.length
     };
-  };
+  }, [allNotes]);
 
   // Search and pagination configuration
-  const searchConfig = {
+  const searchConfig = useMemo(() => ({
     searchFields: ['title', 'content', 'tags'],
     localSearch: true,
     threshold: 500,
     debounceMs: 300
-  };
+  }), []);
 
   // Derive UI page size from viewport (simple heuristic) or env
-  const derivedPageSize = (() => {
+  const derivedPageSize = useMemo(() => {
     if (typeof window === 'undefined') return 12;
     const width = window.innerWidth;
     if (width < 640) return 8;
     if (width < 1024) return 12;
     if (width < 1440) return 16;
     return 20;
-  })();
+  }, []);
 
-  const paginationConfig = {
+  const paginationConfig = useMemo(() => ({
     pageSize: derivedPageSize
-  };
+  }), [derivedPageSize]);
 
   // Use the search hook
   const {
