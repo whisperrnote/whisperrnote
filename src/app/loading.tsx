@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Box, Skeleton, Grid, Stack } from '@mui/material';
+import { Box, Skeleton, Grid2 as Grid, Stack } from '@mui/material';
 
 // Minimal skeleton loading - shows app structure instantly
 export default function Loading() {
@@ -10,7 +10,7 @@ export default function Loading() {
       {/* Header skeleton */}
       <Box sx={{ h: 64, bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', px: 2, gap: 2 }}>
         <Skeleton variant="rectangular" width={32} height={32} sx={{ borderRadius: 2 }} />
-        <Skeleton variant="rectangular" width="100%" maxWidth={448} height={40} sx={{ borderRadius: 3 }} />
+        <Skeleton variant="rectangular" width="100%" height={40} sx={{ borderRadius: 3, maxWidth: 448 }} />
         <Skeleton variant="circular" width={40} height={40} />
       </Box>
       

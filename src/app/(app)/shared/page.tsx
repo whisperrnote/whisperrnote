@@ -10,7 +10,7 @@ import {
   Button,
   Tabs,
   Tab,
-  Grid,
+  Grid2 as Grid,
   CircularProgress,
   Container,
   IconButton,
