@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const refreshUser = useCallback(async (isRetry = false) => {
+  const refreshUser = useCallback(async (isRetry = false, shouldSetLoading = true) => {
     try {
       const currentUser = await getCurrentUser();
       if (currentUser) {
@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
       setUser(currentUser);
-      setIsLoading(false);
+      if (shouldSetLoading) setIsLoading(false);
       return currentUser;
     } catch (error: any) {
       // If error is network related, don't clear user yet, just set offline flag if we had a user
@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Failed to get current user:', error);
       return null;
     } finally {
-      setIsLoading(false);
+      if (shouldSetLoading) setIsLoading(false);
     }
   }, []);
 
@@ -107,14 +107,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const timeout = setTimeout(() => {
         cleanup();
         resolve();
-      }, 5000);
+      }, 2000); // Shortened from 5000ms for responsiveness
 
       const handleIframeMessage = (event: MessageEvent) => {
         if (event.origin !== `https://${authSubdomain}.${domain}`) return;
 
         if (event.data?.type === 'idm:auth-status' && event.data.status === 'authenticated') {
           console.log('Silent auth discovered active session');
-          refreshUser();
+          refreshUser(false, false);
           cleanup();
           resolve();
         } else if (event.data?.type === 'idm:auth-status') {
@@ -150,11 +150,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initAuthStarted.current = true;
 
     const initAuth = async () => {
-      const localUser = await refreshUser();
+      setIsLoading(true);
+      const localUser = await refreshUser(false, false);
       if (!localUser) {
         // Only attempt silent discovery if we definitely don't have a session locally
         await attemptSilentAuth();
       }
+      setIsLoading(false);
     };
 
     initAuth();
