@@ -155,7 +155,7 @@ export function TopBarSearch() {
         <SearchIcon sx={{ color: isOpen ? 'primary.main' : 'text.secondary', mr: 1.5, fontSize: 20 }} />
         <InputBase
           inputRef={inputRef}
-          placeholder="Search Private Vault..."
+          placeholder="Search Notes..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={handleFocus}

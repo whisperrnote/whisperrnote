@@ -295,7 +295,7 @@ export default function AppHeader({ className }: AppHeaderProps) {
               sx={{ py: 1.5, px: 3, '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.05)' } }}
             >
               <ListItemIcon><SettingsIcon fontSize="small" sx={{ color: 'rgba(255, 255, 255, 0.4)' }} /></ListItemIcon>
-              <ListItemText primary="Vault Settings" primaryTypographyProps={{ variant: 'caption', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'white' }} />
+              <ListItemText primary="Settings" primaryTypographyProps={{ variant: 'caption', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'white' }} />
             </MenuItem>
             <MenuItem 
               onClick={() => {

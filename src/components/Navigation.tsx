@@ -41,7 +41,7 @@ export const MobileBottomNav: React.FC<NavigationProps> = () => {
   const isActive = (path: string) => pathname === path || pathname.startsWith(path);
 
   const navLinks = [
-    { icon: HomeIcon, href: '/notes', label: 'Vault' },
+    { icon: HomeIcon, href: '/notes', label: 'Notes' },
     { icon: ShareIcon, href: '/shared', label: 'Links' },
     { icon: TagIcon, href: '/tags', label: 'Tags' },
     { icon: ExtensionIcon, href: '/extensions', label: 'Caps' },
@@ -136,11 +136,11 @@ export const DesktopSidebar: React.FC<NavigationProps> = () => {
   const isActive = (path: string) => pathname === path || pathname.startsWith(path);
 
   const navItems = [
-    { icon: HomeIcon, label: 'Private Vault', path: '/notes' },
+    { icon: HomeIcon, label: 'Notes', path: '/notes' },
     { icon: ShareIcon, label: 'Shared Links', path: '/shared' },
     { icon: TagIcon, label: 'Tags', path: '/tags' },
     { icon: ExtensionIcon, label: 'Extensions', path: '/extensions' },
-    { icon: SettingsIcon, label: 'Vault Settings', path: '/settings' },
+    { icon: SettingsIcon, label: 'Settings', path: '/settings' },
   ];
 
   return (

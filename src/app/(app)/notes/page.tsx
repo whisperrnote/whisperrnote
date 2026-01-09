@@ -260,7 +260,7 @@ export default function NotesPage() {
                 mb: 0.5
               }}
             >
-              Private Vault
+              Notes
             </Typography>
             <Typography
               variant="body1"
@@ -275,7 +275,7 @@ export default function NotesPage() {
                 hasSearchResults ? (
                   <><Box component="span" sx={{ fontFamily: 'monospace', fontWeight: 700, color: '#00F5FF' }}>{totalCount}</Box> {totalCount === 1 ? 'result' : 'results'} found</>
                 ) : (
-                  <><Box component="span" sx={{ fontFamily: 'monospace', fontWeight: 700, color: '#00F5FF' }}>{totalNotes}</Box> {totalNotes === 1 ? 'private note' : 'private notes'} secured</>
+                  <><Box component="span" sx={{ fontFamily: 'monospace', fontWeight: 700, color: '#00F5FF' }}>{totalNotes}</Box> {totalNotes === 1 ? 'note' : 'notes'}</>
                 )
               )}
             </Typography>
@@ -414,7 +414,7 @@ export default function NotesPage() {
                 mb: 1.5
               }}
             >
-              {hasSearchResults ? 'NO_RESULTS' : 'VAULT_EMPTY'}
+              {hasSearchResults ? 'No Results' : 'Empty'}
             </Typography>
             <Typography
               variant="body1"
