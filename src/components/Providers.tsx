@@ -1,9 +1,7 @@
 "use client";
 
-import { AppWithLoading } from "@/components/ui/AppWithLoading";
 import { AuthProvider } from "@/components/ui/AuthContext";
 import { OverlayProvider } from "@/components/ui/OverlayContext";
-import { SubscriptionProvider } from "@/components/ui/SubscriptionContext";
 import { RouteGuard } from "@/components/ui/RouteGuard";
 import { ThemeProvider as AppThemeProvider, useTheme } from "@/components/ThemeProvider";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -29,22 +27,18 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <AppThemeProvider>
             <MuiThemeWrapper>
                 <ToastProvider>
-                    <AppWithLoading>
-                        <AuthProvider>
-                            <SubscriptionProvider>
-                                <OverlayProvider>
-                                    <ContextMenuProvider>
-                                        <RouteGuard>
-                                            {children}
-                                        </RouteGuard>
-                                        <Overlay />
-                                        <GlobalContextMenu />
-                                        <GlobalShortcuts />
-                                    </ContextMenuProvider>
-                                </OverlayProvider>
-                            </SubscriptionProvider>
-                        </AuthProvider>
-                    </AppWithLoading>
+                    <AuthProvider>
+                        <OverlayProvider>
+                            <ContextMenuProvider>
+                                <RouteGuard>
+                                    {children}
+                                </RouteGuard>
+                                <Overlay />
+                                <GlobalContextMenu />
+                                <GlobalShortcuts />
+                            </ContextMenuProvider>
+                        </OverlayProvider>
+                    </AuthProvider>
                 </ToastProvider>
             </MuiThemeWrapper>
         </AppThemeProvider>
