@@ -41,7 +41,7 @@ import { useToast } from '@/components/ui/Toast';
 import { useRouter } from 'next/navigation';
 import { useDynamicSidebar } from '@/components/ui/DynamicSidebar';
 import { formatNoteCreatedDate, formatNoteUpdatedDate } from '@/lib/date-utils';
-import { getNoteWithSharing, updateNote } from '@/lib/appwrite';
+import { updateNote } from '@/lib/appwrite';
 import { formatFileSize } from '@/lib/utils';
 import { useAutosave } from '@/hooks/useAutosave';
 
@@ -53,13 +53,8 @@ interface NoteDetailSidebarProps {
   showHeaderDeleteButton?: boolean;
 }
 
-interface EnhancedNote extends Notes {
-  isSharedWithUser?: boolean;
-  sharePermission?: string;
-  sharedBy?: { name: string; email: string } | null;
-}
-
 const shallowArrayEqual = (a?: string[] | null, b?: string[] | null) => {
+
   if (!a && !b) return true;
   if (!a || !b) return false;
   if (a.length !== b.length) return false;
@@ -89,7 +84,6 @@ export function NoteDetailSidebar({
   const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
   const [attachmentErrors, setAttachmentErrors] = useState<string[]>([]);
   const [currentAttachments, setCurrentAttachments] = useState<any[]>([]);
-  const [enhancedNote, setEnhancedNote] = useState<EnhancedNote | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const contentTextareaRef = useRef<HTMLTextAreaElement>(null);
   const titleContainerRef = useRef<HTMLDivElement>(null);
@@ -111,16 +105,6 @@ export function NoteDetailSidebar({
   };
 
   useEffect(() => {
-    const loadEnhancedNote = async () => {
-      try {
-        const data = await getNoteWithSharing(note.$id);
-        setEnhancedNote(data);
-      } catch (err) {
-        console.error('Error loading shared note details:', err);
-        setEnhancedNote(null);
-      }
-    };
-
     if (note.attachments && Array.isArray(note.attachments)) {
       try {
         const parsed = note.attachments.map((a: any) => (typeof a === 'string' ? JSON.parse(a) : a));
@@ -132,9 +116,8 @@ export function NoteDetailSidebar({
     } else {
       setCurrentAttachments([]);
     }
-
-    loadEnhancedNote();
   }, [note.$id]);
+
 
   useEffect(() => {
     const noteIdChanged = note.$id !== prevNoteIdRef.current;
@@ -829,23 +812,8 @@ export function NoteDetailSidebar({
         <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.3)', fontFamily: '"Inter", sans-serif' }}>
           Updated: {formatNoteUpdatedDate(note)}
         </Typography>
-
-        {enhancedNote?.isSharedWithUser && enhancedNote?.sharedBy && (
-          <Box sx={{ pt: 3, mt: 1, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: 'rgba(255, 255, 255, 0.5)' }}>
-              <UserIcon sx={{ fontSize: 18, color: '#00F5FF' }} />
-              <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                Shared by {enhancedNote.sharedBy.name || enhancedNote.sharedBy.email}
-              </Typography>
-            </Box>
-            {enhancedNote.sharePermission && (
-              <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'rgba(255, 255, 255, 0.3)', ml: 4 }}>
-                Permission: {enhancedNote.sharePermission}
-              </Typography>
-            )}
-          </Box>
-        )}
       </Box>
+
 
       {/* Edit Actions */}
       {isEditing && (

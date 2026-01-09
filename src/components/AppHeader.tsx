@@ -21,11 +21,11 @@ import {
 import {
   Settings as SettingsIcon,
   Logout as LogoutIcon,
-  AutoAwesome as AutoAwesomeIcon,
   Apps as AppsIcon,
   FileDownload as FileDownloadIcon
 } from '@mui/icons-material';
 import { useAuth } from '@/components/ui/AuthContext';
+
 import { useOverlay } from '@/components/ui/OverlayContext';
 import { getUserProfilePicId } from '@/lib/utils';
 import { fetchProfilePreview, getCachedProfilePreview } from '@/lib/profilePreview';
@@ -40,9 +40,9 @@ interface AppHeaderProps {
 export default function AppHeader({ className = '' }: AppHeaderProps) {
   const { user, isAuthenticated, logout } = useAuth();
   const { openOverlay, closeOverlay } = useOverlay();
-  const [aiLoading, setAiLoading] = useState(false);
   const [anchorElAccount, setAnchorElAccount] = useState<null | HTMLElement>(null);
   const [anchorElApps, setAnchorElApps] = useState<null | HTMLElement>(null);
+
   const [currentSubdomain, setCurrentSubdomain] = useState<string | null>(null);
   const [smallProfileUrl, setSmallProfileUrl] = useState<string | null>(null);
   const profilePicId = getUserProfilePicId(user);
@@ -87,28 +87,10 @@ export default function AppHeader({ className = '' }: AppHeaderProps) {
     logout();
   };
 
-  const handleAIGenerateClick = async () => {
-    if (aiLoading) return;
-    setAiLoading(true);
-    try {
-      const { ensureAI } = await import('@/lib/ai/lazy');
-      const ai = await ensureAI();
-      const openGenerateModal = ai.getOpenGenerateModal({ openOverlay, closeOverlay });
-      await openGenerateModal({
-        onGenerated: () => {
-          // Additional handling if needed
-        }
-      });
-    } catch (e) {
-      console.error('Failed to load AI', e);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
   if (!isAuthenticated) {
     return null;
   }
+
 
   const handleAppClick = (subdomain: string | undefined) => {
     if (!subdomain) return;
@@ -167,30 +149,11 @@ export default function AppHeader({ className = '' }: AppHeaderProps) {
 
         {/* Right: Actions */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
-          <Tooltip title="AI Generate">
-            <IconButton 
-              onClick={handleAIGenerateClick}
-              disabled={aiLoading}
-              sx={{ 
-                display: { xs: 'none', md: 'flex' },
-                bgcolor: '#00F5FF',
-                color: '#000',
-                '&:hover': { bgcolor: '#00D1DA', transform: 'translateY(-2px)' },
-                borderRadius: '12px',
-                width: 42,
-                height: 42,
-                transition: 'all 0.2s ease',
-                boxShadow: '0 0 15px rgba(0, 245, 255, 0.3)'
-              }}
-            >
-              <AutoAwesomeIcon sx={{ fontSize: 22 }} />
-            </IconButton>
-          </Tooltip>
-
           <IconButton 
             onClick={(e) => setAnchorElApps(e.currentTarget)}
             sx={{ 
               color: 'rgba(255, 255, 255, 0.6)',
+
               bgcolor: 'rgba(255, 255, 255, 0.03)',
               border: '1px solid rgba(255, 255, 255, 0.05)',
               borderRadius: '12px',

@@ -13,13 +13,11 @@ import {
 } from '@mui/material';
 import { 
   Add as PlusIcon, 
-  AutoAwesome as SparklesIcon, 
   NoteAdd as DocumentPlusIcon, 
   Brush as PencilIcon 
 } from '@mui/icons-material';
 import { useOverlay } from '@/components/ui/OverlayContext';
 import CreateNoteForm from '@/app/(app)/notes/CreateNoteForm';
-import { ensureAI } from '@/lib/ai/lazy';
 import { sidebarIgnoreProps } from '@/constants/sidebar';
 
 interface MobileFABProps {
@@ -28,10 +26,10 @@ interface MobileFABProps {
 
 export const MobileFAB: React.FC<MobileFABProps> = ({ className = '' }) => {
   const { openOverlay, closeOverlay } = useOverlay();
-  const [aiLoading, setAiLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleCreateNoteClick = () => {
+
     setIsExpanded(false);
     openOverlay(
       <CreateNoteForm 
@@ -55,39 +53,9 @@ export const MobileFAB: React.FC<MobileFABProps> = ({ className = '' }) => {
     );
   };
 
-  const handleAIGenerateClick = async () => {
-    setIsExpanded(false);
-    setAiLoading(true);
-    try {
-      const ai = await ensureAI();
-      const openGenerateModal = ai.getOpenGenerateModal({ openOverlay, closeOverlay });
-      await openGenerateModal({
-        onGenerated: (result) => {
-          openOverlay(
-            <CreateNoteForm 
-              initialFormat="text"
-              initialContent={{
-                title: result.title,
-                content: result.content,
-                tags: result.tags
-              }}
-              onNoteCreated={(newNote) => {
-                console.log('AI-generated note created:', newNote);
-                closeOverlay();
-              }} 
-            />
-          );
-        }
-      });
-    } catch (e) {
-      console.error('Failed to load AI', e);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
   return (
     <Box
+
       sx={{
         position: 'fixed',
         bottom: 100, // Above MobileBottomNav
@@ -112,28 +80,8 @@ export const MobileFAB: React.FC<MobileFABProps> = ({ className = '' }) => {
 
       {/* Expanded Action Buttons */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 1 }}>
-        <Zoom in={isExpanded} style={{ transitionDelay: isExpanded ? '100ms' : '0ms' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: 'white', bgcolor: 'rgba(0,0,0,0.6)', px: 1.5, py: 0.5, borderRadius: '8px', backdropFilter: 'blur(10px)' }}>
-              AI Generate
-            </Typography>
-            <Fab
-              size="medium"
-              onClick={aiLoading ? undefined : handleAIGenerateClick}
-              disabled={aiLoading}
-              sx={{
-                bgcolor: '#A855F7',
-                color: 'white',
-                '&:hover': { bgcolor: '#9333EA' },
-                boxShadow: '0 8px 20px rgba(168, 85, 247, 0.4)'
-              }}
-            >
-              <SparklesIcon />
-            </Fab>
-          </Box>
-        </Zoom>
-
         <Zoom in={isExpanded} style={{ transitionDelay: isExpanded ? '50ms' : '0ms' }}>
+
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Typography variant="caption" sx={{ fontWeight: 800, color: 'white', bgcolor: 'rgba(0,0,0,0.6)', px: 1.5, py: 0.5, borderRadius: '8px', backdropFilter: 'blur(10px)' }}>
               Doodle

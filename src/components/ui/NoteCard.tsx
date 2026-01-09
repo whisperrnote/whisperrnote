@@ -14,21 +14,18 @@ import {
 import { useContextMenu } from './ContextMenuContext';
 import { useDynamicSidebar } from './DynamicSidebar';
 import { NoteDetailSidebar } from './NoteDetailSidebar';
-import { ShareNoteModal } from '../ShareNoteModal';
-import { toggleNoteVisibility, getShareableUrl, isNotePublic } from '@/lib/appwrite';
+import { deleteNote } from '@/lib/appwrite';
 import type { Notes } from '@/types/appwrite';
 import { DoodleStroke } from '@/types/notes';
 import {
   Delete as TrashIcon,
-  Public as GlobeAltIcon,
-  Lock as LockClosedIcon,
   ContentCopy as ClipboardDocumentIcon,
-  Group as UserGroupIcon,
   MoreVert as EllipsisVerticalIcon,
   Check as CheckIcon,
   AttachFile as AttachFileIcon
 } from '@mui/icons-material';
 import { sidebarIgnoreProps } from '@/constants/sidebar';
+
 
 interface NoteCardProps {
   note: Notes;
@@ -117,59 +114,7 @@ const NoteCard: React.FC<NoteCardProps> = React.memo(({ note, onUpdate, onDelete
     }
   };
 
-  const handleToggleVisibility = async () => {
-    if (!note.$id) return;
-
-    try {
-      const updatedNote = await toggleNoteVisibility(note.$id);
-      if (updatedNote && onUpdate) {
-        onUpdate(updatedNote);
-      }
-    } catch (error) {
-      console.error('Error toggling note visibility:', error);
-    }
-  };
-
-  const handleCopyShareLink = () => {
-    if (!note.$id) return;
-
-    const shareUrl = getShareableUrl(note.$id);
-    navigator.clipboard.writeText(shareUrl);
-    setIsCopySuccess(true);
-    if (copyFeedbackTimer.current) {
-      clearTimeout(copyFeedbackTimer.current);
-    }
-    copyFeedbackTimer.current = setTimeout(() => {
-      setIsCopySuccess(false);
-    }, 2000);
-  };
-
-  const handleShareWith = () => {
-    setShowShareModal(true);
-    closeMenu();
-  };
-
-  const noteIsPublic = isNotePublic(note);
-
   const contextMenuItems = [
-    {
-      label: 'Share With',
-      icon: <UserGroupIcon sx={{ fontSize: 18 }} />,
-      onClick: handleShareWith
-    },
-    {
-      label: noteIsPublic ? 'Make Private' : 'Make Public',
-      icon: noteIsPublic ? <LockClosedIcon sx={{ fontSize: 18 }} /> : <GlobeAltIcon sx={{ fontSize: 18 }} />,
-      onClick: handleToggleVisibility
-    },
-    ...(noteIsPublic ? [{
-      label: 'Copy Share Link',
-      icon: <ClipboardDocumentIcon sx={{ fontSize: 18 }} />,
-      onClick: () => {
-        handleCopyShareLink();
-        closeMenu();
-      }
-    }] : []),
     {
       label: 'Delete',
       icon: <TrashIcon sx={{ fontSize: 18 }} />,
@@ -244,29 +189,11 @@ const NoteCard: React.FC<NoteCardProps> = React.memo(({ note, onUpdate, onDelete
                     {note.attachments.length}
                   </Box>
                 )}
-                {noteIsPublic && (
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 0.3, 
-                    px: 0.8, 
-                    py: 0.3, 
-                    borderRadius: '6px', 
-                    bgcolor: 'rgba(255, 255, 255, 0.05)',
-                    color: 'rgba(255, 255, 255, 0.6)',
-                    fontSize: '9px',
-                    fontWeight: 800,
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    fontFamily: '"Space Grotesk", sans-serif'
-                  }}>
-                    <GlobeAltIcon sx={{ fontSize: 10 }} />
-                    PUB
-                  </Box>
-                )}
               </Box>
             </Box>
           }
         />
+
         <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 0, position: 'relative', p: 2, pt: 0 }}>
           {note.format === 'doodle' ? (
             <Box sx={{ 
@@ -323,43 +250,12 @@ const NoteCard: React.FC<NoteCardProps> = React.memo(({ note, onUpdate, onDelete
               />
             ))}
           </Box>
-
-          {noteIsPublic && (
-            <IconButton
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCopyShareLink();
-              }}
-              sx={{
-                position: 'absolute',
-                bottom: 8,
-                right: 8,
-                bgcolor: '#00F5FF',
-                color: '#000000',
-                '&:hover': { bgcolor: '#00D1DA', transform: 'scale(1.1)' },
-                width: 28,
-                height: 28,
-                boxShadow: '0 0 15px rgba(0, 245, 255, 0.4)',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              {isCopySuccess ? <CheckIcon sx={{ fontSize: 14 }} /> : <ClipboardDocumentIcon sx={{ fontSize: 14 }} />}
-            </IconButton>
-          )}
         </CardContent>
       </Card>
-
-      {showShareModal && note.$id && (
-        <ShareNoteModal
-          isOpen={showShareModal}
-          onOpenChange={setShowShareModal}
-          noteId={note.$id}
-          noteTitle={note.title || 'Untitled Note'}
-        />
-      )}
     </>
   );
 });
+
 
 NoteCard.displayName = 'NoteCard';
 
