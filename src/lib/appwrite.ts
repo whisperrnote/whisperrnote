@@ -622,7 +622,15 @@ export async function listNotes(queries: any[] = [], limit: number = 100) {
     if (!user || !user.$id) {
       return { documents: [], total: 0 };
     }
-    queries = [Query.equal('userId', user.$id)];
+    // We include Query.isNull('userId') to catch legacy notes that haven't been migrated to use the 
+    // custom 'userId' attribute yet. Appwrite's built-in row-level security ensures users only see
+    // documents they have permission to access.
+    queries = [
+      Query.or([
+        Query.equal('userId', user.$id),
+        Query.isNull('userId')
+      ])
+    ];
   }
 
   const finalQueries = [
@@ -2269,8 +2277,12 @@ export async function listNotesPaginated(options: ListNotesPaginatedOptions = {}
     if (!effectiveUserId) {
       return { documents: [], total: 0, nextCursor: null, hasMore: false };
     }
+    // Handle legacy notes without the userId attribute populated
     baseQueries = [
-      Query.equal('userId', effectiveUserId)
+      Query.or([
+        Query.equal('userId', effectiveUserId),
+        Query.isNull('userId')
+      ])
     ];
   }
 
