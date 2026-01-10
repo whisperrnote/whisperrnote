@@ -32,7 +32,8 @@ import {
   OpenInNew as ArrowTopRightOnSquareIcon,
   PushPin as PinIcon,
   PushPinOutlined as PinOutlinedIcon,
-  ArrowBack as BackIcon
+  ArrowBack as BackIcon,
+  Link as LinkIcon
 } from '@mui/icons-material';
 import { useToast } from '@/components/ui/Toast';
 import { useRouter } from 'next/navigation';
@@ -366,6 +367,12 @@ export function NoteDetailSidebar({
     }
   };
 
+  const handleCopyShareLink = () => {
+    const shareUrl = `${window.location.origin}/shared/${note.$id}`;
+    navigator.clipboard.writeText(shareUrl);
+    showSuccess('Share link copied to clipboard');
+  };
+
   const handleCancel = () => {
     setTitle(note.title || '');
     setContent(note.content || '');
@@ -411,9 +418,19 @@ export function NoteDetailSidebar({
               </IconButton>
             </Tooltip>
           )}
-          <Tooltip title={pinned ? "Unpin note" : "Pin note"}>
+        {note.isPublic && (
+          <Tooltip title="Copy share link">
             <IconButton
-              onClick={handlePinToggle}
+              onClick={handleCopyShareLink}
+              sx={{
+                color: 'rgba(255, 255, 255, 0.5)',
+                '&:hover': { color: '#00F5FF', bgcolor: 'rgba(0, 245, 255, 0.1)' }
+              }}
+            >
+              <LinkIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
               sx={{
                 color: pinned ? '#00F5FF' : 'rgba(255, 255, 255, 0.5)',
                 '&:hover': { color: '#00F5FF', bgcolor: 'rgba(0, 245, 255, 0.1)' }

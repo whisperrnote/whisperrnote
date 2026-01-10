@@ -23,6 +23,7 @@ import {
   Share as ShareIcon,
   Lock as PrivateIcon,
   LockOpen as PublicIcon,
+  Link as LinkIcon,
 } from '@mui/icons-material';
 import { sidebarIgnoreProps } from '@/constants/sidebar';
 import { ShareNoteModal } from '../ShareNoteModal';
@@ -95,6 +96,13 @@ const NoteCard: React.FC<NoteCardProps> = React.memo(({ note, onUpdate, onDelete
     } catch (err: any) {
       showError(err.message || 'Failed to update visibility');
     }
+  };
+
+  const handleCopyShareLink = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareUrl = `${window.location.origin}/shared/${note.$id}`;
+    navigator.clipboard.writeText(shareUrl);
+    showSuccess('Share link copied to clipboard');
   };
 
   // Render doodle preview on canvas
@@ -291,6 +299,22 @@ const NoteCard: React.FC<NoteCardProps> = React.memo(({ note, onUpdate, onDelete
               </Typography>
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                {note.isPublic && (
+                  <IconButton
+                    size="small"
+                    onClick={handleCopyShareLink}
+                    sx={{
+                      p: 0.5,
+                      color: 'rgba(255, 255, 255, 0.4)',
+                      '&:hover': {
+                        color: '#00F5FF',
+                        bgcolor: 'rgba(0, 245, 255, 0.1)'
+                      }
+                    }}
+                  >
+                    <LinkIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                )}
                 <IconButton
                   size="small"
                   onClick={handlePinToggle}
