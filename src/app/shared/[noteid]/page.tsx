@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: { params: Promise<{ noteid: s
      const titleText = note.title && note.title.trim() ? truncate(note.title.trim(), 70) : truncate(firstParagraph(note.content || undefined), 70);
      const description = truncate(firstParagraph(note.content || undefined) || 'Shared via Whisperrnote', 160);
      const url = `${baseUrl}/shared/${noteid}`;
-     const image = `${baseUrl}/logo/whisperrnote.png`;
+     const image = `${baseUrl}/api/og/note/${noteid}`;
 
      return {
        title: titleText,
@@ -62,7 +62,7 @@ export async function generateMetadata({ params }: { params: Promise<{ noteid: s
          images: [
            {
              url: image,
-             alt: 'Whisperrnote',
+             alt: `Shared Note: ${titleText}`,
              width: 1200,
              height: 630
            }
