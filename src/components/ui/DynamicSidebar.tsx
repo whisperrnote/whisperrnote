@@ -78,6 +78,7 @@ export function DynamicSidebar() {
       onClose={closeSidebar}
       variant="temporary"
       PaperProps={{
+        'data-dynamic-sidebar': 'true', // Add this to prevent layout listener from closing it
         sx: {
           width: {
             xs: '100%',
