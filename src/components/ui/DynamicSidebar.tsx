@@ -9,7 +9,7 @@ import {
   useTheme,
   useMediaQuery
 } from '@mui/material';
-import { Close as CloseIcon } from '@mui/icons-material';
+import { Close as CloseIcon, ArrowBack as BackIcon } from '@mui/icons-material';
 
 interface DynamicSidebarContextType {
   isOpen: boolean;
@@ -103,26 +103,40 @@ export function DynamicSidebar() {
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between', 
-        p: 3,
+        p: { xs: 2, sm: 3 },
         borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
       }}>
-        <Typography 
-          variant="h6" 
-          sx={{ 
-            fontWeight: 900, 
-            fontFamily: '"Space Grotesk", sans-serif',
-            color: '#00F5FF',
-            textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-            fontSize: '1rem'
-          }}
-        >
-          Details
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <IconButton 
+            onClick={closeSidebar} 
+            size="small"
+            sx={{ 
+              display: { xs: 'inline-flex', sm: 'none' },
+              color: 'rgba(255, 255, 255, 0.5)',
+              '&:hover': { color: '#00F5FF', bgcolor: 'rgba(0, 245, 255, 0.1)' }
+            }}
+          >
+            <BackIcon />
+          </IconButton>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              fontWeight: 900, 
+              fontFamily: '"Space Grotesk", sans-serif',
+              color: '#00F5FF',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              fontSize: { xs: '0.875rem', sm: '1rem' }
+            }}
+          >
+            Details
+          </Typography>
+        </Box>
         <IconButton 
           onClick={closeSidebar} 
           size="small"
           sx={{ 
+            display: { xs: 'none', sm: 'inline-flex' },
             color: 'rgba(255, 255, 255, 0.5)',
             '&:hover': { color: '#00F5FF', bgcolor: 'rgba(0, 245, 255, 0.1)' }
           }}

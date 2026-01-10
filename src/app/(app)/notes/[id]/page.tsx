@@ -140,7 +140,7 @@ export default function NoteEditorPage() {
                 '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
               }}
             >
-              <MinusIcon />
+              <BackIcon />
             </IconButton>
             <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: '-0.02em' }}>
               {title}

@@ -31,7 +31,8 @@ import {
   AttachFile as PaperClipIcon,
   OpenInNew as ArrowTopRightOnSquareIcon,
   PushPin as PinIcon,
-  PushPinOutlined as PinOutlinedIcon
+  PushPinOutlined as PinOutlinedIcon,
+  ArrowBack as BackIcon
 } from '@mui/icons-material';
 import { useToast } from '@/components/ui/Toast';
 import { useRouter } from 'next/navigation';
