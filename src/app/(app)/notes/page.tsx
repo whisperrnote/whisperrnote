@@ -19,6 +19,7 @@ import {
   AddCircleOutline as PlusCircleIcon,
   Logout as ArrowLeftOnRectangleIcon,
   Login as ArrowRightOnRectangleIcon,
+  PushPin as PinIcon,
 } from '@mui/icons-material';
 import CreateNoteForm from './CreateNoteForm';
 import { MobileBottomNav } from '@/components/Navigation';
@@ -32,7 +33,16 @@ import { sidebarIgnoreProps } from '@/constants/sidebar';
 import { NotesErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 export default function NotesPage() {
-  const { notes: allNotes, totalNotes, isLoading: isInitialLoading, hasMore, loadMore, upsertNote, removeNote } = useNotes();
+  const { 
+    notes: allNotes, 
+    totalNotes, 
+    isLoading: isInitialLoading, 
+    hasMore, 
+    loadMore, 
+    upsertNote, 
+    removeNote,
+    isPinned
+  } = useNotes();
   const { openOverlay } = useOverlay();
 
   const { isCollapsed, setIsCollapsed } = useSidebar();
@@ -209,6 +219,17 @@ export default function NotesPage() {
     const existingTags = Array.from(new Set(allNotes.flatMap(note => note.tags || [])));
     return existingTags.length > 0 ? existingTags.slice(0, 8) : ['Personal', 'Work', 'Ideas', 'To-Do'];
   }, [allNotes]);
+
+  const pinnedNotes = useMemo(() => {
+    if (hasSearchResults || currentPage !== 1) return [];
+    return paginatedNotes.filter(n => isPinned(n.$id));
+  }, [paginatedNotes, isPinned, hasSearchResults, currentPage]);
+
+  const regularNotes = useMemo(() => {
+    if (hasSearchResults) return paginatedNotes;
+    // On first page, we separate pinned ones. On subsequent pages, we show all (though pinned are only on first page anyway)
+    return currentPage === 1 ? paginatedNotes.filter(n => !isPinned(n.$id)) : paginatedNotes;
+  }, [paginatedNotes, isPinned, hasSearchResults, currentPage]);
 
   return (
     <NotesErrorBoundary>
@@ -446,19 +467,74 @@ export default function NotesPage() {
             )}
           </Box>
         ) : (
-          <Stack spacing={3}>
-            <Box sx={gridSx}>
-              {paginatedNotes.map((note) => (
-                <NoteCard
-                  key={note.$id}
-                  note={note}
-                  onUpdate={handleNoteUpdated}
-                  onDelete={handleNoteDeleted}
-                />
-              ))}
-            </Box>
-            {hasMore && !isInitialLoading && (
-              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Stack spacing={4}>
+            {pinnedNotes.length > 0 && (
+              <Box>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2, px: 0.5 }}>
+                  <PinIcon sx={{ fontSize: 16, color: 'primary.main', transform: 'rotate(45deg)' }} />
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      fontWeight: 800, 
+                      fontFamily: 'var(--font-space-grotesk)', 
+                      textTransform: 'uppercase', 
+                      letterSpacing: '0.15em', 
+                      fontSize: '0.7rem', 
+                      color: 'primary.main',
+                      opacity: 0.8
+                    }}
+                  >
+                    Pinned Notes
+                  </Typography>
+                </Stack>
+                <Box sx={gridSx}>
+                  {pinnedNotes.map((note) => (
+                    <NoteCard
+                      key={note.$id}
+                      note={note}
+                      onUpdate={handleNoteUpdated}
+                      onDelete={handleNoteDeleted}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            )}
+
+            {regularNotes.length > 0 && (
+              <Box>
+                {pinnedNotes.length > 0 && (
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2, px: 0.5 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        fontWeight: 800, 
+                        fontFamily: 'var(--font-space-grotesk)', 
+                        textTransform: 'uppercase', 
+                        letterSpacing: '0.15em', 
+                        fontSize: '0.7rem', 
+                        color: 'text.secondary',
+                        opacity: 0.6
+                      }}
+                    >
+                      All Notes
+                    </Typography>
+                  </Stack>
+                )}
+                <Box sx={gridSx}>
+                  {regularNotes.map((note) => (
+                    <NoteCard
+                      key={note.$id}
+                      note={note}
+                      onUpdate={handleNoteUpdated}
+                      onDelete={handleNoteDeleted}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            )}
+            
+            {hasMore && !isInitialLoading && !hasSearchResults && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                 <Button variant="outlined" onClick={loadMore} {...sidebarIgnoreProps}>
                   Load More
                 </Button>
