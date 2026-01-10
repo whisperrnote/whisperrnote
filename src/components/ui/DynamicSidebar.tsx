@@ -6,7 +6,6 @@ import {
   Box, 
   Typography, 
   IconButton, 
-  Divider,
   useTheme,
   useMediaQuery
 } from '@mui/material';
@@ -71,7 +70,6 @@ export function useDynamicSidebar() {
 export function DynamicSidebar() {
   const { isOpen, content, closeSidebar } = useDynamicSidebar();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
     <Drawer
