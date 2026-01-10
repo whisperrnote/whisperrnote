@@ -1,0 +1,31 @@
+
+> whisperrnote@0.1.0 build
+> next build
+
+   ▲ Next.js 15.4.7
+   - Environments: .env
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 13.0s
+   Skipping linting
+   Checking validity of types ...
+Failed to compile.
+
+./src/components/ui/NoteCard.tsx:150:7
+Type error: Type '({ label: string; icon: Element; onClick: (e?: MouseEvent<Element, MouseEvent> | undefined) => Promise<void>; variant?: undefined; } | { ...; } | { ...; })[]' is not assignable to type '{ label: string; icon?: ReactNode; onClick: () => void; variant?: "default" | "destructive" | undefined; }[]'.
+  Type '{ label: string; icon: Element; onClick: (e?: MouseEvent<Element, MouseEvent> | undefined) => Promise<void>; variant?: undefined; } | { ...; } | { ...; }' is not assignable to type '{ label: string; icon?: ReactNode; onClick: () => void; variant?: "default" | "destructive" | undefined; }'.
+    Type '{ label: string; icon: React.JSX.Element; onClick: (e: any) => void; variant?: undefined; }' is not assignable to type '{ label: string; icon?: ReactNode; onClick: () => void; variant?: "default" | "destructive" | undefined; }'.
+      Types of property 'onClick' are incompatible.
+        Type '(e: any) => void' is not assignable to type '() => void'.
+          Target signature provides too few arguments. Expected 1 or more, but got 0.
+
+[0m [90m 148 |[39m       x[33m:[39m e[33m.[39mclientX[33m,[39m
+ [90m 149 |[39m       y[33m:[39m e[33m.[39mclientY[33m,[39m
+[31m[1m>[22m[39m[90m 150 |[39m       items[33m:[39m contextMenuItems
+ [90m     |[39m       [31m[1m^[22m[39m
+ [90m 151 |[39m     })[33m;[39m
+ [90m 152 |[39m   }[33m;[39m
+ [90m 153 |[39m[0m
+Next.js build worker exited with code: 1 and signal: null

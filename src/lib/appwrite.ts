@@ -2070,23 +2070,35 @@ export async function deleteAttachmentRecord(attachmentId: string) {
 // --- SIGNED ATTACHMENT URL HELPERS ---
 // Short-lived HMAC signed URLs that point to a proxy download route.
 // These are generated server-side only. If secret missing, returns null (feature disabled).
-import crypto from 'crypto';
 const ATTACHMENT_URL_SIGNING_SECRET = process.env.ATTACHMENT_URL_SIGNING_SECRET || '';
 const ATTACHMENT_URL_TTL_SECONDS = parseInt(process.env.ATTACHMENT_URL_TTL_SECONDS || '300', 10);
 
-function generateAttachmentSignature(noteId: string, ownerId: string, fileId: string, exp: number) {
+async function generateAttachmentSignature(noteId: string, ownerId: string, fileId: string, exp: number) {
   if (!ATTACHMENT_URL_SIGNING_SECRET) return null;
-  const h = crypto.createHmac('sha256', ATTACHMENT_URL_SIGNING_SECRET);
-  h.update(`${noteId}.${ownerId}.${fileId}.${exp}`);
-  return h.digest('hex');
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(ATTACHMENT_URL_SIGNING_SECRET);
+  const data = encoder.encode(`${noteId}.${ownerId}.${fileId}.${exp}`);
+  
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, data);
+  return Array.from(new Uint8Array(signature))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
-export function generateSignedAttachmentURL(noteId: string, ownerId: string, fileId: string, ttlSeconds?: number) {
+export async function generateSignedAttachmentURL(noteId: string, ownerId: string, fileId: string, ttlSeconds?: number) {
   if (!ATTACHMENT_URL_SIGNING_SECRET) return null;
   const ttl = typeof ttlSeconds === 'number' && ttlSeconds > 0 ? ttlSeconds : ATTACHMENT_URL_TTL_SECONDS;
   const now = Math.floor(Date.now() / 1000);
   const exp = now + ttl;
-  const sig = generateAttachmentSignature(noteId, ownerId, fileId, exp);
+  const sig = await generateAttachmentSignature(noteId, ownerId, fileId, exp);
   if (!sig) return null;
   return {
     url: `/api/attachments/download?noteId=${encodeURIComponent(noteId)}&ownerId=${encodeURIComponent(ownerId)}&fileId=${encodeURIComponent(fileId)}&exp=${exp}&sig=${sig}`,
@@ -2095,14 +2107,14 @@ export function generateSignedAttachmentURL(noteId: string, ownerId: string, fil
   };
 }
 
-export function verifySignedAttachmentURL(params: { noteId: string; ownerId: string; fileId: string; exp: number | string; sig: string; }): { valid: boolean; reason?: string } {
+export async function verifySignedAttachmentURL(params: { noteId: string; ownerId: string; fileId: string; exp: number | string; sig: string; }): { valid: boolean; reason?: string } {
   if (!ATTACHMENT_URL_SIGNING_SECRET) return { valid: false, reason: 'signing_disabled' };
   const { noteId, ownerId, fileId } = params;
   const expNum = typeof params.exp === 'string' ? parseInt(params.exp, 10) : params.exp;
   if (!expNum || isNaN(expNum)) return { valid: false, reason: 'invalid_exp' };
   const now = Math.floor(Date.now() / 1000);
   if (expNum < now) return { valid: false, reason: 'expired' };
-  const expected = generateAttachmentSignature(noteId, ownerId, fileId, expNum);
+  const expected = await generateAttachmentSignature(noteId, ownerId, fileId, expNum);
   if (!expected) return { valid: false, reason: 'signature_unavailable' };
   if (expected !== params.sig) return { valid: false, reason: 'invalid_signature' };
   return { valid: true };

@@ -1,0 +1,10 @@
+
+> whisperrnote@0.1.0 build
+> next build
+
+   ▲ Next.js 15.4.7
+   - Environments: .env
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+   Creating an optimized production build ...

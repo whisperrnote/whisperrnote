@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
     }
 
-    const verification = verifySignedAttachmentURL({ noteId, ownerId, fileId, exp, sig });
+    const verification = await verifySignedAttachmentURL({ noteId, ownerId, fileId, exp, sig });
     if (!verification.valid) {
       return NextResponse.json({ error: 'Invalid or expired link', reason: verification.reason }, { status: verification.reason === 'expired' ? 410 : 400 });
     }
