@@ -25,7 +25,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ note
   }
 
   try {
-    const note = await validatePublicNoteAccess(params.noteid);
+    const note = await validatePublicNoteAccess(noteid);
 
     if (!note) {
       return NextResponse.json(

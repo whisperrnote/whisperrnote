@@ -53,8 +53,8 @@ type TabType = 'profile' | 'preferences' | 'account';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabType>('profile');
-  const [user, setUser] = useState<import('@/types/appwrite').Users | null>(null);
-  const [settings, setSettings] = useState<import('@/types/appwrite').Settings | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");

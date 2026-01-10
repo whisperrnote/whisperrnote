@@ -2,6 +2,7 @@
 
 import { AuthProvider } from "@/components/ui/AuthContext";
 import { OverlayProvider } from "@/components/ui/OverlayContext";
+import { LoadingProvider } from "@/components/ui/LoadingContext";
 import { RouteGuard } from "@/components/ui/RouteGuard";
 import { ThemeProvider as AppThemeProvider, useTheme } from "@/components/ThemeProvider";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -29,14 +30,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 <ToastProvider>
                     <AuthProvider>
                         <OverlayProvider>
-                            <ContextMenuProvider>
-                                <RouteGuard>
-                                    {children}
-                                </RouteGuard>
-                                <Overlay />
-                                <GlobalContextMenu />
-                                <GlobalShortcuts />
-                            </ContextMenuProvider>
+                            <LoadingProvider>
+                                <ContextMenuProvider>
+                                    <RouteGuard>
+                                        {children}
+                                    </RouteGuard>
+                                    <Overlay />
+                                    <GlobalContextMenu />
+                                    <GlobalShortcuts />
+                                </ContextMenuProvider>
+                            </LoadingProvider>
                         </OverlayProvider>
                     </AuthProvider>
                 </ToastProvider>
