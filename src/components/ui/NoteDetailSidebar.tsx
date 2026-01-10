@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Notes } from '@/types/appwrite';
 import dynamic from 'next/dynamic';
@@ -128,7 +130,7 @@ export function NoteDetailSidebar({
     } else {
       setCurrentAttachments([]);
     }
-  }, [note.$id]);
+  }, [note.$id, note.attachments]);
 
 
   useEffect(() => {

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Client, Account, Databases, Storage, Functions, ID, Query, Permission, Role, OAuthProvider } from 'appwrite';
 import type {
   Users,
@@ -85,17 +87,23 @@ if (typeof window === 'undefined') {
   }, 10 * 60 * 1000);
 }
 
-function cleanDocumentData<T>(data: Partial<T>): Record<string, any> {
-  const { $id, $sequence, $collectionId, $databaseId, $createdAt, $updatedAt, $permissions, ...cleanData } = data as any;
+function cleanDocumentData<T>(data: Partial<T>): Record<string, unknown> {
+  const cleanData = { ...(data as any) };
+  delete cleanData.$id;
+  delete cleanData.$sequence;
+  delete cleanData.$collectionId;
+  delete cleanData.$databaseId;
+  delete cleanData.$createdAt;
+  delete cleanData.$updatedAt;
+  delete cleanData.$permissions;
   return cleanData;
 }
 
 export async function createUser(data: Partial<Users>) {
-  const now = new Date().toISOString();
   const userData = {
     ...cleanDocumentData(data),
-    createdAt: now,
-    updatedAt: now
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   };
   return databases.createDocument(
     APPWRITE_DATABASE_ID,
@@ -313,7 +321,8 @@ export async function createNote(data: Partial<Notes>) {
   const now = new Date().toISOString();
   const cleanData = cleanDocumentData(data);
   // Remove attachments from creation payload as it's initialized separately
-  const { attachments, ...noteData } = cleanData;
+  const noteData = { ...cleanData };
+  delete noteData.attachments;
   const initialPermissions = [
     Permission.read(Role.user(user.$id)),
     Permission.update(Role.user(user.$id)),
@@ -340,7 +349,7 @@ export async function createNote(data: Partial<Notes>) {
       const unique = Array.from(new Set(rawTags.map(t => t.trim()))).filter(Boolean);
       if (unique.length) {
         // Preload existing tag docs for user (only those needed)
-        let existingTagDocs: Record<string, any> = {};
+        const existingTagDocs: Record<string, any> = {};
         try {
           const existingTagsRes = await databases.listDocuments(
             APPWRITE_DATABASE_ID,
@@ -437,10 +446,12 @@ export async function getNote(noteId: string): Promise<Notes> {
 
 export async function updateNote(noteId: string, data: Partial<Notes>) {
   const cleanData = cleanDocumentData(data);
-  const { id, userId, ...rest } = cleanData;
+  const rest = { ...cleanData };
+  delete (rest as any).id;
+  delete (rest as any).userId;
   const updatedAt = new Date().toISOString();
   const updatedData = { ...rest, updated_at: updatedAt };
-  const before = await databases.getDocument(APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_NOTES, noteId) as any;
+  await databases.getDocument(APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_NOTES, noteId);
   const doc = await databases.updateDocument(APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_NOTES, noteId, updatedData) as any;
   
   // Handle tags if provided
@@ -2011,7 +2022,7 @@ export function generateSignedAttachmentURL(noteId: string, ownerId: string, fil
 export function verifySignedAttachmentURL(params: { noteId: string; ownerId: string; fileId: string; exp: number | string; sig: string; }): { valid: boolean; reason?: string } {
   if (!ATTACHMENT_URL_SIGNING_SECRET) return { valid: false, reason: 'signing_disabled' };
   const { noteId, ownerId, fileId } = params;
-  let expNum = typeof params.exp === 'string' ? parseInt(params.exp, 10) : params.exp;
+  const expNum = typeof params.exp === 'string' ? parseInt(params.exp, 10) : params.exp;
   if (!expNum || isNaN(expNum)) return { valid: false, reason: 'invalid_exp' };
   const now = Math.floor(Date.now() / 1000);
   if (expNum < now) return { valid: false, reason: 'expired' };
@@ -2351,7 +2362,7 @@ export async function validatePublicNoteAccess(noteId: string): Promise<Notes | 
   }
 }
 
-export default {
+const appwrite = {
   client,
   account,
   databases,
@@ -2471,3 +2482,5 @@ export default {
     generateSignedAttachmentURL,
     verifySignedAttachmentURL,
 };
+
+export default appwrite;

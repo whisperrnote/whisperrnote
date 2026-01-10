@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -35,7 +35,6 @@ const NoteCard: React.FC<NoteCardProps> = React.memo(({ note, onUpdate, onDelete
   const { openSidebar } = useDynamicSidebar();
   const { isPinned, pinNote, unpinNote } = useNotes();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const copyFeedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const pinned = isPinned(note.$id);
 
@@ -47,8 +46,8 @@ const NoteCard: React.FC<NoteCardProps> = React.memo(({ note, onUpdate, onDelete
       } else {
         await pinNote(note.$id);
       }
-    } catch (err: any) {
-      console.error('Pinning error:', err.message);
+    } catch (err: unknown) {
+      console.error('Pinning error:', err instanceof Error ? err.message : 'Unknown error');
     }
   };
 
@@ -83,14 +82,6 @@ const NoteCard: React.FC<NoteCardProps> = React.memo(({ note, onUpdate, onDelete
       console.error('Failed to render doodle preview');
     }
   }, [note.format, note.content]);
-
-  useEffect(() => {
-    return () => {
-      if (copyFeedbackTimer.current) {
-        clearTimeout(copyFeedbackTimer.current);
-      }
-    };
-  }, []);
 
   const handleRightClick = (e: React.MouseEvent) => {
     e.preventDefault();

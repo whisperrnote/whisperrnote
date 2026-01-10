@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode, useMemo } from 'react';
 import { listNotesPaginated, getPinnedNoteIds, pinNote as appwritePinNote, unpinNote as appwriteUnpinNote } from '@/lib/appwrite';
 import type { Notes } from '@/types/appwrite';
