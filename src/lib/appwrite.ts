@@ -105,19 +105,57 @@ function cleanDocumentData<T>(data: Partial<T>): Record<string, unknown> {
  * This prevents "invalid document structure" errors when sending extra client-side fields.
  * Matches the types in src/types/appwrite.d.ts
  */
+function hydrateVirtualAttributes(doc: any): any {
+  if (doc.metadata) {
+    try {
+      const extra = JSON.parse(doc.metadata);
+      if (extra && typeof extra === 'object') {
+        Object.keys(extra).forEach(key => {
+          if (doc[key] === undefined || doc[key] === null) {
+            doc[key] = extra[key];
+          }
+        });
+      }
+    } catch { /* ignore */ }
+  }
+  return doc;
+}
+
 function filterNoteData(data: Record<string, any>): Record<string, any> {
-  const allowedKeys = [
+  const schemaKeys = [
     'id', 'createdAt', 'updatedAt', 'userId', 'isPublic', 'status', 
     'parentNoteId', 'title', 'content', 'tags', 'comments', 
     'extensions', 'collaborators', 'metadata'
   ];
   
   const filtered: Record<string, any> = {};
-  for (const key of allowedKeys) {
-    if (data[key] !== undefined) {
-      filtered[key] = data[key];
+  const extra: Record<string, any> = {};
+
+  for (const [key, value] of Object.entries(data)) {
+    if (schemaKeys.includes(key)) {
+      filtered[key] = value;
+    } else if (!key.startsWith('$') && value !== undefined) {
+      // Extra fields go to metadata if they are not system fields
+      extra[key] = value;
     }
   }
+
+  // Merge extra fields into metadata string
+  if (Object.keys(extra).length > 0) {
+    let currentMetadata: Record<string, any> = {};
+    try {
+      if (filtered.metadata) {
+        currentMetadata = typeof filtered.metadata === 'string' 
+          ? JSON.parse(filtered.metadata) 
+          : filtered.metadata;
+      }
+    } catch {
+      currentMetadata = { _raw: filtered.metadata };
+    }
+    
+    filtered.metadata = JSON.stringify({ ...currentMetadata, ...extra });
+  }
+
   return filtered;
 }
 
@@ -452,6 +490,10 @@ export async function createNote(data: Partial<Notes>) {
 
 export async function getNote(noteId: string): Promise<Notes> {
   const doc = await databases.getDocument(APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_NOTES, noteId) as any;
+  
+  // Extract virtual attributes from metadata JSON
+  hydrateVirtualAttributes(doc);
+
   try {
     const noteTagsCollection = process.env.NEXT_PUBLIC_APPWRITE_TABLE_ID_NOTETAGS || 'note_tags';
     const pivot = await databases.listDocuments(
@@ -640,7 +682,7 @@ export async function listNotes(queries: any[] = [], limit: number = 100) {
   ];
 
   const res = await databases.listDocuments(APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_NOTES, finalQueries);
-  const notes = res.documents as unknown as Notes[];
+  const notes = (res.documents as any[]).map(doc => hydrateVirtualAttributes(doc)) as unknown as Notes[];
 
   // Hydrate tags from pivot collection in batch (best-effort)
   try {
@@ -2298,7 +2340,7 @@ export async function listNotesPaginated(options: ListNotesPaginatedOptions = {}
     APPWRITE_TABLE_ID_NOTES,
     finalQueries
   );
-  const notes = res.documents as unknown as Notes[];
+  const notes = (res.documents as any[]).map(doc => hydrateVirtualAttributes(doc)) as unknown as Notes[];
 
   if (hydrateTags && notes.length) {
     try {
@@ -2344,18 +2386,32 @@ export async function listNotesPaginated(options: ListNotesPaginatedOptions = {}
 // --- PERMISSIONS HELPERS ---
 
 export function isNotePublic(note: Notes): boolean {
-  return note.isPublic === true;
+  // A note is public if the isPublic attribute is true
+  // OR if it has a read permission for "any" or "guests" or "role:all"
+  if (note.isPublic === true) return true;
+  
+  const permissions = (note as any).$permissions as string[] | undefined;
+  if (!permissions) return false;
+
+  return permissions.some(p => 
+    p.includes('read("any")') || 
+    p.includes('read("guests")') ||
+    p.includes('read("role:all")')
+  );
 }
 
 export async function isNoteOwner(note: Notes): Promise<boolean> {
   const currentUser = await getCurrentUser();
   if (!currentUser) return false;
   
-  // Direct check against custom userId attribute
+  // Direct check against custom userId attribute (modern notes)
   if (note.userId === currentUser.$id) return true;
   
+  // Fallback for notes where userId attribute is missing but $id matches current user
+  if (note.$id === currentUser.$id) return true;
+
   // Fallback for legacy notes where userId attribute might be missing,
-  // but the user clearly has administrative (delete) permission.
+  // but the user clearly has administrative (delete/update) permission.
   if ((note as any).$permissions) {
     const permissions = (note as any).$permissions as string[];
     const userRole = `user:${currentUser.$id}`;
