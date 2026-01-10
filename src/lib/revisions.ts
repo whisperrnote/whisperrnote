@@ -81,7 +81,7 @@ export async function pruneRevisions(
 export async function getNoteRevisions(
   noteId: string,
   limit?: number
-): Promise<NoteRevision[]> {
+): Promise<NoteRevisions[]> {
   try {
     const revisionsCollection = process.env.NEXT_PUBLIC_APPWRITE_TABLE_ID_NOTEREVISIONS || 'note_revisions';
     const effectiveLimit = limit || (await getRevisionLimit());
@@ -96,7 +96,7 @@ export async function getNoteRevisions(
       ] as any
     );
 
-    return res.documents as unknown as NoteRevision[];
+    return res.documents as unknown as NoteRevisions[];
   } catch (e) {
     console.error('getNoteRevisions failed:', e);
     return [];
@@ -109,7 +109,7 @@ export async function getNoteRevisions(
 export async function getNoteRevision(
   noteId: string,
   revisionNumber: number
-): Promise<NoteRevision | null> {
+): Promise<NoteRevisions | null> {
   try {
     const revisionsCollection = process.env.NEXT_PUBLIC_APPWRITE_TABLE_ID_NOTEREVISIONS || 'note_revisions';
 
@@ -123,7 +123,7 @@ export async function getNoteRevision(
       ] as any
     );
 
-    return (res.documents[0] as unknown as NoteRevision) || null;
+    return (res.documents[0] as unknown as NoteRevisions) || null;
   } catch (e) {
     console.error('getNoteRevision failed:', e);
     return null;
@@ -181,7 +181,7 @@ export async function createRevision(
   before: Record<string, any>,
   after: Record<string, any>,
   cause: 'manual' | 'ai' | 'collab' = 'manual'
-): Promise<NoteRevision | null> {
+): Promise<NoteRevisions | null> {
   try {
     const revisionsCollection = process.env.NEXT_PUBLIC_APPWRITE_TABLE_ID_NOTEREVISIONS || 'note_revisions';
     const significantFields = ['title', 'content', 'tags', 'format'];
@@ -263,7 +263,7 @@ export async function createRevision(
       }
     );
 
-    return revision as unknown as NoteRevision;
+    return revision as unknown as NoteRevisions;
   } catch (e) {
     console.error('createRevision failed:', e);
     return null;
