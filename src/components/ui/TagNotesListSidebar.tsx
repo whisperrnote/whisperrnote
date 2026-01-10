@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Notes, Tags } from '@/types/appwrite';
 import { getNotesByTag } from '@/lib/appwrite';
 import { Box, Typography, IconButton, Stack, Alert, CircularProgress } from '@mui/material';
@@ -8,6 +8,7 @@ import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { NoteDetailSidebar } from './NoteDetailSidebar';
 import NoteCard from '@/components/ui/NoteCard';
 import { NoteCardSkeleton } from './NoteCardSkeleton';
+import { useNotes } from '@/contexts/NotesContext';
 
 interface TagNotesListSidebarProps {
   tag: Tags;
@@ -26,6 +27,17 @@ export function TagNotesListSidebar({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedNote, setSelectedNote] = useState<Notes | null>(null);
+  const { isPinned } = useNotes();
+
+  const sortedNotes = useMemo(() => {
+    return [...notes].sort((a, b) => {
+      const aPinned = isPinned(a.$id);
+      const bPinned = isPinned(b.$id);
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+      return 0;
+    });
+  }, [notes, isPinned]);
 
   useEffect(() => {
     const fetchNotes = async () => {
@@ -117,7 +129,7 @@ export function TagNotesListSidebar({
           </Box>
         ) : (
           <Stack spacing={2}>
-            {notes.map((note) => (
+            {sortedNotes.map((note) => (
               <NoteCard
                 key={note.$id}
                 note={note}

@@ -243,6 +243,56 @@ export async function getEmailVerificationStatus(): Promise<boolean> {
   }
 }
 
+// --- PINNED NOTES ---
+
+/**
+ * Pinned Notes Logic using account preferences.
+ * Hard cap of 10 pins for Pro, 3 for Free.
+ */
+export async function getPinnedNoteIds(): Promise<string[]> {
+  try {
+    const user = await account.get();
+    return (user.prefs?.pinnedNoteIds || []) as string[];
+  } catch {
+    return [];
+  }
+}
+
+export async function pinNote(noteId: string): Promise<string[]> {
+  const user = await account.get();
+  const currentPins = (user.prefs?.pinnedNoteIds || []) as string[];
+  
+  if (currentPins.includes(noteId)) return currentPins;
+
+  // Plan-based limits
+  const plan = user.prefs?.subscriptionTier || 'FREE';
+  const limit = (plan === 'PRO' || plan === 'ORG' || plan === 'LIFETIME') ? 10 : 3;
+
+  if (currentPins.length >= limit) {
+    throw new Error(`Pin limit reached (${limit} notes). Upgrade for more pins.`);
+  }
+
+  const newPins = [noteId, ...currentPins].slice(0, 10); // Hard cap 10
+  await account.updatePrefs({ ...user.prefs, pinnedNoteIds: newPins });
+  return newPins;
+}
+
+export async function unpinNote(noteId: string): Promise<string[]> {
+  const user = await account.get();
+  const currentPins = (user.prefs?.pinnedNoteIds || []) as string[];
+  
+  if (!currentPins.includes(noteId)) return currentPins;
+
+  const newPins = currentPins.filter(id => id !== noteId);
+  await account.updatePrefs({ ...user.prefs, pinnedNoteIds: newPins });
+  return newPins;
+}
+
+export async function isNotePinned(noteId: string): Promise<boolean> {
+  const pinnedIds = await getPinnedNoteIds();
+  return pinnedIds.includes(noteId);
+}
+
 // --- PASSWORD RESET ---
 
 export async function sendPasswordResetEmail(email: string, redirectUrl: string) {

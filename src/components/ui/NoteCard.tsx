@@ -14,6 +14,7 @@ import {
 import { useContextMenu } from './ContextMenuContext';
 import { useDynamicSidebar } from './DynamicSidebar';
 import { NoteDetailSidebar } from './NoteDetailSidebar';
+import { useNotes } from '@/contexts/NotesContext';
 import { deleteNote } from '@/lib/appwrite';
 import type { Notes } from '@/types/appwrite';
 import { DoodleStroke } from '@/types/notes';
@@ -22,7 +23,9 @@ import {
   ContentCopy as ClipboardDocumentIcon,
   MoreVert as EllipsisVerticalIcon,
   Check as CheckIcon,
-  AttachFile as AttachFileIcon
+  AttachFile as AttachFileIcon,
+  PushPin as PinIcon,
+  PushPinOutlined as PinOutlinedIcon
 } from '@mui/icons-material';
 import { sidebarIgnoreProps } from '@/constants/sidebar';
 
@@ -39,10 +42,26 @@ const NoteCard: React.FC<NoteCardProps> = React.memo(({ note, onUpdate, onDelete
   const [showShareModal, setShowShareModal] = useState(false);
   const { openMenu, closeMenu } = useContextMenu();
   const { openSidebar } = useDynamicSidebar();
+  const { isPinned, pinNote, unpinNote } = useNotes();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const copyFeedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isCopySuccess, setIsCopySuccess] = useState(false);
   const theme = useTheme();
+
+  const pinned = isPinned(note.$id);
+
+  const handlePinClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      if (pinned) {
+        await unpinNote(note.$id);
+      } else {
+        await pinNote(note.$id);
+      }
+    } catch (err: any) {
+      console.error('Pinning error:', err.message);
+    }
+  };
 
   // Render doodle preview on canvas
   useEffect(() => {
@@ -170,6 +189,21 @@ const NoteCard: React.FC<NoteCardProps> = React.memo(({ note, onUpdate, onDelete
               </Typography>
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <IconButton
+                  size="small"
+                  onClick={handlePinClick}
+                  sx={{ 
+                    p: 0.5,
+                    color: pinned ? '#00F5FF' : 'rgba(255, 255, 255, 0.2)',
+                    '&:hover': {
+                      color: '#00F5FF',
+                      bgcolor: 'rgba(0, 245, 255, 0.1)'
+                    }
+                  }}
+                >
+                  {pinned ? <PinIcon sx={{ fontSize: 16 }} /> : <PinOutlinedIcon sx={{ fontSize: 16 }} />}
+                </IconButton>
+
                 {note.attachments && note.attachments.length > 0 && (
                   <Box sx={{ 
                     display: 'flex', 

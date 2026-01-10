@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode } from 'react';
-import { listNotesPaginated } from '@/lib/appwrite';
+import { createContext, useContext, useState, useEffect, useRef, useCallback, ReactNode, useMemo } from 'react';
+import { listNotesPaginated, getPinnedNoteIds, pinNote as appwritePinNote, unpinNote as appwriteUnpinNote } from '@/lib/appwrite';
 import type { Notes } from '@/types/appwrite';
 import { useAuth } from '@/components/ui/AuthContext';
 
@@ -15,6 +15,10 @@ interface NotesContextType {
   refetchNotes: () => void;
   upsertNote: (note: Notes) => void;
   removeNote: (noteId: string) => void;
+  pinnedIds: string[];
+  pinNote: (noteId: string) => Promise<void>;
+  unpinNote: (noteId: string) => Promise<void>;
+  isPinned: (noteId: string) => boolean;
 }
 
 const NotesContext = createContext<NotesContextType | undefined>(undefined);
@@ -26,6 +30,7 @@ export function NotesProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [cursor, setCursor] = useState<string | null>(null); // last fetched document id
+  const [pinnedIds, setPinnedIds] = useState<string[]>([]);
 
   // Refs to avoid unnecessary re-creations / dependency loops
   const isFetchingRef = useRef(false);
@@ -35,6 +40,14 @@ export function NotesProvider({ children }: { children: ReactNode }) {
   useEffect(() => { cursorRef.current = cursor; }, [cursor]);
 
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  
+  // Plan-based pinning limits for UI
+  const effectivePinnedIds = useMemo(() => {
+    if (!user) return [];
+    const plan = user.prefs?.subscriptionTier || 'FREE';
+    const limit = (plan === 'PRO' || plan === 'ORG' || plan === 'LIFETIME') ? 10 : 3;
+    return pinnedIds.slice(0, limit);
+  }, [pinnedIds, user]);
 
   const PAGE_SIZE = Number(process.env.NEXT_PUBLIC_NOTES_PAGE_SIZE || 50);
 
@@ -48,6 +61,7 @@ export function NotesProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
         setHasMore(false);
         setError(null);
+        setPinnedIds([]);
       }
       return;
     }
@@ -59,6 +73,12 @@ export function NotesProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      // Fetch pinned IDs along with first batch
+      if (reset) {
+        const pIds = await getPinnedNoteIds();
+        setPinnedIds(pIds);
+      }
+
       const res = await listNotesPaginated({
         limit: PAGE_SIZE,
         cursor: reset ? null : (cursorRef.current || null),
@@ -118,6 +138,7 @@ export function NotesProvider({ children }: { children: ReactNode }) {
       setHasMore(false);
       setIsLoading(false);
       setError(null);
+      setPinnedIds([]);
     }
   }, [isAuthenticated, isAuthLoading, user?.$id, fetchBatch]);
 
@@ -137,12 +158,46 @@ export function NotesProvider({ children }: { children: ReactNode }) {
   const removeNote = useCallback((noteId: string) => {
     setNotes((prev) => prev.filter((note) => note.$id !== noteId));
     setTotalNotes((prev) => Math.max(0, prev - 1));
+    // Also remove from pinned if it was pinned
+    setPinnedIds((prev) => prev.filter(id => id !== noteId));
   }, []);
+
+  const pinNote = useCallback(async (noteId: string) => {
+    try {
+      const newPins = await appwritePinNote(noteId);
+      setPinnedIds(newPins);
+    } catch (err: any) {
+      throw err;
+    }
+  }, []);
+
+  const unpinNote = useCallback(async (noteId: string) => {
+    try {
+      const newPins = await appwriteUnpinNote(noteId);
+      setPinnedIds(newPins);
+    } catch (err: any) {
+      throw err;
+    }
+  }, []);
+
+  const isPinned = useCallback((noteId: string) => {
+    return effectivePinnedIds.includes(noteId);
+  }, [effectivePinnedIds]);
+
+  const sortedNotes = useMemo(() => {
+    return [...notes].sort((a, b) => {
+      const aPinned = effectivePinnedIds.includes(a.$id);
+      const bPinned = effectivePinnedIds.includes(b.$id);
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+      return 0;
+    });
+  }, [notes, effectivePinnedIds]);
 
   return (
     <NotesContext.Provider
       value={{
-        notes: Array.isArray(notes) ? notes : [],
+        notes: sortedNotes,
         totalNotes: totalNotes || 0,
         isLoading,
         error,
@@ -151,6 +206,10 @@ export function NotesProvider({ children }: { children: ReactNode }) {
         refetchNotes,
         upsertNote,
         removeNote,
+        pinnedIds: effectivePinnedIds,
+        pinNote,
+        unpinNote,
+        isPinned,
       }}
     >
       {children}

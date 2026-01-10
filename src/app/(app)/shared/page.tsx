@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { Notes } from '@/types/appwrite';
 import NoteCard from '@/components/ui/NoteCard';
 import { getSharedNotes, listPublicNotesByUser, getCurrentUser } from '@/lib/appwrite';
+import { useNotes } from '@/contexts/NotesContext';
 import {
   Box,
   Typography,
@@ -36,6 +37,7 @@ export default function SharedNotesPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
   const theme = useTheme();
+  const { isPinned } = useNotes();
 
   // Fetch shared and public notes once on mount
   useEffect(() => {
@@ -66,7 +68,27 @@ export default function SharedNotesPage() {
     fetchNotes();
   }, []);
 
-  const currentNotes = activeTab === 0 ? sharedNotes : publicNotes;
+  const sortedSharedNotes = useMemo(() => {
+    return [...sharedNotes].sort((a, b) => {
+      const aPinned = isPinned(a.$id);
+      const bPinned = isPinned(b.$id);
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+      return 0;
+    });
+  }, [sharedNotes, isPinned]);
+
+  const sortedPublicNotes = useMemo(() => {
+    return [...publicNotes].sort((a, b) => {
+      const aPinned = isPinned(a.$id);
+      const bPinned = isPinned(b.$id);
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+      return 0;
+    });
+  }, [publicNotes, isPinned]);
+
+  const currentNotes = activeTab === 0 ? sortedSharedNotes : sortedPublicNotes;
 
   return (
     <Box sx={{ 

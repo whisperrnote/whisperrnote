@@ -35,11 +35,14 @@ import {
   OpenInNew as ArrowTopRightOnSquareIcon,
   Edit as EditIcon,
   Save as SaveIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  PushPin as PinIcon,
+  PushPinOutlined as PinOutlinedIcon
 } from '@mui/icons-material';
 import { useToast } from '@/components/ui/Toast';
 import { useRouter } from 'next/navigation';
 import { useDynamicSidebar } from '@/components/ui/DynamicSidebar';
+import { useNotes } from '@/contexts/NotesContext';
 import { formatNoteCreatedDate, formatNoteUpdatedDate } from '@/lib/date-utils';
 import { updateNote } from '@/lib/appwrite';
 import { formatFileSize } from '@/lib/utils';
@@ -97,6 +100,23 @@ export function NoteDetailSidebar({
   const { showSuccess, showError } = useToast();
   const router = useRouter();
   const { closeSidebar } = useDynamicSidebar();
+  const { isPinned, pinNote, unpinNote } = useNotes();
+
+  const pinned = isPinned(note.$id);
+
+  const handlePinToggle = async () => {
+    try {
+      if (pinned) {
+        await unpinNote(note.$id);
+        showSuccess('Note unpinned');
+      } else {
+        await pinNote(note.$id);
+        showSuccess('Note pinned');
+      }
+    } catch (err: any) {
+      showError(err.message || 'Failed to update pin status');
+    }
+  };
 
   const handleOpenFullPage = () => {
     if (!note.$id) return;
@@ -386,6 +406,18 @@ export function NoteDetailSidebar({
             </IconButton>
           </Tooltip>
         )}
+        <Tooltip title={pinned ? "Unpin note" : "Pin note"}>
+          <IconButton
+            onClick={handlePinToggle}
+            sx={{
+              color: pinned ? '#00F5FF' : 'rgba(255, 255, 255, 0.5)',
+              '&:hover': { color: '#00F5FF', bgcolor: 'rgba(0, 245, 255, 0.1)' }
+            }}
+          >
+            {pinned ? <PinIcon fontSize="small" /> : <PinOutlinedIcon fontSize="small" />}
+          </IconButton>
+        </Tooltip>
+
         {showHeaderDeleteButton && (
           <Tooltip title="Delete note">
             <IconButton
