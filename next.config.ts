@@ -7,11 +7,10 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  transpilePackages: ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
   compress: true,
   experimental: {
     optimizePackageImports: [
-      '@mui/material',
-      '@mui/icons-material',
       'lodash-es',
       'date-fns',
       'framer-motion',

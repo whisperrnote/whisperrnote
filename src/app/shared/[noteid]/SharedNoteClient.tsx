@@ -14,25 +14,23 @@ import {
 import { useAuth } from '@/components/ui/AuthContext';
 import { NoteContentRenderer } from '@/components/NoteContentRenderer';
 import Image from 'next/image';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  Container, 
-  Paper, 
-  Avatar, 
-  IconButton, 
-  Menu, 
-  MenuItem, 
-  Divider, 
-  Chip, 
-  CircularProgress,
-  AppBar,
-  Toolbar,
-  Link as MuiLink,
-  alpha,
-  Stack
-} from '@mui/material';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Container from '@mui/material/Container';
+import Paper from '@mui/material/Paper';
+import Avatar from '@mui/material/Avatar';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import Divider from '@mui/material/Divider';
+import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import MuiLink from '@mui/material/Link';
+import Stack from '@mui/material/Stack';
+import { alpha } from '@mui/material/styles';
 import Link from 'next/link';
 
 interface SharedNoteClientProps {
