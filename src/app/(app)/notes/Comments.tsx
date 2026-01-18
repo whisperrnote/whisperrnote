@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Box, Typography, TextField, Button, List, ListItem, ListItemText, Divider, IconButton, Collapse, Avatar, Link } from '@mui/material';
-import { Reply as ReplyIcon, ExpandMore, ExpandLess, Edit as EditIcon, Delete as DeleteIcon, MoreVert as MoreIcon } from '@mui/icons-material';
+import { Reply as ReplyIcon, ExpandMore, ExpandLess, Edit as EditIcon, Delete as DeleteIcon, MoreVert as MoreIcon, Block as BlockIcon } from '@mui/icons-material';
 import { listComments, createComment, getUsersByIds, updateComment, deleteComment } from '@/lib/appwrite';
 import type { Comments, Users } from '@/types/appwrite';
 import { getEffectiveDisplayName, getEffectiveUsername } from '@/lib/utils';
@@ -88,9 +88,24 @@ function CommentItem({ comment, onReply, onUpdate, onDelete, depth = 0, userMap 
   };
 
   return (
-    <Box sx={{ ml: depth * 3, mt: 1, borderLeft: depth > 0 ? '1px solid #ddd' : 'none', pl: depth > 0 ? 2 : 0 }}>
+    <Box sx={{ 
+      ml: depth * 3, 
+      mt: 1, 
+      borderLeft: depth > 0 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none', 
+      pl: depth > 0 ? 2 : 0,
+    }}>
       <ListItem
         alignItems="flex-start"
+        sx={{
+          borderRadius: 2,
+          ...(isDeleted && {
+            bgcolor: 'rgba(255, 255, 255, 0.03)',
+            border: '1px dashed rgba(255, 255, 255, 0.1)',
+            transition: 'all 0.2s ease',
+            py: 0.5,
+            my: 1
+          })
+        }}
         secondaryAction={
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             {!isDeleted && (
@@ -161,9 +176,17 @@ function CommentItem({ comment, onReply, onUpdate, onDelete, depth = 0, userMap 
                 </Box>
               </Box>
             ) : isDeleted ? (
-              <Typography variant="body2" sx={{ color: 'text.disabled', fontStyle: 'italic', py: 0.5 }}>
-                This comment was deleted by the author but replies remain.
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+                <BlockIcon sx={{ fontSize: 16, color: 'text.disabled' }} />
+                <Typography variant="body2" sx={{ 
+                  color: 'text.disabled', 
+                  fontStyle: 'italic',
+                  fontSize: '0.85rem',
+                  letterSpacing: '0.01em'
+                }}>
+                  This comment was deleted by the author but replies remain.
+                </Typography>
+              </Box>
             ) : comment.content
           }
           secondary={
