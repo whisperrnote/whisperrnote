@@ -76,18 +76,29 @@ export default function NoteReactions({ targetId, targetType = TargetType.NOTE, 
   const handleReact = async (emoji: string) => {
     if (!user?.$id) return;
     try {
-      const existing = reactions.find(r => r.userId === user.$id && r.emoji === emoji);
-      if (existing) {
-        await deleteReaction(existing.$id);
-      } else {
-        await createReaction({
-          targetType: targetType,
-          targetId: targetId,
-          emoji,
-          userId: user.$id,
-          createdAt: new Date().toISOString(),
-        });
+      // Check if the user has ANY existing reaction on this target
+      const existingReaction = reactions.find(r => r.userId === user.$id);
+      
+      if (existingReaction) {
+        // Remove the existing reaction (either to toggle it off or replace it)
+        await deleteReaction(existingReaction.$id);
+        
+        // If they clicked the SAME emoji, we stop here (standard toggle-off)
+        if (existingReaction.emoji === emoji) {
+          await fetchReactions();
+          return;
+        }
       }
+
+      // If they clicked a new emoji (or had no reaction), add it
+      await createReaction({
+        targetType: targetType,
+        targetId: targetId,
+        emoji,
+        userId: user.$id,
+        createdAt: new Date().toISOString(),
+      });
+      
       await fetchReactions();
     } catch (err) {
       console.error('Failed to update reaction:', err);
