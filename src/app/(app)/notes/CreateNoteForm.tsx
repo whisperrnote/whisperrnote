@@ -41,6 +41,7 @@ export default function CreateNoteForm({ onNoteCreated, initialContent, initialF
   const [content, setContent] = useState(initialContent?.content || '');
   const [format, setFormat] = useState<'text' | 'doodle'>(initialFormat);
   const [tags, setTags] = useState<string[]>(initialContent?.tags || []);
+  const [isPublic, setIsPublic] = useState(false);
   const [currentTag, setCurrentTag] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showDoodleEditor, setShowDoodleEditor] = useState(false);
@@ -95,6 +96,7 @@ export default function CreateNoteForm({ onNoteCreated, initialContent, initialF
       content: content.trim(),
       format,
       tags,
+      isPublic,
     };
 
     try {
@@ -291,6 +293,49 @@ export default function CreateNoteForm({ onNoteCreated, initialContent, initialF
                 }
               }}
             />
+          </Box>
+
+          {/* Visibility Toggle */}
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: 'rgba(255, 255, 255, 0.03)', p: 2, borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+            <Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'white', fontFamily: 'var(--font-space-grotesk)' }}>
+                Visibility
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                {isPublic ? 'Anyone with the link can view this note' : 'Only you and collaborators can view this note'}
+              </Typography>
+            </Box>
+            <ToggleButtonGroup
+              value={isPublic}
+              exclusive
+              onChange={(_, val) => val !== null && setIsPublic(val)}
+              size="small"
+              sx={{
+                bgcolor: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '12px',
+                p: 0.5,
+                '& .MuiToggleButton-root': {
+                  border: 'none',
+                  borderRadius: '8px',
+                  px: 2,
+                  py: 0.5,
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  '&.Mui-selected': {
+                    bgcolor: isPublic ? '#00F5FF' : 'rgba(255, 255, 255, 0.2)',
+                    color: isPublic ? 'black' : 'white',
+                    '&:hover': {
+                      bgcolor: isPublic ? '#00E5EE' : 'rgba(255, 255, 255, 0.3)',
+                    }
+                  }
+                }
+              }}
+            >
+              <ToggleButton value={false}>Private</ToggleButton>
+              <ToggleButton value={true}>Public</ToggleButton>
+            </ToggleButtonGroup>
           </Box>
 
           {/* Content - Text or Doodle */}

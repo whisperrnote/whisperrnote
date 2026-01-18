@@ -101,6 +101,7 @@ export default function NoteEditor({
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
   const [format, setFormat] = useState<'text' | 'doodle'>(initialFormat);
+  const [isPublic, setIsPublic] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [internalNoteId, setInternalNoteId] = useState<string | undefined>(externalNoteId);
@@ -116,6 +117,7 @@ export default function NoteEditor({
             setTitle(n.title || '');
             setContent(n.content || '');
             setFormat((n.format as 'text' | 'doodle') || 'text');
+            setIsPublic(!!n.isPublic);
           }
         } catch {}
       })();
@@ -132,13 +134,15 @@ export default function NoteEditor({
         saved = await updateNote(effectiveNoteId, { 
           title: title.trim(), 
           content: content.trim(),
-          format
+          format,
+          isPublic
         });
       } else {
         saved = await createNote({ 
           title: title.trim(), 
           content: content.trim(), 
           format,
+          isPublic,
           tags: [] 
         });
         setInternalNoteId(saved?.$id || saved?.id);
@@ -222,7 +226,47 @@ export default function NoteEditor({
           </Box>
         )}
 
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, bgcolor: 'rgba(255, 255, 255, 0.03)', px: 2, py: 1, borderRadius: '14px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase' }}>
+              Visibility:
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 0.5 }}>
+              <Button
+                size="small"
+                onClick={() => setIsPublic(false)}
+                sx={{
+                  minWidth: '70px',
+                  borderRadius: '10px',
+                  fontSize: '0.7rem',
+                  fontWeight: 900,
+                  py: 0.5,
+                  bgcolor: !isPublic ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                  color: !isPublic ? 'white' : 'rgba(255, 255, 255, 0.3)',
+                  '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' }
+                }}
+              >
+                Private
+              </Button>
+              <Button
+                size="small"
+                onClick={() => setIsPublic(true)}
+                sx={{
+                  minWidth: '70px',
+                  borderRadius: '10px',
+                  fontSize: '0.7rem',
+                  fontWeight: 900,
+                  py: 0.5,
+                  bgcolor: isPublic ? alpha('#00F5FF', 0.2) : 'transparent',
+                  color: isPublic ? '#00F5FF' : 'rgba(255, 255, 255, 0.3)',
+                  '&:hover': { bgcolor: alpha('#00F5FF', 0.3) }
+                }}
+              >
+                Public
+              </Button>
+            </Box>
+          </Box>
+
           <Button
             variant="contained"
             onClick={handleSave}

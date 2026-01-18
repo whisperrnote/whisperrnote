@@ -408,6 +408,10 @@ export async function createNote(data: Partial<Notes>) {
     Permission.update(Role.user(user.$id)),
     Permission.delete(Role.user(user.$id))
   ];
+
+  if (data.isPublic) {
+    initialPermissions.push(Permission.read(Role.any()));
+  }
   
   const docId = ID.unique();
   const doc = await databases.createDocument(
@@ -538,8 +542,22 @@ export async function updateNote(noteId: string, data: Partial<Notes>) {
   const updatedAt = new Date().toISOString();
   const updatedData = filterNoteData({ ...cleanData, updatedAt: updatedAt });
   
-  await databases.getDocument(APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_NOTES, noteId);
-  const doc = await databases.updateDocument(APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_NOTES, noteId, updatedData) as any;
+  const currentNote = await databases.getDocument(APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_NOTES, noteId);
+  const user = await getCurrentUser();
+  
+  let permissions = undefined;
+  if (data.isPublic !== undefined && user?.$id) {
+    permissions = [
+      Permission.read(Role.user(user.$id)),
+      Permission.update(Role.user(user.$id)),
+      Permission.delete(Role.user(user.$id))
+    ];
+    if (data.isPublic) {
+      permissions.push(Permission.read(Role.any()));
+    }
+  }
+
+  const doc = await databases.updateDocument(APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_NOTES, noteId, updatedData, permissions) as any;
   
   // Handle tags if provided
   try {
@@ -934,6 +952,16 @@ export async function listApiKeys(queries: any[] = []) {
 export async function createComment(noteId: string, content: string, parentCommentId: string | null = null) {
   const user = await getCurrentUser();
   if (!user || !user.$id) throw new Error("User not authenticated");
+  
+  // Inherit public status from note to ensure consistent visibility
+  let isPublicNote = false;
+  try {
+    const note = await getNote(noteId);
+    isPublicNote = !!note.isPublic;
+  } catch (e) {
+    console.warn('[createComment] Could not fetch note to inherit permissions:', e);
+  }
+
   const data = {
     noteId,
     content,
@@ -941,11 +969,17 @@ export async function createComment(noteId: string, content: string, parentComme
     createdAt: new Date().toISOString(),
     parentCommentId,
   };
+
   const permissions = [
-    Permission.read(Role.any()),
+    Permission.read(Role.user(user.$id)),
     Permission.update(Role.user(user.$id)),
     Permission.delete(Role.user(user.$id)),
   ];
+
+  if (isPublicNote) {
+    permissions.push(Permission.read(Role.any()));
+  }
+
   return databases.createDocument(APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_COMMENTS, ID.unique(), data, permissions);
 }
 
@@ -1074,9 +1108,25 @@ export async function createReaction(data: Partial<Reactions>) {
     console.error('createReaction duplicate guard failed', guardErr);
   }
   const userId = (data as any)?.userId as string | undefined;
+  
+  // Inherit public status if reacting to a note
+  let isTargetPublic = false;
+  const targetId = (data as any)?.targetId;
+  const targetType = (data as any)?.targetType;
+
+  if (targetId && targetType === TargetType.NOTE) {
+    try {
+      const note = await getNote(targetId);
+      isTargetPublic = !!note.isPublic;
+    } catch {}
+  } else {
+    // For other targets (like comments), default to public read if no specific logic
+    isTargetPublic = true; 
+  }
+
   const permissions = userId
     ? [
-        Permission.read(Role.any()),
+        Permission.read(isTargetPublic ? Role.any() : Role.user(userId)),
         Permission.update(Role.user(userId)),
         Permission.delete(Role.user(userId)),
       ]
