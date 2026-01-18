@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { Box, Typography, TextField, Button, List, ListItem, ListItemText, Divider, IconButton, Collapse, Avatar, Link } from '@mui/material';
-import { Reply as ReplyIcon, ExpandMore, ExpandLess, Edit as EditIcon, Delete as DeleteIcon, MoreVert as MoreIcon, Block as BlockIcon } from '@mui/icons-material';
-import { listComments, createComment, getUsersByIds, updateComment, deleteComment } from '@/lib/appwrite';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { Box, Typography, TextField, Button, List, ListItem, ListItemText, Divider, IconButton, Collapse, Avatar, Link, Popover, Tooltip } from '@mui/material';
+import { Reply as ReplyIcon, ExpandMore, ExpandLess, Edit as EditIcon, Delete as DeleteIcon, MoreVert as MoreIcon, Block as BlockIcon, EmojiEmotionsOutlined } from '@mui/icons-material';
+import { listComments, createComment, getUsersByIds, updateComment, deleteComment, deleteReactionsForTarget } from '@/lib/appwrite';
 import type { Comments, Users } from '@/types/appwrite';
 import { getEffectiveDisplayName, getEffectiveUsername } from '@/lib/utils';
 import { useAuth } from '@/components/ui/AuthContext';
@@ -55,6 +55,9 @@ function CommentItem({ comment, onReply, onUpdate, onDelete, depth = 0, userMap 
   const [editContent, setEditContent] = useState(comment.content);
   const [showChildren, setShowChildren] = useState(true);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [reactionAnchorEl, setReactionAnchorEl] = useState<null | HTMLElement>(null);
+  const [isReactionsHover, setIsReactionsHover] = useState(false);
+  const closeReactionsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const commentUser = userMap[comment.userId];
   const isOwner = user?.$id === comment.userId;
@@ -85,6 +88,29 @@ function CommentItem({ comment, onReply, onUpdate, onDelete, depth = 0, userMap 
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const isReactionsOpen = Boolean(reactionAnchorEl);
+
+  const openReactions = (event: React.MouseEvent<HTMLElement>) => {
+    if (closeReactionsTimer.current) {
+      clearTimeout(closeReactionsTimer.current);
+      closeReactionsTimer.current = null;
+    }
+    setReactionAnchorEl(event.currentTarget);
+  };
+
+  const closeReactions = () => {
+    setReactionAnchorEl(null);
+  };
+
+  const scheduleCloseReactions = () => {
+    if (closeReactionsTimer.current) {
+      clearTimeout(closeReactionsTimer.current);
+    }
+    closeReactionsTimer.current = setTimeout(() => {
+      if (!isReactionsHover) closeReactions();
+    }, 140);
   };
 
   return (
@@ -207,7 +233,47 @@ function CommentItem({ comment, onReply, onUpdate, onDelete, depth = 0, userMap 
                 </Link> • {new Date(comment.$createdAt).toLocaleString()}
               </Typography>
               {!isDeleted && (
-                <NoteReactions targetId={comment.$id} targetType={TargetType.COMMENT} size="small" />
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                  <Tooltip title="Reactions">
+                    <IconButton
+                      size="small"
+                      onClick={(event) => {
+                        if (isReactionsOpen) {
+                          closeReactions();
+                        } else {
+                          openReactions(event);
+                        }
+                      }}
+                      onMouseEnter={openReactions}
+                      onMouseLeave={scheduleCloseReactions}
+                    >
+                      <EmojiEmotionsOutlined fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Popover
+                    open={isReactionsOpen}
+                    anchorEl={reactionAnchorEl}
+                    onClose={closeReactions}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                    transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                    PaperProps={{
+                      sx: {
+                        p: 1,
+                        bgcolor: 'rgba(10, 10, 10, 0.9)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.5)',
+                        backdropFilter: 'blur(12px)'
+                      },
+                      onMouseEnter: () => setIsReactionsHover(true),
+                      onMouseLeave: () => {
+                        setIsReactionsHover(false);
+                        closeReactions();
+                      }
+                    }}
+                  >
+                    <NoteReactions targetId={comment.$id} targetType={TargetType.COMMENT} size="small" />
+                  </Popover>
+                </Box>
               )}
             </Box>
           }
@@ -355,11 +421,13 @@ export default function CommentsSection({ noteId }: CommentsProps) {
         // Soft delete: preservation of tree structure for Reddit-like behavior
         // We redact the content to [Deleted] instead of hard-deleting the document
         await updateComment(commentId, { content: '[Deleted]' });
+        await deleteReactionsForTarget(TargetType.COMMENT, commentId);
         setComments(prev => 
           prev.map(c => c.$id === commentId ? { ...c, content: '[Deleted]' } as Comments : c)
         );
       } else {
         // Hard delete: No children, safe to remove completely
+        await deleteReactionsForTarget(TargetType.COMMENT, commentId);
         await deleteComment(commentId);
         setComments(prev => prev.filter(c => c.$id !== commentId));
       }

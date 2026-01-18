@@ -691,6 +691,26 @@ export async function updateNote(noteId: string, data: Partial<Notes>) {
 }
 
 export async function deleteNote(noteId: string) {
+  try {
+    // Remove reactions directly attached to the note
+    await deleteReactionsForTarget(TargetType.NOTE, noteId);
+
+    // Remove comments and their reactions
+    const commentsRes = await databases.listDocuments(
+      APPWRITE_DATABASE_ID,
+      APPWRITE_TABLE_ID_COMMENTS,
+      [Query.equal('noteId', noteId), Query.limit(1000)] as any
+    );
+    const commentIds = (commentsRes.documents as any[]).map((c) => c.$id).filter(Boolean);
+    if (commentIds.length) {
+      await deleteReactionsForTarget(TargetType.COMMENT, commentIds);
+      await Promise.all(
+        commentIds.map((id) => databases.deleteDocument(APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_COMMENTS, id))
+      );
+    }
+  } catch (err) {
+    console.error('deleteNote cascade cleanup failed:', err);
+  }
   return databases.deleteDocument(APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_NOTES, noteId);
 }
 
@@ -992,6 +1012,7 @@ export async function updateComment(commentId: string, data: Partial<Comments>) 
 }
 
 export async function deleteComment(commentId: string) {
+  await deleteReactionsForTarget(TargetType.COMMENT, commentId);
   return databases.deleteDocument(APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_COMMENTS, commentId);
 }
 
@@ -1119,8 +1140,19 @@ export async function createReaction(data: Partial<Reactions>) {
       const note = await getNote(targetId);
       isTargetPublic = !!note.isPublic;
     } catch {}
+  } else if (targetId && targetType === TargetType.COMMENT) {
+    // For comments, inherit visibility from the parent note
+    try {
+      const comment = await getComment(targetId as string);
+      if (comment?.noteId) {
+        const note = await getNote(comment.noteId);
+        isTargetPublic = !!note.isPublic;
+      }
+    } catch {
+      isTargetPublic = true;
+    }
   } else {
-    // For other targets (like comments), default to public read if no specific logic
+    // For other targets, default to public read if no specific logic
     isTargetPublic = true; 
   }
 
@@ -1154,6 +1186,29 @@ export async function deleteReaction(reactionId: string) {
 
 export async function listReactions(queries: any[] = []) {
   return databases.listDocuments(APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_REACTIONS, queries);
+}
+
+export async function deleteReactionsForTarget(targetType: TargetType, targetId: string | string[]) {
+  const ids = Array.isArray(targetId) ? targetId.filter(Boolean) : [targetId];
+  if (!ids.length) return;
+  try {
+    const res = await databases.listDocuments(
+      APPWRITE_DATABASE_ID,
+      APPWRITE_TABLE_ID_REACTIONS,
+      [
+        Query.equal('targetType', targetType),
+        Query.equal('targetId', ids),
+        Query.limit(Math.min(1000, Math.max(50, ids.length * 10)))
+      ] as any
+    );
+    await Promise.all(
+      (res.documents as any[]).map((doc) =>
+        databases.deleteDocument(APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_REACTIONS, doc.$id)
+      )
+    );
+  } catch (err) {
+    console.error('deleteReactionsForTarget failed:', err);
+  }
 }
 
 // --- COLLABORATORS CRUD ---
@@ -2529,6 +2584,111 @@ export function getShareableUrl(noteId: string): string {
   return `${baseUrl}/shared/${noteId}`;
 }
 
+async function syncNoteVisibilityChildren(noteId: string, ownerId: string, isPublic: boolean) {
+  try {
+    const commentsRes = await databases.listDocuments(
+      APPWRITE_DATABASE_ID,
+      APPWRITE_TABLE_ID_COMMENTS,
+      [Query.equal('noteId', noteId), Query.limit(1000)] as any
+    );
+    const commentDocs = commentsRes.documents as any[];
+    const commentIds = commentDocs.map((c) => c.$id).filter(Boolean);
+
+    await Promise.all(
+      commentDocs.map(async (comment) => {
+        const commentUserId = comment.userId || ownerId;
+        const permissions = [
+          Permission.read(Role.user(ownerId)),
+          ...(isPublic ? [Permission.read(Role.any())] : []),
+          Permission.update(Role.user(commentUserId)),
+          Permission.delete(Role.user(commentUserId))
+        ];
+        try {
+          await databases.updateDocument(
+            APPWRITE_DATABASE_ID,
+            APPWRITE_TABLE_ID_COMMENTS,
+            comment.$id,
+            { content: comment.content },
+            permissions
+          );
+        } catch (err) {
+          console.error('syncNoteVisibilityChildren comment update failed:', err);
+        }
+      })
+    );
+
+    const noteReactionsRes = await databases.listDocuments(
+      APPWRITE_DATABASE_ID,
+      APPWRITE_TABLE_ID_REACTIONS,
+      [
+        Query.equal('targetType', TargetType.NOTE),
+        Query.equal('targetId', noteId),
+        Query.limit(1000)
+      ] as any
+    );
+
+    await Promise.all(
+      (noteReactionsRes.documents as any[]).map(async (reaction) => {
+        const reactionUserId = reaction.userId || ownerId;
+        const permissions = [
+          Permission.read(Role.user(ownerId)),
+          ...(isPublic ? [Permission.read(Role.any())] : []),
+          Permission.update(Role.user(reactionUserId)),
+          Permission.delete(Role.user(reactionUserId))
+        ];
+        try {
+          await databases.updateDocument(
+            APPWRITE_DATABASE_ID,
+            APPWRITE_TABLE_ID_REACTIONS,
+            reaction.$id,
+            { emoji: reaction.emoji },
+            permissions
+          );
+        } catch (err) {
+          console.error('syncNoteVisibilityChildren note reaction update failed:', err);
+        }
+      })
+    );
+
+    if (commentIds.length) {
+      const commentReactionsRes = await databases.listDocuments(
+        APPWRITE_DATABASE_ID,
+        APPWRITE_TABLE_ID_REACTIONS,
+        [
+          Query.equal('targetType', TargetType.COMMENT),
+          Query.equal('targetId', commentIds),
+          Query.limit(Math.min(1000, Math.max(50, commentIds.length * 10)))
+        ] as any
+      );
+
+      await Promise.all(
+        (commentReactionsRes.documents as any[]).map(async (reaction) => {
+          const reactionUserId = reaction.userId || ownerId;
+          const permissions = [
+            Permission.read(Role.user(ownerId)),
+            ...(isPublic ? [Permission.read(Role.any())] : []),
+            Permission.update(Role.user(reactionUserId)),
+            Permission.delete(Role.user(reactionUserId))
+          ];
+          try {
+            await databases.updateDocument(
+              APPWRITE_DATABASE_ID,
+              APPWRITE_TABLE_ID_REACTIONS,
+              reaction.$id,
+              { emoji: reaction.emoji },
+              permissions
+            );
+          } catch (err) {
+            console.error('syncNoteVisibilityChildren comment reaction update failed:', err);
+          }
+        })
+      );
+    }
+  } catch (err) {
+    console.error('syncNoteVisibilityChildren failed:', err);
+  }
+}
+
 export async function toggleNoteVisibility(noteId: string): Promise<Notes | null> {
   try {
     const note = await getNote(noteId);
@@ -2564,6 +2724,7 @@ export async function toggleNoteVisibility(noteId: string): Promise<Notes | null
       }),
       permissions
     );
+    await syncNoteVisibilityChildren(noteId, ownerId, newIsPublic);
     return updated as unknown as Notes;
   } catch (error) {
     console.error('toggleNoteVisibility error:', error);
