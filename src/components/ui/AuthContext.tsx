@@ -50,10 +50,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const refreshUser = useCallback(async (isRetry = false) => {
+  const refreshUser = useCallback(async (isRetry = false, retryCount = 0) => {
     try {
       const currentUser = await getCurrentUser();
       if (currentUser) {
+        // Clear the auth=success param from URL if it exists
+        if (typeof window !== 'undefined' && window.location.search.includes('auth=success')) {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('auth');
+          window.history.replaceState({}, '', url.toString());
+        }
+
         let dbUser;
         try {
           dbUser = await getUser(currentUser.$id);
@@ -112,6 +119,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
       return currentUser;
     } catch (error: any) {
+      // Check for auth=success signal in URL
+      const hasAuthSignal = typeof window !== 'undefined' && window.location.search.includes('auth=success');
+      
+      if (hasAuthSignal && retryCount < 3) {
+        console.log(`Auth signal detected but session not found in note. Retrying... (${retryCount + 1})`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return refreshUser(true, retryCount + 1);
+      }
+
       // If error is network related, don't clear user yet, just set offline flag if we had a user
       const isNetworkError = !error.response && error.message?.includes('Network Error') || error.message?.includes('Failed to fetch');
 
