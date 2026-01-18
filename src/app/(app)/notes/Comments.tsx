@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { Box, Typography, TextField, Button, List, ListItem, ListItemText, Divider, IconButton, Collapse } from '@mui/material';
+import { Box, Typography, TextField, Button, List, ListItem, ListItemText, Divider, IconButton, Collapse, Avatar, Link } from '@mui/material';
 import { Reply as ReplyIcon, ExpandMore, ExpandLess } from '@mui/icons-material';
-import { listComments, createComment } from '@/lib/appwrite';
-import type { Comments } from '@/types/appwrite';
+import { listComments, createComment, getUsersByIds } from '@/lib/appwrite';
+import type { Comments, Users } from '@/types/appwrite';
 
 interface CommentsProps {
   noteId: string;
@@ -37,12 +37,18 @@ interface CommentItemProps {
   comment: CommentWithChildren;
   onReply: (parentId: string, content: string) => Promise<void>;
   depth?: number;
+  userMap: Record<string, Users>;
 }
 
-function CommentItem({ comment, onReply, depth = 0 }: CommentItemProps) {
+function CommentItem({ comment, onReply, depth = 0, userMap }: CommentItemProps) {
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const [showChildren, setShowChildren] = useState(true);
+
+  const commentUser = userMap[comment.userId];
+  const displayName = commentUser?.displayName || commentUser?.username || 'Unknown';
+  const username = commentUser?.username;
+  const profileLink = username ? `https://connect.whisperrnote.space/u/${username}` : '#';
 
   const handleReplySubmit = async () => {
     if (!replyContent.trim()) return;
@@ -69,25 +75,50 @@ function CommentItem({ comment, onReply, depth = 0 }: CommentItemProps) {
           </Box>
         }
       >
+        <Avatar 
+          src={commentUser?.avatarUrl || undefined}
+          sx={{ width: 32, height: 32, mr: 2, mt: 0.5, bgcolor: 'primary.main', fontSize: 14 }}
+        >
+          {displayName.charAt(0).toUpperCase()}
+        </Avatar>
         <ListItemText
           primary={comment.content}
-          secondary={`by ${comment.userId} on ${new Date(comment.$createdAt).toLocaleString()}`}
+          secondary={
+            <Box component="span" sx={{ display: 'block', mt: 0.5 }}>
+              <Typography variant="caption" color="text.secondary">
+                by <Link 
+                  href={profileLink} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  sx={{ 
+                    fontWeight: 600, 
+                    color: 'primary.main', 
+                    textDecoration: 'none',
+                    '&:hover': { textDecoration: 'underline' }
+                  }}
+                >
+                  {username ? `@${username}` : displayName}
+                </Link> • {new Date(comment.$createdAt).toLocaleString()}
+              </Typography>
+            </Box>
+          }
         />
       </ListItem>
 
       {isReplying && (
-        <Box sx={{ ml: 2, mr: 2, mb: 2 }}>
+        <Box sx={{ ml: 7, mr: 2, mb: 2 }}>
           <TextField
             fullWidth
             multiline
             size="small"
             rows={2}
-            placeholder="Write a reply..."
+            placeholder={`Reply to ${displayName}...`}
             value={replyContent}
             onChange={(e) => setReplyContent(e.target.value)}
+            autoFocus
           />
           <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
-            <Button size="small" variant="contained" onClick={handleReplySubmit}>Reply</Button>
+            <Button size="small" variant="contained" onClick={handleReplySubmit} disabled={!replyContent.trim()}>Reply</Button>
             <Button size="small" onClick={() => setIsReplying(false)}>Cancel</Button>
           </Box>
         </Box>
@@ -96,7 +127,7 @@ function CommentItem({ comment, onReply, depth = 0 }: CommentItemProps) {
       <Collapse in={showChildren}>
         <Box>
           {comment.children.map((child) => (
-            <CommentItem key={child.$id} comment={child} onReply={onReply} depth={depth + 1} />
+            <CommentItem key={child.$id} comment={child} onReply={onReply} depth={depth + 1} userMap={userMap} />
           ))}
         </Box>
       </Collapse>
@@ -107,15 +138,29 @@ function CommentItem({ comment, onReply, depth = 0 }: CommentItemProps) {
 export default function CommentsSection({ noteId }: CommentsProps) {
   const [comments, setComments] = useState<Comments[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [userMap, setUserMap] = useState<Record<string, Users>>({});
 
   const fetchComments = async () => {
     try {
       const res = await listComments(noteId);
-      // Sort by date ascending to build tree properly if needed, although buildTree handles it
-      const sorted = (res.documents as unknown as Comments[]).sort(
+      const docs = res.documents as unknown as Comments[];
+      
+      // Sort by date ascending
+      const sorted = docs.sort(
         (a, b) => new Date(a.$createdAt).getTime() - new Date(b.$createdAt).getTime()
       );
       setComments(sorted);
+
+      // Fetch user profiles for all unique userIds
+      const uniqueUserIds = Array.from(new Set(docs.map(c => c.userId)));
+      if (uniqueUserIds.length > 0) {
+        const users = await getUsersByIds(uniqueUserIds);
+        const map: Record<string, Users> = {};
+        users.forEach(u => {
+          if (u.$id) map[u.$id] = u;
+        });
+        setUserMap(map);
+      }
     } catch (error) {
       console.error('Failed to fetch comments:', error);
     }
@@ -131,7 +176,15 @@ export default function CommentsSection({ noteId }: CommentsProps) {
     
     try {
       const comment = await createComment(noteId, text, parentId);
-      setComments(prev => [...prev, comment as unknown as Comments]);
+      const newCommentDoc = comment as unknown as Comments;
+      setComments(prev => [...prev, newCommentDoc]);
+      
+      // If the user who commented isn't in userMap, we might want to refresh or add them
+      // For now, we refresh to be safe or just wait for the user to be there
+      if (!userMap[newCommentDoc.userId]) {
+        fetchComments();
+      }
+      
       if (!parentId) setNewComment('');
     } catch (error) {
       console.error('Failed to add comment:', error);
@@ -149,6 +202,7 @@ export default function CommentsSection({ noteId }: CommentsProps) {
           multiline
           rows={3}
           label="Add a top-level comment"
+          placeholder="Share your thoughts..."
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
         />
@@ -168,6 +222,7 @@ export default function CommentsSection({ noteId }: CommentsProps) {
             <CommentItem 
               comment={comment} 
               onReply={(parentId, content) => handleAddComment(parentId, content)} 
+              userMap={userMap}
             />
             <Divider variant="fullWidth" sx={{ my: 1 }} />
           </div>
