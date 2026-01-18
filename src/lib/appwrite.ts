@@ -13,6 +13,7 @@ import type {
   ActivityLog,
   Settings,
 } from '../types/appwrite';
+import { TargetType } from '../types/appwrite';
 
 export const APPWRITE_ENDPOINT = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ?? 'https://fra.cloud.appwrite.io/v1';
 export const APPWRITE_PROJECT_ID = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID ?? '67fe9627001d97e37ef3';
@@ -542,7 +543,6 @@ export async function updateNote(noteId: string, data: Partial<Notes>) {
   const updatedAt = new Date().toISOString();
   const updatedData = filterNoteData({ ...cleanData, updatedAt: updatedAt });
   
-  const currentNote = await databases.getDocument(APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_NOTES, noteId);
   const user = await getCurrentUser();
   
   let permissions = undefined;

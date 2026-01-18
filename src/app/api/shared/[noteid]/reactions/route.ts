@@ -12,7 +12,6 @@ const APPWRITE_ENDPOINT = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ?? 'https://
 const APPWRITE_PROJECT_ID = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID ?? '67fe9627001d97e37ef3';
 const APPWRITE_DATABASE_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!;
 const APPWRITE_TABLE_ID_REACTIONS = process.env.NEXT_PUBLIC_APPWRITE_TABLE_ID_REACTIONS!;
-const APPWRITE_API_KEY = process.env.APPWRITE_API_KEY;
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ noteid: string }> }) {
   const { noteid } = await params;
@@ -31,15 +30,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ note
     );
   }
 
-  if (!APPWRITE_API_KEY) {
-    return NextResponse.json({ error: 'Server not configured' }, { status: 500 });
-  }
-
   try {
     const client = new Client()
       .setEndpoint(APPWRITE_ENDPOINT)
-      .setProject(APPWRITE_PROJECT_ID)
-      .setKey(APPWRITE_API_KEY);
+      .setProject(APPWRITE_PROJECT_ID);
 
     const databases = new Databases(client);
     const res = await databases.listDocuments(
