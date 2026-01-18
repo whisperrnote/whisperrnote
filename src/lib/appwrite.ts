@@ -207,6 +207,25 @@ export async function listUsers(queries: any[] = []) {
   return { ...res, documents: res.documents };
 }
 
+export async function getUserByUsername(username: string): Promise<Users | null> {
+  const res = await databases.listDocuments(
+    APPWRITE_DATABASE_ID,
+    APPWRITE_TABLE_ID_USERS,
+    [Query.equal('username', username), Query.limit(1)]
+  );
+  return (res.documents[0] as unknown as Users) || null;
+}
+
+export async function getUsersByIds(userIds: string[]): Promise<Users[]> {
+  if (userIds.length === 0) return [];
+  const res = await databases.listDocuments(
+    APPWRITE_DATABASE_ID,
+    APPWRITE_TABLE_ID_USERS,
+    [Query.equal('$id', userIds)]
+  );
+  return res.documents as unknown as Users[];
+}
+
 // Search users by partial name or email with privacy constraints
 export async function searchUsers(query: string, limit: number = 5) {
   try {
