@@ -183,7 +183,7 @@ export default function NoteEditorPage() {
         </Box>
 
         <Box sx={{ mt: 6, pt: 4, borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-          <NoteReactions noteId={id as string} />
+          <NoteReactions targetId={id as string} />
           <Box sx={{ mt: 3 }}>
             <CommentsSection noteId={id as string} />
           </Box>

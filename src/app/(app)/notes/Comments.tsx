@@ -8,6 +8,8 @@ import type { Comments, Users } from '@/types/appwrite';
 import { getEffectiveDisplayName, getEffectiveUsername } from '@/lib/utils';
 import { useAuth } from '@/components/ui/AuthContext';
 import { Menu, MenuItem, ListItemIcon } from '@mui/material';
+import NoteReactions from './NoteReactions';
+import { TargetType } from '@/types/appwrite';
 
 interface CommentsProps {
   noteId: string;
@@ -166,6 +168,7 @@ function CommentItem({ comment, onReply, onUpdate, onDelete, depth = 0, userMap 
                   {username ? `@${username}` : displayName}
                 </Link> • {new Date(comment.$createdAt).toLocaleString()}
               </Typography>
+              <NoteReactions targetId={comment.$id} targetType={TargetType.COMMENT} size="small" />
             </Box>
           }
         />
