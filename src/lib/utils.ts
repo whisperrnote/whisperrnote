@@ -97,7 +97,8 @@ export function getEffectiveDisplayName(user: any): string {
 
 export function getEffectiveUsername(user: any): string | null {
   if (!user) return null;
-  const raw = user.username || user.displayName || user.name;
+  // Prioritize global ecosystem username from preferences
+  const raw = user.prefs?.username || user.username || user.displayName || user.name;
   if (!raw) return null;
   // Fast "canonization" into a username-safe string if it's just a name
   return raw.toString().toLowerCase().trim().replace(/[^a-z0-9_-]/g, '');

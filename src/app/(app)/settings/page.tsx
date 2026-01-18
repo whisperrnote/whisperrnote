@@ -581,6 +581,17 @@ const EditProfileForm = ({ user, onClose, onProfileUpdate }: any) => {
           if (userUpdates.name) {
             updatedUser = await account.updateName(userUpdates.name);
           }
+          
+          // Sync username to global account preferences for ecosystem-wide coherence
+          if (userUpdates.username) {
+            const currentPrefs = await account.getPrefs();
+            updatedUser = await account.updatePrefs({
+              ...currentPrefs,
+              username: userUpdates.username,
+              last_username_edit: new Date().toISOString()
+            });
+          }
+
           const uid = updatedUser?.$id || user?.$id;
           if (uid) {
             await updateUser(uid, userUpdates);

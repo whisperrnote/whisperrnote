@@ -64,6 +64,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (autoUsername) {
               try {
                 await updateUser(currentUser.$id, { username: autoUsername });
+                
+                // Sync to account prefs for ecosystem coherence
+                const currentPrefs = await account.getPrefs();
+                if (currentPrefs.username !== autoUsername) {
+                  await account.updatePrefs({ ...currentPrefs, username: autoUsername });
+                }
+
                 // Re-fetch to get updated document
                 dbUser = await getUser(currentUser.$id);
               } catch (updateError) {
@@ -86,6 +93,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               name: currentUser.name,
               username: autoUsername
             });
+
+            // Sync to account prefs for ecosystem coherence
+            const currentPrefs = await account.getPrefs();
+            if (autoUsername && currentPrefs.username !== autoUsername) {
+              await account.updatePrefs({ ...currentPrefs, username: autoUsername });
+            }
           } catch (createError) {
             console.error('Failed to create user profile:', createError);
           }
