@@ -84,3 +84,21 @@ export function formatFileSize(bytes: number | null | undefined): string {
   const gb = mb / 1024;
   return gb.toFixed(gb < 10 ? 2 : 1) + 'GB';
 }
+
+/**
+ * Identity helpers for "on-the-fly" username canonization.
+ * Prioritizes username, then displayName, then the basic Appwrite account name.
+ * Reduces "Unknown" occurrences as the app scales.
+ */
+export function getEffectiveDisplayName(user: any): string {
+  if (!user) return 'Unknown';
+  return user.displayName || user.username || user.name || (user.email ? user.email.split('@')[0] : 'Unknown');
+}
+
+export function getEffectiveUsername(user: any): string | null {
+  if (!user) return null;
+  const raw = user.username || user.displayName || user.name;
+  if (!raw) return null;
+  // Fast "canonization" into a username-safe string if it's just a name
+  return raw.toString().toLowerCase().trim().replace(/[^a-z0-9_-]/g, '');
+}

@@ -5,6 +5,7 @@ import { Box, Typography, TextField, Button, List, ListItem, ListItemText, Divid
 import { Reply as ReplyIcon, ExpandMore, ExpandLess } from '@mui/icons-material';
 import { listComments, createComment, getUsersByIds } from '@/lib/appwrite';
 import type { Comments, Users } from '@/types/appwrite';
+import { getEffectiveDisplayName, getEffectiveUsername } from '@/lib/utils';
 
 interface CommentsProps {
   noteId: string;
@@ -46,8 +47,10 @@ function CommentItem({ comment, onReply, depth = 0, userMap }: CommentItemProps)
   const [showChildren, setShowChildren] = useState(true);
 
   const commentUser = userMap[comment.userId];
-  const displayName = commentUser?.displayName || commentUser?.username || 'Unknown';
-  const username = commentUser?.username;
+  
+  // Efficient identity fallback using canonized helpers
+  const displayName = getEffectiveDisplayName(commentUser);
+  const username = getEffectiveUsername(commentUser);
   const profileLink = username ? `https://connect.whisperrnote.space/u/${username}` : '#';
 
   const handleReplySubmit = async () => {
