@@ -349,7 +349,7 @@ export default function SharedNoteClient({ noteId }: SharedNoteClientProps) {
           <NoteContent />
           
           <Box sx={{ mt: 4 }}>
-            <NoteReactions noteId={noteId} />
+            <NoteReactions targetId={noteId} />
           </Box>
 
           <Box sx={{ mt: 4 }}>
@@ -459,7 +459,7 @@ export default function SharedNoteClient({ noteId }: SharedNoteClientProps) {
         <NoteContent />
 
         <Box sx={{ mt: 4 }}>
-          <NoteReactions noteId={noteId} />
+          <NoteReactions targetId={noteId} />
         </Box>
 
         <Box sx={{ mt: 4 }}>
