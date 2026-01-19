@@ -8,14 +8,14 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import {
-  Add as AddIcon,
-  Note as NoteIcon,
-  Camera as CameraIcon,
-  Mic as VoiceIcon,
+  Plus,
+  FileText,
+  Camera,
+  Mic,
   Link as LinkIcon,
-  Close as CloseIcon,
-  Edit as PencilIcon,
-} from '@mui/icons-material';
+  X,
+  PlusCircle,
+} from 'lucide-react';
 import { useState } from 'react';
 
 interface QuickCreateFabProps {
@@ -27,11 +27,11 @@ interface QuickCreateFabProps {
 }
 
 const actions = [
-  { icon: <NoteIcon />, name: 'Text Note', action: 'text' },
-  { icon: <PencilIcon />, name: 'Doodle', action: 'doodle' },
-  { icon: <VoiceIcon />, name: 'Voice Note', action: 'voice' },
-  { icon: <CameraIcon />, name: 'Photo Note', action: 'photo' },
-  { icon: <LinkIcon />, name: 'Link Note', action: 'link' },
+  { icon: <FileText size={20} strokeWidth={1.5} />, name: 'Text Note', action: 'text' },
+  { icon: <PlusCircle size={20} strokeWidth={1.5} />, name: 'Doodle', action: 'doodle' },
+  { icon: <Mic size={20} strokeWidth={1.5} />, name: 'Voice Note', action: 'voice' },
+  { icon: <Camera size={20} strokeWidth={1.5} />, name: 'Photo Note', action: 'photo' },
+  { icon: <LinkIcon size={20} strokeWidth={1.5} />, name: 'Link Note', action: 'link' },
 ];
 
 export default function QuickCreateFab({
@@ -117,7 +117,7 @@ export default function QuickCreateFab({
           borderRadius: '8px',
         }
       }}
-      icon={<SpeedDialIcon icon={<AddIcon />} openIcon={<CloseIcon />} />}
+      icon={<SpeedDialIcon icon={<Plus size={24} strokeWidth={1.5} />} openIcon={<X size={24} strokeWidth={1.5} />} />}
       onClose={() => setOpen(false)}
       onOpen={() => setOpen(true)}
       open={open}
