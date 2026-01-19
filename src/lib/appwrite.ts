@@ -43,6 +43,10 @@ export const APPWRITE_TABLE_ID_ACTIVITYLOG = process.env.NEXT_PUBLIC_APPWRITE_TA
 export const APPWRITE_TABLE_ID_SETTINGS = process.env.NEXT_PUBLIC_APPWRITE_TABLE_ID_SETTINGS!;
 export const APPWRITE_TABLE_ID_SUBSCRIPTIONS = process.env.NEXT_PUBLIC_APPWRITE_TABLE_ID_SUBSCRIPTIONS!;
 
+// Ecosystem: WhisperrFlow
+export const FLOW_DATABASE_ID = 'whisperrflow';
+export const FLOW_COLLECTION_ID_TASKS = 'tasks';
+
 export const APPWRITE_BUCKET_PROFILE_PICTURES = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_PROFILE_PICTURES!;
 export const APPWRITE_BUCKET_NOTES_ATTACHMENTS = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_NOTES_ATTACHMENTS!;
 export const APPWRITE_BUCKET_EXTENSION_ASSETS = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_EXTENSION_ASSETS!;
@@ -1394,6 +1398,57 @@ export async function deleteFile(bucketId: string, fileId: string) {
 
 export async function listFiles(bucketId: string, queries: any[] = []) {
   return storage.listFiles(bucketId, queries);
+}
+
+// --- CROSS-ECOSYSTEM ACTIONS ---
+
+/**
+ * Creates a task in WhisperrFlow based on a note.
+ * Stores the task ID in the note's metadata for linking.
+ */
+export async function createTaskFromNote(note: Notes) {
+  const user = await getCurrentUser();
+  if (!user || !user.$id) throw new Error("User not authenticated");
+
+  // Plan check
+  const plan = user.prefs?.subscriptionTier || 'FREE';
+  if (plan !== 'PRO' && plan !== 'ORG' && plan !== 'LIFETIME') {
+    throw new Error("AI Actions are available for PRO subscribers only.");
+  }
+
+  const taskId = ID.unique();
+  const now = new Date().toISOString();
+
+  // Create document in WhisperrFlow tasks collection
+  // Collection schema: title, description, status, priority, userId, parentId, etc.
+  const taskDoc = await databases.createDocument(
+    FLOW_DATABASE_ID,
+    FLOW_COLLECTION_ID_TASKS,
+    taskId,
+    {
+      title: note.title || 'Task from Note',
+      description: note.content || '',
+      status: 'todo',
+      priority: 'medium',
+      userId: user.$id,
+      createdAt: now,
+      updatedAt: now,
+      // Metadata to help us know it's from a note
+      metadata: JSON.stringify({
+        origin: 'whisperrnote',
+        noteId: note.$id,
+        context: 'AI Synthesized'
+      })
+    }
+  );
+
+  // Link the task back to the note
+  await updateNote(note.$id, {
+    linkedTaskId: taskId,
+    linkedSource: 'whisperrflow'
+  });
+
+  return taskDoc;
 }
 
 // --- UTILITY ---
