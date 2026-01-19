@@ -8,7 +8,7 @@
      · optimizePackageImports
 
    Creating an optimized production build ...
- ✓ Compiled successfully in 5.0s
+ ✓ Compiled successfully in 10.0s
    Skipping linting
    Checking validity of types ...
    Collecting page data ...
@@ -35,15 +35,15 @@ Route (app)                                 Size  First Load JS
 ├ ƒ /api/turnstile/verify                  151 B         101 kB
 ├ ○ /extensions                          7.34 kB         205 kB
 ├ ○ /landing                             8.57 kB         174 kB
-├ ○ /notes                               37.1 kB         281 kB
-├ ƒ /notes/[id]                           8.2 kB         243 kB
+├ ○ /notes                               37.6 kB         320 kB
+├ ƒ /notes/[id]                          7.49 kB         278 kB
 ├ ƒ /notes/[id]/[attachmentId]           5.45 kB         157 kB
 ├ ○ /pitch                               7.82 kB         145 kB
 ├ ○ /popout                               1.9 kB         134 kB
 ├ ○ /settings                            10.8 kB         211 kB
-├ ○ /shared                              4.64 kB         258 kB
-├ ƒ /shared/[noteid]                     61.2 kB         280 kB
-└ ○ /tags                                7.05 kB         248 kB
+├ ○ /shared                              4.64 kB         297 kB
+├ ƒ /shared/[noteid]                       60 kB         280 kB
+└ ○ /tags                                7.05 kB         287 kB
 + First Load JS shared by all             101 kB
   ├ chunks/4bd1b696-cc729d47eba2cee4.js  54.1 kB
   ├ chunks/5964-366ccf0ec1d891e8.js      43.9 kB

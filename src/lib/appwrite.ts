@@ -1427,7 +1427,6 @@ export async function createTaskFromNote(note: Notes) {
     taskId,
     {
       title: note.title || 'Task from Note',
-      description: note.content || '',
       status: 'todo',
       priority: 'medium',
       userId: user.$id,
