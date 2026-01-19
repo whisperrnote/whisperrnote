@@ -6,7 +6,7 @@ import { useOverlay } from "@/components/ui/OverlayContext";
 
 // Lazy load heavy components
 const KeyboardShortcuts = lazy(() => import("@/components/KeyboardShortcuts"));
-const EcosystemPortal = lazy(() => import("@/components/common/EcosystemPortal"));
+const EcosystemPortal = lazy(() => import("@/components/common/EcosystemPortal").then(m => ({ default: m.EcosystemPortal })));
 
 
 
