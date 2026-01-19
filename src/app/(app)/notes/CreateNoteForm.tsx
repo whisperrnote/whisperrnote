@@ -23,6 +23,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { AUTO_TITLE_CONFIG } from '@/constants/noteTitle';
 import { useOverlay } from '@/components/ui/OverlayContext';
+import { useToast } from '@/components/ui/Toast';
 import { createNote as appwriteCreateNote } from '@/lib/appwrite';
 import type { Notes } from '@/types/appwrite';
 import * as AppwriteTypes from '@/types/appwrite';
@@ -48,6 +49,7 @@ export default function CreateNoteForm({ onNoteCreated, initialContent, initialF
   const [isLoading, setIsLoading] = useState(false);
   const [showDoodleEditor, setShowDoodleEditor] = useState(false);
   const { closeOverlay } = useOverlay();
+  const { showSuccess } = useToast();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [isTitleManuallyEdited, setIsTitleManuallyEdited] = useState(Boolean(initialContent?.title));
@@ -106,6 +108,7 @@ export default function CreateNoteForm({ onNoteCreated, initialContent, initialF
     try {
       const newNote = await appwriteCreateNote(newNoteData);
       if (newNote) {
+        showSuccess('Spark of Genius Capture', 'Your new note has been crystallized in the cloud.');
         onNoteCreated(newNote);
       }
       closeOverlay();

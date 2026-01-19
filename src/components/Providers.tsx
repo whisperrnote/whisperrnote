@@ -13,6 +13,7 @@ import { GlobalContextMenu } from "@/components/ui/GlobalContextMenu";
 import GlobalShortcuts from "@/components/GlobalShortcuts";
 import { KernelProvider } from "@/ecosystem/kernel/EcosystemKernel";
 import { EcosystemPortal } from "@/components/common/EcosystemPortal";
+import { EcosystemEvents } from "@/components/common/EcosystemEvents";
 
 import { ThemeProvider as MuiThemeProvider, CssBaseline } from "@mui/material";
 import { darkTheme } from "@/theme/theme";
@@ -44,6 +45,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                                             <GlobalContextMenu />
                                             <GlobalShortcuts />
                                             <EcosystemPortal />
+                                            <EcosystemEvents />
                                         </ContextMenuProvider>
                                     </LoadingProvider>
                                 </OverlayProvider>
