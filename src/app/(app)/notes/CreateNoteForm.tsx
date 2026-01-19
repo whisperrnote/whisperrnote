@@ -94,11 +94,13 @@ export default function CreateNoteForm({ onNoteCreated, initialContent, initialF
   }, [content, format, isTitleManuallyEdited, title]);
 
   const handleCreateNote = async () => {
-    if (!title.trim() || isLoading) return;
+    const finalTitle = title.trim() || (format === 'doodle' ? `Sketch ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '');
+    
+    if (!finalTitle || isLoading) return;
 
     setIsLoading(true);
     const newNoteData = {
-      title: title.trim(),
+      title: finalTitle,
       content: content.trim(),
       format,
       tags,
@@ -671,7 +673,7 @@ export default function CreateNoteForm({ onNoteCreated, initialContent, initialF
             e.preventDefault();
             handleCreateNote();
           }}
-          disabled={!title.trim() || !content.trim() || isLoading}
+          disabled={(!title.trim() && format === 'text') || !content.trim() || isLoading}
           sx={{ 
             px: { xs: 4, sm: 6 }, 
             py: { xs: 1.5, sm: 2 },

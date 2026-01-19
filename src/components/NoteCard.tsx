@@ -80,16 +80,30 @@ export default function NoteCard({
         height: '100%', 
         display: 'flex', 
         flexDirection: 'column',
-        bgcolor: 'rgba(10, 10, 10, 0.95)',
-        backdropFilter: 'blur(25px) saturate(180%)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        bgcolor: 'rgba(20, 20, 20, 0.7)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
         borderRadius: '24px',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         backgroundImage: 'none',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+        position: 'relative',
+        overflow: 'hidden',
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(135deg, rgba(0, 245, 255, 0.05) 0%, transparent 100%)',
+          opacity: 0,
+          transition: 'opacity 0.4s'
+        },
         '&:hover': {
-          transform: 'translateY(-8px)',
-          border: '1px solid rgba(0, 245, 255, 0.3)',
-          boxShadow: '0 20px 40px rgba(0, 245, 255, 0.1)',
+          transform: 'translateY(-6px)',
+          borderColor: 'rgba(0, 245, 255, 0.4)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+          bgcolor: 'rgba(25, 25, 25, 0.8)',
+          '&::after': {
+            opacity: 1
+          }
         }
       }}
     >
