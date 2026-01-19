@@ -14,6 +14,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { getEcosystemUrl } from '@/constants/ecosystem';
+import { MeshProtocol, NodeIdentity, MeshMessage } from '@/lib/ecosystem/mesh';
 
 /**
  * Kernel Types & Interfaces
@@ -63,6 +64,34 @@ export const KernelProvider = ({ children }: { children: ReactNode }) => {
   const [windows, setWindows] = useState<WindowInstance[]>([]);
   const [activeWindowId, setActiveWindowId] = useState<string | null>(null);
   const [maxZIndex, setMaxZIndex] = useState(1000);
+  const [meshNodes, setMeshNodes] = useState<NodeIdentity[]>(MeshProtocol.getNodes());
+
+  /**
+   * Node Pulse & Discovery (Mesh Integration)
+   */
+  useEffect(() => {
+    const unsub = MeshProtocol.subscribe((msg: MeshMessage) => {
+      if (msg.type === 'PULSE') {
+        setMeshNodes(prev => prev.map(n => 
+          n.id === msg.sourceNode ? { ...n, status: 'online' as const } : n
+        ));
+      }
+
+      // Handle RPC Requests across nodes
+      if (msg.type === 'RPC_REQUEST') {
+        console.log(`[Mesh] RPC Request from ${msg.sourceNode}:`, msg.payload);
+      }
+    });
+
+    // Send initial pulse as 'note' node (Host)
+    MeshProtocol.broadcast({
+      type: 'PULSE',
+      targetNode: 'all',
+      payload: { health: 1.0 }
+    }, 'note');
+
+    return unsub;
+  }, []);
 
   const focusWindow = useCallback((id: string) => {
     setActiveWindowId(id);
@@ -117,6 +146,13 @@ export const KernelProvider = ({ children }: { children: ReactNode }) => {
       url: win.url,
       appId: win.appId
     }));
+
+    // Broadcast popout event to mesh
+    MeshProtocol.broadcast({
+      type: 'COMMAND',
+      targetNode: 'all',
+      payload: { action: 'NODE_EXTERNAL_MIGRATE', windowId: id }
+    }, 'note');
     
     window.open(`/popout?state=${state}`, '_blank', 'width=800,height=600');
     closeWindow(id);
