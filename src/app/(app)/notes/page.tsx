@@ -202,7 +202,8 @@ export default function NotesPage() {
     } else {
       return {
         display: 'grid',
-        gap: { xs: 1.5, sm: 2 },
+        gap: 1.5,
+        '@media (min-width: 600px)': { gap: 2 },
         gridTemplateColumns: {
           xs: 'repeat(2, 1fr)',
           sm: 'repeat(auto-fill, minmax(260px, 1fr))',
