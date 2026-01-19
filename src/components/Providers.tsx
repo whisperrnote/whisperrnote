@@ -32,8 +32,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <AppThemeProvider>
             <MuiThemeWrapper>
                 <KernelProvider>
-                    <ToastProvider>
-                        <IslandProvider>
+                    <IslandProvider>
+                        <ToastProvider>
                             <AuthProvider>
                                 <OverlayProvider>
                                     <LoadingProvider>
@@ -50,8 +50,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
                                     </LoadingProvider>
                                 </OverlayProvider>
                             </AuthProvider>
-                        </IslandProvider>
-                    </ToastProvider>
+                        </ToastProvider>
+                    </IslandProvider>
                 </KernelProvider>
             </MuiThemeWrapper>
         </AppThemeProvider>
