@@ -12,18 +12,42 @@ import {
     alpha,
 } from '@mui/material';
 import {
-    Search as SearchIcon,
-    Close as CloseIcon,
-    AutoAwesome as PulseIcon,
-    Bolt as ActionIcon
-} from '@mui/icons-material';
+    Search,
+    X,
+    Zap,
+    Activity,
+    Fingerprint,
+    FileText,
+    Shield,
+    Waypoints,
+    GripHorizontal
+} from 'lucide-react';
 import { motion } from 'framer-motion';
+
+/**
+ * Premium Icon Mapper
+ */
+const PremiumIcon = ({ name, size = 20, color = 'currentColor' }: { name: string, size?: number, color?: string }) => {
+    const icons: Record<string, any> = {
+        'fingerprint': Fingerprint,
+        'file-text': FileText,
+        'shield': Shield,
+        'waypoints': Waypoints,
+        'zap': Zap,
+        'activity': Activity,
+        'grip': GripHorizontal
+    };
+    
+    const IconComponent = icons[name] || Zap;
+    return <IconComponent size={size} color={color} strokeWidth={1.5} />;
+};
+
 import { ECOSYSTEM_APPS, getEcosystemUrl } from '@/constants/ecosystem';
 import { EcosystemWidgets } from '@/ecosystem/integration/Widgets';
 import { useKernel } from '@/ecosystem/kernel/EcosystemKernel';
 import { EcosystemBridge } from '@/lib/ecosystem/bridge';
 import { SystemMonitor } from '@/ecosystem/contributions/SystemMonitor';
-import { Activity } from 'lucide-react';
+import { MeshProtocol } from '@/lib/ecosystem/mesh';
 
 interface EcosystemPortalProps {
     open?: boolean;
@@ -115,13 +139,13 @@ export function EcosystemPortal({ open: controlledOpen, onClose: controlledOnClo
                     {/* Header / Search */}
                     <Box sx={{ p: 3, borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                            <PulseIcon sx={{ color: '#00F0FF', fontSize: 24 }} />
+                            <Zap size={24} color="#00F0FF" strokeWidth={1.5} />
                             <Typography variant="h6" sx={{ fontWeight: 900, fontFamily: 'var(--font-space-grotesk)', letterSpacing: '-0.02em', color: 'white' }}>
                                 WHISPERR <Box component="span" sx={{ color: 'rgba(255, 255, 255, 0.4)' }}>PORTAL</Box>
                             </Typography>
                             <Box sx={{ flexGrow: 1 }} />
                             <IconButton onClick={onClose} size="small" sx={{ color: 'rgba(255, 255, 255, 0.3)' }}>
-                                <CloseIcon fontSize="small" />
+                                <X size={20} />
                             </IconButton>
                         </Box>
 
@@ -140,7 +164,7 @@ export function EcosystemPortal({ open: controlledOpen, onClose: controlledOnClo
                                 bgcolor: 'rgba(255, 255, 255, 0.06)'
                             }
                         }}>
-                            <SearchIcon sx={{ color: 'rgba(255, 255, 255, 0.3)', fontSize: 20 }} />
+                            <Search size={20} color="rgba(255, 255, 255, 0.3)" strokeWidth={1.5} />
                             <InputBase
                                 autoFocus
                                 placeholder="Jump to app or search actions..."
@@ -258,7 +282,7 @@ export function EcosystemPortal({ open: controlledOpen, onClose: controlledOnClo
                                             fontSize: '1.5rem',
                                             border: `1px solid ${alpha(app.color, 0.2)}`
                                         }}>
-                                            {app.icon}
+                                            <PremiumIcon name={app.icon} color={app.color} />
                                         </Box>
                                         <Box>
                                             <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>

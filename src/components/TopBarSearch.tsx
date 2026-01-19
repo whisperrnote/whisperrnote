@@ -12,8 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { sidebarIgnoreProps } from '@/constants/sidebar';
 
 import { Box, InputBase, Paper, List, ListItemButton, Typography, Chip, CircularProgress, IconButton } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import CloseIcon from '@mui/icons-material/Close';
+import { Search, X } from 'lucide-react';
 
 export function TopBarSearch() {
   const [isOpen, setIsOpen] = useState(false);
@@ -152,7 +151,8 @@ export function TopBarSearch() {
           boxShadow: isOpen ? '0 0 0 4px rgba(0, 240, 255, 0.1)' : 'none',
         }}
       >
-        <SearchIcon sx={{ color: isOpen ? 'primary.main' : 'text.secondary', mr: 1.5, fontSize: 20 }} />
+        <Search size={18} strokeWidth={1.5} color={isOpen ? '#00f0ff' : 'rgba(255, 255, 255, 0.4)'} />
+        <Box sx={{ width: 12 }} />
         <InputBase
           inputRef={inputRef}
           placeholder="Search Notes..."
@@ -172,7 +172,7 @@ export function TopBarSearch() {
         />
         {searchQuery && (
           <IconButton size="small" onClick={handleClear} sx={{ color: 'text.secondary' }}>
-            <CloseIcon sx={{ fontSize: 18 }} />
+            <X size={16} strokeWidth={1.5} />
           </IconButton>
         )}
       </Box>
@@ -299,7 +299,7 @@ export function TopBarSearch() {
                 mx: 'auto',
                 mb: 2
               }}>
-                <SearchIcon sx={{ fontSize: 32, color: 'text.secondary', opacity: 0.5 }} />
+                <Search size={32} strokeWidth={1} color="rgba(255,255,255,0.2)" />
               </Box>
               <Typography variant="h6" sx={{ fontWeight: 900, letterSpacing: '-0.02em', mb: 0.5 }}>NO_RESULTS</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
