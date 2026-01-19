@@ -1433,12 +1433,8 @@ export async function createTaskFromNote(note: Notes) {
       userId: user.$id,
       createdAt: now,
       updatedAt: now,
-      // Metadata to help us know it's from a note
-      metadata: JSON.stringify({
-        origin: 'whisperrnote',
-        noteId: note.$id,
-        context: 'AI Synthesized'
-      })
+      // No metadata column in tasks collection, using description to reference note
+      description: `${note.content || ''}\n\n--- Origin: WhisperrNote (${note.$id}) ---`
     }
   );
 

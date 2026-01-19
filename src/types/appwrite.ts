@@ -137,6 +137,7 @@ export type Users = Models.Document & {
     identities?: any[] | null;
     createdAt: string | null;
     updatedAt: string | null;
+    prefs?: any;
 }
 
 export type Notes = Models.Document & {
@@ -156,6 +157,9 @@ export type Notes = Models.Document & {
     metadata: string | null;
     format: string | null;
     attachments: string[] | null;
+    // Virtual attributes (hydrated from metadata)
+    linkedTaskId?: string;
+    linkedSource?: string;
 }
 
 export type Tags = Models.Document & {
