@@ -148,7 +148,7 @@ export const SystemMonitor = () => {
 };
 
 const MonitorItem = ({ icon, label, value, color, suffix = "%" }: any) => (
-    <Grid item xs={6}>
+    <Grid size={{ xs: 6 }}>
         <Stack spacing={1}>
             <Stack direction="row" spacing={1} alignItems="center">
                 <Box sx={{ color }}>{icon}</Box>
