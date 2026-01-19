@@ -122,6 +122,39 @@ export const KernelProvider = ({ children }: { children: ReactNode }) => {
     closeWindow(id);
   };
 
+  /**
+   * Cross-Origin Communication Handler
+   * Listens for messages from embedded windows
+   */
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Validate origin if possible, though subdomains might vary
+      const { type, payload } = event.data;
+      if (!type) return;
+
+      switch (type) {
+        case 'WHISPERR_LAUNCH_WINDOW':
+          launchWindow(payload);
+          break;
+        case 'WHISPERR_LOCK_SYSTEM':
+          // Identify which window sent this or lock all?
+          // For now, let's lock the active window
+          if (activeWindowId) lockWindow(activeWindowId);
+          break;
+        case 'WHISPERR_UNLOCK_SYSTEM':
+          if (activeWindowId) unlockWindow(activeWindowId);
+          break;
+        case 'WHISPERR_CLOSE_SELF':
+          const target = windows.find(w => w.url?.includes(event.origin));
+          if (target) closeWindow(target.id);
+          break;
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [launchWindow, activeWindowId, windows]);
+
   return (
     <KernelContext.Provider value={{ 
       windows, 
@@ -189,6 +222,8 @@ const EcosystemWindow = ({ window: win, isActive }: { window: WindowInstance, is
         transition: { type: 'spring', damping: 25, stiffness: 300 }
       }}
       exit={{ opacity: 0, scale: 0.8, y: 40 }}
+      drag={!isMax && !isLocked}
+      dragMomentum={false}
       onMouseDown={() => focusWindow(win.id)}
       style={{
         position: 'absolute',

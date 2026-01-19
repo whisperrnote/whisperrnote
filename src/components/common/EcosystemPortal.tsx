@@ -22,6 +22,8 @@ import { ECOSYSTEM_APPS, getEcosystemUrl } from '@/constants/ecosystem';
 import { EcosystemWidgets } from '@/ecosystem/integration/Widgets';
 import { useKernel } from '@/ecosystem/kernel/EcosystemKernel';
 import { EcosystemBridge } from '@/lib/ecosystem/bridge';
+import { SystemMonitor } from '@/ecosystem/contributions/SystemMonitor';
+import { Activity } from 'lucide-react';
 
 interface EcosystemPortalProps {
     open: boolean;
@@ -159,6 +161,49 @@ export default function EcosystemPortal({ open, onClose }: EcosystemPortalProps)
 
                     {/* Grid of Apps */}
                     <Box sx={{ p: 3, maxHeight: '60vh', overflow: 'auto' }}>
+                        <Box sx={{ mb: 4 }}>
+                            <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.3)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', mb: 2, display: 'block' }}>
+                                System Utilities
+                            </Typography>
+                            <Box 
+                                component="button"
+                                onClick={() => {
+                                    launchWindow({
+                                        title: 'System Monitor',
+                                        component: <SystemMonitor />,
+                                        mode: 'native',
+                                        appId: 'kernel',
+                                        icon: <Activity size={14} color="#00F0FF" />,
+                                        dimensions: { width: 500, height: 350 }
+                                    });
+                                    onClose();
+                                }}
+                                sx={{
+                                    width: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2,
+                                    p: 1.5,
+                                    borderRadius: '16px',
+                                    bgcolor: 'rgba(0, 240, 255, 0.03)',
+                                    border: '1px solid rgba(0, 240, 255, 0.1)',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    '&:hover': {
+                                        bgcolor: 'rgba(0, 240, 255, 0.08)',
+                                        borderColor: 'rgba(0, 240, 255, 0.3)'
+                                    }
+                                }}
+                            >
+                                <Activity size={20} color="#00F0FF" />
+                                <Box>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>Kernel Monitor</Typography>
+                                    <Typography variant="caption" sx={{ color: 'rgba(0, 240, 255, 0.5)' }}>Real-time ecosystem telemetry</Typography>
+                                </Box>
+                            </Box>
+                        </Box>
+
                         <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.3)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', mb: 2, display: 'block' }}>
                             Available Gateways
                         </Typography>
