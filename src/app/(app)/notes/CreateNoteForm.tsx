@@ -49,7 +49,7 @@ export default function CreateNoteForm({ onNoteCreated, initialContent, initialF
   const [isLoading, setIsLoading] = useState(false);
   const [showDoodleEditor, setShowDoodleEditor] = useState(false);
   const { closeOverlay } = useOverlay();
-  const { showSuccess } = useToast();
+  const { showSuccess, showError } = useToast();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [isTitleManuallyEdited, setIsTitleManuallyEdited] = useState(Boolean(initialContent?.title));
@@ -127,8 +127,9 @@ export default function CreateNoteForm({ onNoteCreated, initialContent, initialF
         onNoteCreated(newNote);
       }
       closeOverlay();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create note:', error);
+      showError('Creation Anomaly', error.message || 'The cloud rejected your thought. Please try again.');
     } finally {
       setIsLoading(false);
     }
