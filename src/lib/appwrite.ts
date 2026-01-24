@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Client, Account, Databases, Storage, Functions, ID, Query, Permission, Role, OAuthProvider } from 'appwrite';
+import { Client, Account, Databases, Storage, Functions, ID, Query, Permission, Role, OAuthProvider, Realtime } from 'appwrite';
 import type {
   Users,
   Notes,
@@ -25,6 +25,7 @@ const account = new Account(client);
 const databases = new Databases(client);
 const storage = new Storage(client);
 const functions = new Functions(client);
+const realtime = new Realtime(client);
 
 // export app public uri
 export const APP_URI = process.env.NEXT_PUBLIC_APP_URI ?? 'http://localhost:3000';
@@ -53,7 +54,8 @@ export const APPWRITE_BUCKET_EXTENSION_ASSETS = process.env.NEXT_PUBLIC_APPWRITE
 export const APPWRITE_BUCKET_BACKUPS = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_BACKUPS!;
 export const APPWRITE_BUCKET_TEMP_UPLOADS = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_TEMP_UPLOADS!;
 
-export { client, account, databases, storage, functions, ID, Query, Permission, Role, OAuthProvider };
+export { client, account, databases, storage, functions, realtime, ID, Query, Permission, Role, OAuthProvider };
+export const tablesDB = databases as any; // Alignment with new terminology
 
 // Simple in-memory cache for query results with TTL
 const queryCache = new Map<string, { data: any; expiresAt: number }>();
