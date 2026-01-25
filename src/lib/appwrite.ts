@@ -185,7 +185,13 @@ export async function createUser(data: Partial<Users>) {
     APPWRITE_DATABASE_ID,
     APPWRITE_TABLE_ID_USERS,
     data.id || ID.unique(),
-    userData
+    userData,
+    [
+      Permission.read(Role.any()),
+      Permission.read(Role.guests()),
+      Permission.update(Role.user(data.id || '')),
+      Permission.delete(Role.user(data.id || ''))
+    ]
   );
 }
 
@@ -269,7 +275,7 @@ export async function searchUsers(query: string, limit: number = 5) {
       queries.push(Query.equal('email', query.toLowerCase()));
     } else {
       // Name search
-      queries.push(Query.equal('name', query));
+      queries.push(Query.startsWith('name', query));
       // Only include users who have explicitly made their profile public
       queries.push(Query.equal('publicProfile', true));
     }
