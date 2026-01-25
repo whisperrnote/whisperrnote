@@ -1411,6 +1411,27 @@ export async function listFiles(bucketId: string, queries: any[] = []) {
 // --- CROSS-ECOSYSTEM ACTIONS ---
 
 /**
+ * Lists tasks from WhisperrFlow.
+ */
+export async function listFlowTasks(queries: any[] = []) {
+  const user = await getCurrentUser();
+  if (!user || !user.$id) throw new Error("User not authenticated");
+
+  const finalQueries = [
+    ...queries,
+    Query.equal('userId', user.$id),
+    Query.limit(100),
+    Query.orderDesc('$createdAt')
+  ];
+
+  return databases.listDocuments(
+    FLOW_DATABASE_ID,
+    FLOW_COLLECTION_ID_TASKS,
+    finalQueries
+  );
+}
+
+/**
  * Creates a task in WhisperrFlow based on a note.
  * Stores the task ID in the note's metadata for linking.
  */

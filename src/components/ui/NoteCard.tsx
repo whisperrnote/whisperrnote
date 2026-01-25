@@ -27,6 +27,7 @@ import {
 } from '@mui/icons-material';
 import { sidebarIgnoreProps } from '@/constants/sidebar';
 import { ShareNoteModal } from '../ShareNoteModal';
+import { TaskSelectorModal } from './TaskSelectorModal';
 import { updateNote, createNote, toggleNoteVisibility, createTaskFromNote } from '@/lib/appwrite';
 import { useToast } from './Toast';
 import { useAuth } from './AuthContext';
@@ -53,11 +54,34 @@ const NoteCard: React.FC<NoteCardProps> = React.memo(({ note, onUpdate, onDelete
   const { showSuccess, showError, showInfo } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
+  const [isTaskModalOpen, setIsTaskModalOpen] = React.useState(false);
   const [isAIProcessing, setIsAIProcessing] = React.useState(false);
 
   const isPro = user?.prefs?.subscriptionTier === 'PRO' || 
                 user?.prefs?.subscriptionTier === 'ORG' || 
                 user?.prefs?.subscriptionTier === 'LIFETIME';
+
+  const handleAttachTask = async (taskId: string) => {
+    setIsTaskModalOpen(false);
+    try {
+      const currentTasks = Array.isArray((note as any).linkedTaskIds) 
+        ? (note as any).linkedTaskIds 
+        : ((note as any).linkedTaskId ? [(note as any).linkedTaskId] : []);
+      
+      if (currentTasks.includes(taskId)) {
+        showInfo('Task already attached to this note');
+        return;
+      }
+
+      const updated = await updateNote(note.$id, {
+        linkedTaskIds: [...currentTasks, taskId]
+      });
+      upsertNote(updated);
+      showSuccess('Task attached successfully');
+    } catch (err: any) {
+      showError(err.message || 'Failed to attach task');
+    }
+  };
 
   const handleAIAction = async (action: 'summarize' | 'grammar' | 'expand') => {
     if (isAIProcessing) return;
@@ -303,6 +327,11 @@ const NoteCard: React.FC<NoteCardProps> = React.memo(({ note, onUpdate, onDelete
         label: 'Convert To Todo',
         icon: <TodoIcon sx={{ fontSize: 18, color: '#00F5FF' }} />,
         onClick: () => { handleCreateTodo(); }
+      },
+      {
+        label: 'Attach Existing Task',
+        icon: <AttachFileIcon sx={{ fontSize: 18, color: '#00F5FF' }} />,
+        onClick: () => { setIsTaskModalOpen(true); }
       }
     ] : []),
     {
@@ -325,6 +354,11 @@ const NoteCard: React.FC<NoteCardProps> = React.memo(({ note, onUpdate, onDelete
         onOpenChange={setIsShareModalOpen} 
         noteId={note.$id} 
         noteTitle={note.title || 'Untitled note'} 
+      />
+      <TaskSelectorModal
+        isOpen={isTaskModalOpen}
+        onClose={() => setIsTaskModalOpen(false)}
+        onSelect={handleAttachTask}
       />
       <Card
         {...sidebarIgnoreProps}
