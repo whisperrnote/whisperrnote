@@ -1,21 +1,21 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions, 
-  Button, 
-  TextField, 
-  Typography, 
-  Box, 
-  Avatar, 
-  IconButton, 
-  List, 
-  ListItem, 
-  ListItemAvatar, 
-  ListItemText, 
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+  Typography,
+  Box,
+  Avatar,
+  IconButton,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
   ListItemSecondaryAction,
   Select,
   MenuItem,
@@ -27,9 +27,9 @@ import {
   Paper,
   Tooltip
 } from '@mui/material';
-import { 
-  Close as CloseIcon, 
-  PersonAdd as PersonAddIcon, 
+import {
+  Close as CloseIcon,
+  PersonAdd as PersonAddIcon,
   Delete as DeleteIcon,
   Search as SearchIcon,
   Email as EmailIcon,
@@ -59,6 +59,8 @@ interface FoundUser {
   name: string;
   email?: string;
   avatar?: string | null;
+  profilePicId?: string | null;
+  username?: string;
 }
 
 export function ShareNoteModal({ isOpen, onOpenChange, noteId, noteTitle }: ShareNoteModalProps) {
@@ -138,21 +140,33 @@ export function ShareNoteModal({ isOpen, onOpenChange, noteId, noteTitle }: Shar
   }, [isOpen, loadSharedUsers]);
 
   const debouncedSearch = useCallback(async () => {
-    if (!query.trim() || selectedUser) {
+    if (!query.trim() || query.length < 2 || selectedUser) {
       setResults([]);
       return;
     }
     setIsSearching(true);
     try {
-      const res = await searchUsers(query) as FoundUser[];
-      const filtered = (res || []).filter(u => {
-        if (!u || !u.id) return false;
-        if (currentUserId && u.id === currentUserId) return false;
-        if (sharedUsers.some(s => s.id === u.id)) return false;
-        return true;
-      });
+      const { searchGlobalUsers } = await import('@/lib/ecosystem/identity');
+      const docs = await searchGlobalUsers(query);
+
+      const filtered = docs
+        .filter(u => {
+          if (currentUserId && u.id === currentUserId) return false;
+          if (sharedUsers.some(s => s.id === u.id)) return false;
+          return true;
+        })
+        .map(u => ({
+          id: u.id,
+          name: u.title,
+          email: u.subtitle.startsWith('@') ? undefined : u.subtitle,
+          username: u.subtitle.replace(/^@/, ''),
+          avatar: u.avatar,
+          profilePicId: u.profilePicId
+        }));
+
       setResults(filtered as FoundUser[]);
-    } catch {
+    } catch (err) {
+      console.error('Global search failed in share modal:', err);
       setResults([]);
     } finally {
       setIsSearching(false);
@@ -170,13 +184,13 @@ export function ShareNoteModal({ isOpen, onOpenChange, noteId, noteTitle }: Shar
     let mounted = true;
     const load = async () => {
       for (const user of results) {
-        const fileId = user.avatar || null;
+        const fileId = user.profilePicId || user.avatar || null;
         if (!fileId) continue;
         if (resultPreviews[user.id] !== undefined) continue;
         try {
           const url = await fetchAndCachePreview(fileId);
           if (!mounted) return;
-          setResultPreviews(prev => (prev[user.id] === url ? prev : { ...prev, [user.id]: url }));
+          setResultPreviews(prev => ({ ...prev, [user.id]: url }));
         } catch {
           // ignore
         }
@@ -288,8 +302,8 @@ export function ShareNoteModal({ isOpen, onOpenChange, noteId, noteTitle }: Shar
   const shareDisabled = isLoading || (!selectedUser && !validEmail);
 
   return (
-    <Dialog 
-      open={isOpen} 
+    <Dialog
+      open={isOpen}
       onClose={() => onOpenChange(false)}
       maxWidth="sm"
       fullWidth
@@ -320,10 +334,10 @@ export function ShareNoteModal({ isOpen, onOpenChange, noteId, noteTitle }: Shar
 
       <DialogContent sx={{ p: 3 }}>
         {(errorMsg || successMsg) && (
-          <Alert 
-            severity={errorMsg ? 'error' : 'success'} 
-            sx={{ 
-              mb: 3, 
+          <Alert
+            severity={errorMsg ? 'error' : 'success'}
+            sx={{
+              mb: 3,
               borderRadius: '12px',
               bgcolor: errorMsg ? alpha('#FF4D4D', 0.1) : alpha('#00FF00', 0.1),
               color: errorMsg ? '#FF4D4D' : '#00FF00',
@@ -367,16 +381,16 @@ export function ShareNoteModal({ isOpen, onOpenChange, noteId, noteTitle }: Shar
                   '& .MuiInputBase-input': { color: 'white' }
                 }}
               />
-              
+
               {query && results.length > 0 && !selectedUser && (
-                <Paper 
+                <Paper
                   elevation={0}
-                  sx={{ 
-                    position: 'absolute', 
-                    top: '100%', 
-                    left: 0, 
-                    right: 0, 
-                    zIndex: 10, 
+                  sx={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    zIndex: 10,
                     mt: 1,
                     bgcolor: 'rgba(20, 20, 20, 0.98)',
                     backdropFilter: 'blur(20px)',
@@ -388,31 +402,31 @@ export function ShareNoteModal({ isOpen, onOpenChange, noteId, noteTitle }: Shar
                 >
                   <List disablePadding>
                     {results.map(user => (
-                      <ListItem 
-                        key={user.id} 
+                      <ListItem
+                        key={user.id}
                         component="button"
                         onClick={() => { setSelectedUser(user); setQuery(user.name || user.email || ''); resetMessages(); }}
-                        sx={{ 
-                          width: '100%', 
-                          textAlign: 'left', 
-                          border: 'none', 
+                        sx={{
+                          width: '100%',
+                          textAlign: 'left',
+                          border: 'none',
                           bgcolor: 'transparent',
                           '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.05)' },
                           p: 1.5
                         }}
                       >
                         <ListItemAvatar>
-                          <Avatar 
+                          <Avatar
                             src={resultPreviews[user.id] || undefined}
                             sx={{ width: 32, height: 32, bgcolor: '#00F5FF', color: '#000', fontWeight: 800, fontSize: '0.75rem' }}
                           >
                             {(user.name || user.email || '?').charAt(0).toUpperCase()}
                           </Avatar>
                         </ListItemAvatar>
-                        <ListItemText 
-                          primary={user.name || user.email} 
+                        <ListItemText
+                          primary={user.name}
                           primaryTypographyProps={{ variant: 'body2', fontWeight: 700, color: 'white' }}
-                          secondary={user.email && user.email !== user.name ? user.email : null}
+                          secondary={user.username ? `@${user.username}` : user.email}
                           secondaryTypographyProps={{ variant: 'caption', color: 'rgba(255, 255, 255, 0.4)' }}
                         />
                       </ListItem>
@@ -464,7 +478,7 @@ export function ShareNoteModal({ isOpen, onOpenChange, noteId, noteTitle }: Shar
           <Typography variant="caption" sx={{ fontWeight: 800, color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', mb: 2 }}>
             Collaborators
           </Typography>
-          
+
           {isLoadingUsers ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
               <CircularProgress size={24} sx={{ color: '#00F5FF' }} />
@@ -478,26 +492,26 @@ export function ShareNoteModal({ isOpen, onOpenChange, noteId, noteTitle }: Shar
           ) : (
             <List disablePadding>
               {sharedUsers.map((user) => (
-                <ListItem 
+                <ListItem
                   key={user.id + (user.collaborationId || '')}
-                  sx={{ 
-                    bgcolor: 'rgba(255, 255, 255, 0.02)', 
-                    borderRadius: '16px', 
+                  sx={{
+                    bgcolor: 'rgba(255, 255, 255, 0.02)',
+                    borderRadius: '16px',
                     mb: 1.5,
                     border: '1px solid rgba(255, 255, 255, 0.05)',
                     p: 1.5
                   }}
                 >
                   <ListItemAvatar>
-                    <Avatar 
+                    <Avatar
                       src={sharedPreviews[user.id] || undefined}
                       sx={{ width: 40, height: 40, bgcolor: alpha('#00F5FF', 0.1), color: '#00F5FF', fontWeight: 800 }}
                     >
                       {user.name ? user.name.charAt(0).toUpperCase() : user.email ? user.email.charAt(0).toUpperCase() : 'U'}
                     </Avatar>
                   </ListItemAvatar>
-                  <ListItemText 
-                    primary={user.name || user.email} 
+                  <ListItemText
+                    primary={user.name || user.email}
                     primaryTypographyProps={{ variant: 'body2', fontWeight: 800, color: 'white' }}
                     secondary={user.name ? user.email : null}
                     secondaryTypographyProps={{ variant: 'caption', color: 'rgba(255, 255, 255, 0.4)' }}
@@ -522,13 +536,13 @@ export function ShareNoteModal({ isOpen, onOpenChange, noteId, noteTitle }: Shar
                       <MenuItem value="write">Write</MenuItem>
                       <MenuItem value="admin">Admin</MenuItem>
                     </Select>
-                    
+
                     {updatingCollab === user.collaborationId ? (
                       <CircularProgress size={16} sx={{ color: '#00F5FF' }} />
                     ) : (
                       <Tooltip title="Remove access">
-                        <IconButton 
-                          size="small" 
+                        <IconButton
+                          size="small"
                           onClick={() => handleRemoveSharing(user.id, user.email)}
                           disabled={user.collaborationId === 'pending'}
                           sx={{ color: 'rgba(255, 255, 255, 0.3)', '&:hover': { color: '#FF4D4D' } }}
@@ -546,10 +560,10 @@ export function ShareNoteModal({ isOpen, onOpenChange, noteId, noteTitle }: Shar
       </DialogContent>
 
       <DialogActions sx={{ p: 3, pt: 0 }}>
-        <Button 
+        <Button
           onClick={() => onOpenChange(false)}
-          sx={{ 
-            color: 'rgba(255, 255, 255, 0.4)', 
+          sx={{
+            color: 'rgba(255, 255, 255, 0.4)',
             fontWeight: 800,
             '&:hover': { color: 'white', bgcolor: 'rgba(255, 255, 255, 0.05)' }
           }}
