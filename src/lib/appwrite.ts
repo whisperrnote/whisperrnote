@@ -257,7 +257,7 @@ export async function getUsersByIds(userIds: string[]): Promise<Users[]> {
   return res.documents as unknown as Users[];
 }
 
-// Search users by partial name or email with privacy constraints
+// Search users by partial name with privacy constraints
 export async function searchUsers(query: string, limit: number = 5) {
   try {
     if (!query.trim()) return [];
@@ -266,19 +266,12 @@ export async function searchUsers(query: string, limit: number = 5) {
     const cached = getCached<any[]>(cacheKey);
     if (cached) return cached;
 
-    const isEmail = /@/.test(query) && /\./.test(query);
-
-    const queries: any[] = [Query.limit(limit)];
-
-    if (isEmail) {
-      // Exact email match only
-      queries.push(Query.equal('email', query.toLowerCase()));
-    } else {
-      // Name search
-      queries.push(Query.startsWith('name', query));
-      // Only include users who have explicitly made their profile public
-      queries.push(Query.equal('publicProfile', true));
-    }
+    // SCHEMA-COMPLIANCE: Only query 'name' as it's the only one with an index.
+    // Query.search is required for the fulltext index on 'name'.
+    const queries: any[] = [
+      Query.search('name', query),
+      Query.limit(limit)
+    ];
 
     const res = await databases.listDocuments(
       APPWRITE_DATABASE_ID,
@@ -289,7 +282,7 @@ export async function searchUsers(query: string, limit: number = 5) {
     const mappedResults = res.documents.map((doc: any) => ({
       id: doc.id || doc.$id,
       name: doc.name,
-      email: isEmail ? doc.email : undefined,
+      username: doc.username,
       avatar: doc.profilePicId || (doc.prefs && (doc.prefs as any).profilePicId) || doc.avatar || null
     }));
     setCached(getCacheKey('searchUsers', { query, limit }), mappedResults, 10000);

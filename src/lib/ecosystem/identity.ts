@@ -1,100 +1,67 @@
 import { databases, CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, Query, Permission, Role } from '../appwrite';
 import { getEffectiveUsername, getEffectiveDisplayName } from '../utils';
 
-const PROFILE_SYNC_KEY = 'whisperr_ecosystem_identity_synced';
-const SESSION_SYNC_KEY = 'whisperr_ecosystem_session_synced';
+const PROFILE_SYNC_KEY = 'whisperr_identity_synced_v2';
+const SESSION_SYNC_KEY = 'whisperr_session_identity_ok';
 
 /**
  * Ensures the user has a record in the global WhisperrConnect Directory.
  * This is the 'Universal Identity Hook' that enables ecosystem discovery.
  */
 export async function ensureGlobalIdentity(user: any, force = false) {
-    if (!user?.$id) return;
+    if (!user?.$id || typeof window === 'undefined') return;
 
-    if (typeof window !== 'undefined' && !force) {
-        // Step 1: Session-level skip (Fastest)
-        if (sessionStorage.getItem(SESSION_SYNC_KEY)) return;
-
-        // Step 2: Global device-level skip (24h TTL)
-        const lastSync = localStorage.getItem(PROFILE_SYNC_KEY);
-        if (lastSync && (Date.now() - parseInt(lastSync)) < 24 * 60 * 60 * 1000) {
-            sessionStorage.setItem(SESSION_SYNC_KEY, '1');
-            return;
-        }
+    // Layered Caching
+    if (!force && sessionStorage.getItem(SESSION_SYNC_KEY)) return;
+    const lastSync = localStorage.getItem(PROFILE_SYNC_KEY);
+    if (!force && lastSync && (Date.now() - parseInt(lastSync)) < 24 * 60 * 60 * 1000) {
+        sessionStorage.setItem(SESSION_SYNC_KEY, '1');
+        return;
     }
 
     try {
-        // 1. Get or Generate Normalized Username
         const { account } = await import('../appwrite');
-        const prefs = await account.getPrefs();
+        const [prefs, profile] = await Promise.all([
+            account.getPrefs(),
+            databases.getDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id).catch(() => null)
+        ]);
+
         let username = user.username || prefs?.username || user.name || user.email?.split('@')[0];
-        
-        // Strict Normalization: lowercase, no @, clean alphanumeric
-        username = String(username).toLowerCase().replace(/^@/, '').replace(/[^a-z0-9_]/g, '');
+        username = String(username).toLowerCase().replace(/^@/, '').replace(/[^a-z0-9_]/g, '').slice(0, 50);
         if (!username) username = `user_${user.$id.slice(0, 8)}`;
 
-        // 2. Check global directory (Connect DB)
-        let profile;
-        try {
-            profile = await databases.getDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id);
-        } catch (e: any) {
-            if (e.code !== 404) throw e;
-            profile = null;
-        }
-
-        const now = new Date().toISOString();
         const profileData = {
             username,
             displayName: user.name || username,
-            updatedAt: now,
-            privacySettings: JSON.stringify({ public: true, searchable: true }), // ALWAYS true here
+            updatedAt: new Date().toISOString(),
             avatarUrl: user.avatarUrl || user.avatar || null,
             walletAddress: user.walletAddress || null,
+            bio: profile?.bio || ""
         };
 
         if (!profile) {
-            console.log('[Identity] Initializing global identity:', user.$id);
-            await databases.createDocument(
-                CONNECT_DATABASE_ID,
-                CONNECT_COLLECTION_ID_USERS,
-                user.$id,
-                {
-                    ...profileData,
-                    createdAt: now,
-                    appsActive: ['note'],
-                },
-                [
-                    Permission.read(Role.any()),
-                    Permission.update(Role.user(user.$id)),
-                    Permission.delete(Role.user(user.$id))
-                ]
-            );
+            await databases.createDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, {
+                ...profileData,
+                createdAt: new Date().toISOString(),
+            }, [
+                Permission.read(Role.any()),
+                Permission.update(Role.user(user.$id)),
+                Permission.delete(Role.user(user.$id))
+            ]);
         } else {
-            // Healing Logic: Force fix usernames and discoverability
-            const isMalformed = profile.username !== username || !profile.privacySettings || profile.privacySettings.includes('"public":false');
-            if (isMalformed) {
-                console.log('[Identity] Healing global identity:', user.$id);
-                await databases.updateDocument(
-                    CONNECT_DATABASE_ID,
-                    CONNECT_COLLECTION_ID_USERS,
-                    user.$id,
-                    profileData
-                );
+            if (profile.username !== username) {
+                await databases.updateDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, profileData);
             }
         }
 
-        // 3. Sync back to account prefs if needed
         if (prefs.username !== username) {
             await account.updatePrefs({ ...prefs, username });
         }
 
-        // Mark as successfully synced
-        if (typeof window !== 'undefined') {
-            localStorage.setItem(PROFILE_SYNC_KEY, Date.now().toString());
-            sessionStorage.setItem(SESSION_SYNC_KEY, '1');
-        }
+        localStorage.setItem(PROFILE_SYNC_KEY, Date.now().toString());
+        sessionStorage.setItem(SESSION_SYNC_KEY, '1');
     } catch (error) {
-        console.warn('[Identity] Global identity sync failed:', error);
+        console.warn('[Identity] Background sync deferred:', error);
     }
 }
 
@@ -103,36 +70,36 @@ export async function ensureGlobalIdentity(user: any, force = false) {
  * Supports email, username, and display name.
  */
 export async function searchGlobalUsers(query: string, limit = 10) {
-    if (!query || query.length < 2) return [];
-
-    const isEmail = /@/.test(query) && /\./.test(query);
+    const cleaned = query.trim().replace(/^@/, '');
+    if (!query || cleaned.length < 2) return [];
 
     try {
-        // 1. Primary search in Global Directory (Connect)
-        const res = await databases.listDocuments(
-            CONNECT_DATABASE_ID,
-            CONNECT_COLLECTION_ID_USERS,
-            [
-                Query.or([
-                    Query.startsWith('username', query.toLowerCase().replace(/^@/, '')),
-                    Query.startsWith('displayName', query)
-                ]),
-                Query.limit(limit)
-            ]
-        );
+        // 1. Primary search: ONLY username (indexed)
+        let results: any[] = [];
+        try {
+            const res = await databases.listDocuments(
+                CONNECT_DATABASE_ID,
+                CONNECT_COLLECTION_ID_USERS,
+                [
+                    Query.startsWith('username', cleaned.toLowerCase()),
+                    Query.limit(limit)
+                ]
+            );
+            results = res.documents.map(doc => ({
+                id: doc.$id,
+                type: 'user' as const,
+                title: doc.displayName || doc.username,
+                subtitle: `@${doc.username}`,
+                icon: 'person',
+                avatar: doc.avatarUrl,
+                profilePicId: doc.avatarFileId || doc.profilePicId,
+                apps: doc.appsActive || []
+            }));
+        } catch (e) {
+            console.warn('[Identity] Username search failed:', e);
+        }
 
-        const results = res.documents.map(doc => ({
-            id: doc.$id,
-            type: 'user' as const,
-            title: doc.displayName || doc.username,
-            subtitle: `@${doc.username}`,
-            icon: 'person',
-            avatar: doc.avatarUrl,
-            profilePicId: doc.avatarFileId || doc.profilePicId,
-            apps: doc.appsActive || []
-        }));
-
-        // 2. Secondary Fallback to main users table if results are low
+        // 2. Secondary Fallback: Search by 'name' (Fulltext index in note table)
         if (results.length < 5) {
             try {
                 const { APPWRITE_DATABASE_ID, APPWRITE_TABLE_ID_USERS } = await import('../appwrite');
@@ -140,10 +107,7 @@ export async function searchGlobalUsers(query: string, limit = 10) {
                     APPWRITE_DATABASE_ID,
                     APPWRITE_TABLE_ID_USERS,
                     [
-                        Query.or([
-                            Query.startsWith('name', query),
-                            Query.startsWith('email', query.toLowerCase())
-                        ]),
+                        Query.search('name', cleaned),
                         Query.limit(5)
                     ]
                 );
@@ -153,8 +117,8 @@ export async function searchGlobalUsers(query: string, limit = 10) {
                         results.push({
                             id: doc.$id,
                             type: 'user' as const,
-                            title: doc.name || doc.email.split('@')[0],
-                            subtitle: doc.email,
+                            title: doc.name || doc.email?.split('@')[0] || doc.$id.slice(0, 8),
+                            subtitle: doc.username ? `@${doc.username}` : doc.email,
                             icon: 'person',
                             avatar: doc.avatar || null,
                             profilePicId: doc.profilePicId || doc.avatarFileId,
@@ -163,7 +127,7 @@ export async function searchGlobalUsers(query: string, limit = 10) {
                     }
                 }
             } catch (err) {
-                // Secondary search failure is non-fatal
+                // Ignore fallback errors
             }
         }
 
