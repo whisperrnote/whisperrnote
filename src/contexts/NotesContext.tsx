@@ -149,6 +149,26 @@ export function NotesProvider({ children }: { children: ReactNode }) {
     }
   }, [isAuthenticated, isAuthLoading, user?.$id, fetchBatch]);
 
+  const upsertNote = useCallback((note: Notes) => {
+    const existed = notesRef.current.some((n) => n.$id === note.$id);
+    setNotes((prev) => {
+      if (existed) {
+        return prev.map((item) => (item.$id === note.$id ? note : item));
+      }
+      return [note, ...prev];
+    });
+    if (!existed) {
+      setTotalNotes((prev) => prev + 1);
+    }
+  }, []);
+
+  const removeNote = useCallback((noteId: string) => {
+    setNotes((prev) => prev.filter((note) => note.$id !== noteId));
+    setTotalNotes((prev) => Math.max(0, prev - 1));
+    // Also remove from pinned if it was pinned
+    setPinnedIds((prev) => prev.filter(id => id !== noteId));
+  }, []);
+
   // Realtime subscription
   useEffect(() => {
     if (!isAuthenticated || !user?.$id) return;
@@ -194,26 +214,6 @@ export function NotesProvider({ children }: { children: ReactNode }) {
       if (unsub) unsub();
     };
   }, [isAuthenticated, user?.$id, upsertNote, removeNote]);
-
-  const upsertNote = useCallback((note: Notes) => {
-    const existed = notesRef.current.some((n) => n.$id === note.$id);
-    setNotes((prev) => {
-      if (existed) {
-        return prev.map((item) => (item.$id === note.$id ? note : item));
-      }
-      return [note, ...prev];
-    });
-    if (!existed) {
-      setTotalNotes((prev) => prev + 1);
-    }
-  }, []);
-
-  const removeNote = useCallback((noteId: string) => {
-    setNotes((prev) => prev.filter((note) => note.$id !== noteId));
-    setTotalNotes((prev) => Math.max(0, prev - 1));
-    // Also remove from pinned if it was pinned
-    setPinnedIds((prev) => prev.filter(id => id !== noteId));
-  }, []);
 
   const pinNote = useCallback(async (noteId: string) => {
     try {
