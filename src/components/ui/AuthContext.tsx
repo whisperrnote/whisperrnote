@@ -64,14 +64,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         let dbUser;
         try {
           dbUser = await getUser(currentUser.$id);
-          
+
           // Auto-generate username if missing in DB
           if (!dbUser.username) {
             const autoUsername = getEffectiveUsername(dbUser);
             if (autoUsername) {
               try {
                 await updateUser(currentUser.$id, { username: autoUsername });
-                
+
                 // Sync to account prefs for ecosystem coherence
                 const currentPrefs = await account.getPrefs();
                 if (currentPrefs.username !== autoUsername) {
@@ -93,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               email: currentUser.email,
               username: null
             });
-            
+
             dbUser = await createUser({
               id: currentUser.$id,
               email: currentUser.email,
@@ -110,9 +110,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.error('Failed to create user profile:', createError);
           }
         }
-        
+
         // Merge DB info into user state so fields like 'username' are available
-        setUser({ ...currentUser, ...dbUser });
+        const syncedUser = { ...currentUser, ...dbUser };
+        setUser(syncedUser);
+
+        // Sync to Global Identity Directory (WhisperrConnect)
+        const { ensureGlobalIdentity } = await import('@/lib/ecosystem/identity');
+        ensureGlobalIdentity(syncedUser);
       } else {
         setUser(null);
       }
@@ -121,7 +126,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error: any) {
       // Check for auth=success signal in URL
       const hasAuthSignal = typeof window !== 'undefined' && window.location.search.includes('auth=success');
-      
+
       if (hasAuthSignal && retryCount < 3) {
         console.log(`Auth signal detected but session not found in note. Retrying... (${retryCount + 1})`);
         await new Promise(resolve => setTimeout(resolve, 1000));

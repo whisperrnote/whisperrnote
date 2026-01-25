@@ -53,6 +53,10 @@ export const FLOW_COLLECTION_ID_EVENTS = 'events';
 export const KEEP_DATABASE_ID = 'passwordManagerDb';
 export const KEEP_COLLECTION_ID_CREDENTIALS = 'credentials';
 
+// Ecosystem: WhisperrConnect (The Global Directory)
+export const CONNECT_DATABASE_ID = 'chat';
+export const CONNECT_COLLECTION_ID_USERS = 'users';
+
 export const APPWRITE_BUCKET_PROFILE_PICTURES = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_PROFILE_PICTURES!;
 export const APPWRITE_BUCKET_NOTES_ATTACHMENTS = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_NOTES_ATTACHMENTS!;
 export const APPWRITE_BUCKET_EXTENSION_ASSETS = process.env.NEXT_PUBLIC_APPWRITE_BUCKET_EXTENSION_ASSETS!;

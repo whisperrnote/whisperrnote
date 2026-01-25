@@ -123,18 +123,48 @@ export default function GlobalSearch({
   }, [getUserProfilePicId(user)]);
 
   useEffect(() => {
-    if (query.length > 0) {
-      // Simulate search API call
-      const filteredResults = mockSearchResults.filter(result =>
-        result.title.toLowerCase().includes(query.toLowerCase()) ||
-        result.subtitle?.toLowerCase().includes(query.toLowerCase())
+    let mounted = true;
+    const conductSearch = async () => {
+      if (query.trim().length === 0) {
+        if (mounted) {
+          setResults([]);
+          setShowResults(false);
+        }
+        return;
+      }
+
+      // Notes and Tags still use mock/local logic for now
+      const localResults = mockSearchResults.filter(result =>
+        result.type !== 'user' && (
+          result.title.toLowerCase().includes(query.toLowerCase()) ||
+          result.subtitle?.toLowerCase().includes(query.toLowerCase())
+        )
       );
-      setResults(filteredResults);
-      setShowResults(true);
-    } else {
-      setResults([]);
-      setShowResults(false);
-    }
+
+      // People search uses Global Directory (WhisperrConnect)
+      let globalPeople: SearchResult[] = [];
+      try {
+        const { searchGlobalUsers } = await import('@/lib/ecosystem/identity');
+        const peopleDocs = await searchGlobalUsers(query);
+        globalPeople = peopleDocs.map(p => ({
+          ...p,
+          icon: <PersonIcon />
+        })) as SearchResult[];
+      } catch (err) {
+        console.error('Global search failed', err);
+      }
+
+      if (mounted) {
+        setResults([...localResults, ...globalPeople]);
+        setShowResults(true);
+      }
+    };
+
+    const timer = setTimeout(conductSearch, 300);
+    return () => {
+      mounted = false;
+      clearTimeout(timer);
+    };
   }, [query]);
 
   const handleClear = () => {
@@ -238,36 +268,36 @@ export default function GlobalSearch({
                     <FilterIcon />
                   </IconButton>
                 )}
-                  {user && (
-                    <IconButton 
-                      size="small" 
-                      onClick={handleUserMenuOpen}
-                      sx={{ 
-                        ml: 1,
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        p: 0.5
-                      }}
-                    >
-                      {user.name ? (
-                        <Avatar 
-                          sx={{ 
-                            width: 24, 
-                            height: 24, 
-                            fontSize: '0.75rem',
-                            backgroundColor: '#00F5FF',
-                            color: '#000',
-                            fontWeight: 900,
-                            fontFamily: '"Space Grotesk", sans-serif'
-                          }}
-                          src={smallProfileUrl ?? undefined}
-                        >
-                          {user.name.charAt(0).toUpperCase()}
-                        </Avatar>
-                      ) : (
-                        <AccountIcon sx={{ color: '#00F5FF' }} />
-                      )}
-                    </IconButton>
-                  )}
+                {user && (
+                  <IconButton
+                    size="small"
+                    onClick={handleUserMenuOpen}
+                    sx={{
+                      ml: 1,
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      p: 0.5
+                    }}
+                  >
+                    {user.name ? (
+                      <Avatar
+                        sx={{
+                          width: 24,
+                          height: 24,
+                          fontSize: '0.75rem',
+                          backgroundColor: '#00F5FF',
+                          color: '#000',
+                          fontWeight: 900,
+                          fontFamily: '"Space Grotesk", sans-serif'
+                        }}
+                        src={smallProfileUrl ?? undefined}
+                      >
+                        {user.name.charAt(0).toUpperCase()}
+                      </Avatar>
+                    ) : (
+                      <AccountIcon sx={{ color: '#00F5FF' }} />
+                    )}
+                  </IconButton>
+                )}
               </InputAdornment>
             ),
           }
@@ -348,10 +378,10 @@ export default function GlobalSearch({
                   <ListItemIcon
                     sx={{
                       minWidth: 40,
-                      color: result.type === 'note' 
-                        ? '#00F5FF' 
-                        : result.type === 'user' 
-                          ? '#A855F7' 
+                      color: result.type === 'note'
+                        ? '#00F5FF'
+                        : result.type === 'user'
+                          ? '#A855F7'
                           : '#10B981'
                     }}
                   >
@@ -390,11 +420,11 @@ export default function GlobalSearch({
             </Box>
           ) : (
             <Box sx={{ p: 2 }}>
-              <Typography 
-                variant="subtitle2" 
-                sx={{ 
-                  px: 2, 
-                  pb: 1.5, 
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  px: 2,
+                  pb: 1.5,
                   color: 'rgba(255, 255, 255, 0.4)',
                   fontFamily: '"Space Grotesk", sans-serif',
                   fontWeight: 700,
@@ -424,8 +454,8 @@ export default function GlobalSearch({
                     <ListItemIcon sx={{ minWidth: 40, color: 'rgba(255, 255, 255, 0.3)' }}>
                       <HistoryIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText 
-                      primary={search} 
+                    <ListItemText
+                      primary={search}
                       slotProps={{
                         primary: {
                           sx: {
@@ -467,7 +497,7 @@ export default function GlobalSearch({
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem 
+        <MenuItem
           onClick={handleNavigateToNotes}
           sx={{
             px: 2,
@@ -479,8 +509,8 @@ export default function GlobalSearch({
           <ListItemIcon sx={{ minWidth: 'auto', color: 'inherit' }}>
             <NoteIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText 
-            primary="Notes" 
+          <ListItemText
+            primary="Notes"
             slotProps={{
               primary: {
                 sx: {
@@ -494,7 +524,7 @@ export default function GlobalSearch({
             }}
           />
         </MenuItem>
-        <MenuItem 
+        <MenuItem
           onClick={handleNavigateToTags}
           sx={{
             px: 2,
@@ -506,8 +536,8 @@ export default function GlobalSearch({
           <ListItemIcon sx={{ minWidth: 'auto', color: 'inherit' }}>
             <TagIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText 
-            primary="Tags" 
+          <ListItemText
+            primary="Tags"
             slotProps={{
               primary: {
                 sx: {
@@ -522,7 +552,7 @@ export default function GlobalSearch({
           />
         </MenuItem>
         <Divider sx={{ my: 1, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
-        <MenuItem 
+        <MenuItem
           onClick={handleLogout}
           sx={{
             px: 2,
@@ -535,8 +565,8 @@ export default function GlobalSearch({
           <ListItemIcon sx={{ minWidth: 'auto', color: 'inherit' }}>
             <LogoutIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText 
-            primary="Logout" 
+          <ListItemText
+            primary="Logout"
             slotProps={{
               primary: {
                 sx: {

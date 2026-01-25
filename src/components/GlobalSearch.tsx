@@ -15,60 +15,63 @@ import {
   IconButton,
   alpha
 } from '@mui/material';
-import {
-  Search as SearchIcon,
-  NoteOutlined as NoteIcon,
-  FolderOutlined as FolderIcon,
-  LocalOfferOutlined as TagIcon,
-  Close as CloseIcon
-} from '@mui/icons-material';
+import { PersonOutline as PersonIcon, Search as SearchIcon, NoteOutlined as NoteIcon, FolderOutlined as FolderIcon, LocalOfferOutlined as TagIcon, Close as CloseIcon } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { debounce } from 'lodash';
 
 type SearchResult = {
   id: string;
-  type: 'note' | 'collection' | 'tag';
+  type: 'note' | 'collection' | 'tag' | 'user';
   title: string;
   excerpt?: string;
   date?: string;
   tags?: string[];
+  avatar?: string;
 };
 
 export default function GlobalSearch() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const handleSearch = debounce(async (term: string) => {
-    if (!term) {
+    if (!term || term.trim().length < 2) {
       setResults([]);
       return;
     }
 
-    // TODO: Implement actual search API call
-    const mockResults: SearchResult[] = [
-      {
-        id: '1',
-        type: 'note',
-        title: 'Project Meeting Notes',
-        excerpt: 'Discussion about the new feature implementation...',
-        date: '2 days ago',
-        tags: ['work', 'meeting']
-      },
-      {
-        id: '2',
-        type: 'collection',
-        title: 'Work Documents',
-        date: 'Yesterday'
-      },
-      {
-        id: '3',
-        type: 'tag',
-        title: 'important'
-      }
-    ];
+    setLoading(true);
+    try {
+      // Local/Note Mock Results
+      const noteResults: SearchResult[] = [
+        {
+          id: '1',
+          type: 'note' as const,
+          title: 'Project Meeting Notes',
+          excerpt: 'Discussion about the new feature implementation...',
+          date: '2 days ago',
+          tags: ['work', 'meeting']
+        }
+      ].filter(r => r.title.toLowerCase().includes(term.toLowerCase()));
 
-    setResults(mockResults);
+      // Real Global User Search
+      const { searchGlobalUsers } = await import('@/lib/ecosystem/identity');
+      const globalUsers = await searchGlobalUsers(term);
+      const peopleResults = globalUsers.map(u => ({
+        id: u.id,
+        type: 'user' as const,
+        title: u.title,
+        excerpt: u.subtitle,
+        avatar: u.avatar
+      }));
+
+      setResults([...noteResults, ...peopleResults]);
+    } catch (err) {
+      console.error('Search failed:', err);
+    } finally {
+      setLoading(false);
+    }
   }, 300);
 
   const getIcon = (type: SearchResult['type']) => {
@@ -79,6 +82,8 @@ export default function GlobalSearch() {
         return <FolderIcon sx={{ color: '#00F5FF' }} />;
       case 'tag':
         return <TagIcon sx={{ color: '#00F5FF' }} />;
+      case 'user':
+        return <PersonIcon sx={{ color: '#A855F7' }} />;
     }
   };
 
