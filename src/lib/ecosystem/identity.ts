@@ -30,27 +30,53 @@ export async function ensureGlobalIdentity(user: any, force = false) {
         username = String(username).toLowerCase().replace(/^@/, '').replace(/[^a-z0-9_]/g, '').slice(0, 50);
         if (!username) username = `user_${user.$id.slice(0, 8)}`;
 
-        const profileData = {
+        const picId = user.profilePicId || user.avatarFileId || user.avatarUrl || user.avatar || prefs?.profilePicId || null;
+        const profileData: any = {
             username,
             displayName: user.name || username,
             updatedAt: new Date().toISOString(),
-            avatarUrl: user.avatarUrl || user.avatar || null,
             walletAddress: user.walletAddress || null,
             bio: profile?.bio || ""
         };
 
+        const avatarFieldCandidates = ['profilePicId', 'avatarFileId', 'avatarUrl'];
+
         if (!profile) {
-            await databases.createDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, {
-                ...profileData,
-                createdAt: new Date().toISOString(),
-            }, [
-                Permission.read(Role.any()),
-                Permission.update(Role.user(user.$id)),
-                Permission.delete(Role.user(user.$id))
-            ]);
+            for (const field of avatarFieldCandidates) {
+                try {
+                    const payload = { 
+                        ...profileData, 
+                        createdAt: new Date().toISOString() 
+                    };
+                    if (picId) payload[field] = picId;
+
+                    await databases.createDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, payload, [
+                        Permission.read(Role.any()),
+                        Permission.update(Role.user(user.$id)),
+                        Permission.delete(Role.user(user.$id))
+                    ]);
+                    break;
+                } catch (inner: any) {
+                    const msg = (inner.message || JSON.stringify(inner)).toLowerCase();
+                    if (msg.includes('unknown attribute')) continue;
+                    throw inner;
+                }
+            }
         } else {
             if (profile.username !== username) {
-                await databases.updateDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, profileData);
+                for (const field of avatarFieldCandidates) {
+                    try {
+                        const payload = { ...profileData };
+                        if (picId) payload[field] = picId;
+
+                        await databases.updateDocument(CONNECT_DATABASE_ID, CONNECT_COLLECTION_ID_USERS, user.$id, payload);
+                        break;
+                    } catch (inner: any) {
+                        const msg = (inner.message || JSON.stringify(inner)).toLowerCase();
+                        if (msg.includes('unknown attribute')) continue;
+                        throw inner;
+                    }
+                }
             }
         }
 
